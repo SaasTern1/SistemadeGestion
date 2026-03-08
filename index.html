@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión sc</title>
+    <title>Sistema de Gestión</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
         :root {
@@ -143,6 +143,9 @@
         .search-bar { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 15px; width: 100%; max-width: 350px; font-size: 13px; outline: none; margin-bottom: 0; }
         .search-bar:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1); }
 
+        /* =======================================
+           DISEÑO RESPONSIVO (MÓVILES Y TABLETS)
+           ======================================= */
         @media (max-width: 768px) {
             body { flex-direction: column; overflow-y: auto; }
             .sidebar { position: fixed !important; left: -300px; top: 0; bottom: 0; z-index: 9000; transition: left 0.3s ease; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
@@ -161,6 +164,8 @@
             .card { padding: 15px; }
             .btn { width: 100%; justify-content: center; }
             .search-bar { max-width: 100%; margin-bottom: 10px; }
+            #sec-listado > div:first-child, #sec-hist > div:first-child, #sec-gest > div:first-child { flex-direction: column; align-items: stretch; }
+            #sec-listado > div:first-child > div, #sec-hist > .card > div:first-child, #sec-gest > .card > div:first-child { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
@@ -249,11 +254,8 @@
         <section id="sec-dash" class="section">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
                 <div>
-                    <h1 style="font-size: 28px; font-weight: 800; color: var(--sidebar);">Resumen Operativo</h1>
-                    <p style="color: #64748b;">Control de Calidad y Certificación OEA</p>
-                </div>
-                <div style="text-align:right;">
-                    <p id="dash-date" style="font-size: 12px; font-weight: 600; color: var(--primary); background: #e0e7ff; padding: 5px 12px; border-radius: 20px;"></p>
+                    <h1 style="font-size: 28px; font-weight: 800; color: var(--sidebar);">Panel General</h1>
+                    <p style="color: #64748b;">Resumen Operativo del Sistema</p>
                 </div>
             </div>
 
@@ -267,30 +269,24 @@
                 <div class="card" style="border-left: 6px solid var(--warning);">
                     <div style="display:flex; justify-content:space-between;">
                         <div>
-                            <label>En Proceso</label>
+                            <label>Pendientes / En Gestión</label>
                             <h2 id="dash-pend" style="font-size:38px; color: #92400e;">0</h2>
                         </div>
                         <div style="text-align:right;">
                             <span class="badge badge-warning">Atención Req.</span>
                         </div>
                     </div>
-                    <div style="width:100%; background:#f1f5f9; height:8px; border-radius:4px; margin-top:15px;">
-                        <div id="bar-pend" style="width:0%; background:var(--warning); height:100%; border-radius:4px; transition:1s;"></div>
-                    </div>
                 </div>
 
                 <div class="card" style="border-left: 6px solid var(--success);">
                     <div style="display:flex; justify-content:space-between;">
                         <div>
-                            <label>Aprobados SGC</label>
+                            <label>Aprobados Final</label>
                             <h2 id="dash-ok" style="font-size:38px; color: #065f46;">0</h2>
                         </div>
                         <div style="text-align:right;">
                             <span class="badge badge-success">Meta OEA</span>
                         </div>
-                    </div>
-                    <div style="width:100%; background:#f1f5f9; height:8px; border-radius:4px; margin-top:15px;">
-                        <div id="bar-ok" style="width:0%; background:var(--success); height:100%; border-radius:4px; transition:1s;"></div>
                     </div>
                 </div>
             </div>
@@ -928,13 +924,13 @@
     </div>
 
     <script type="module">
+        // ==========================================
+        // 1. IMPORTACIONES Y CONFIGURACIÓN INICIAL
+        // ==========================================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, setDoc, query, where, getDocs, arrayUnion, runTransaction, deleteDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-        // ==========================================
-        // 1. CONFIGURACIÓN E INICIALIZACIÓN
-        // ==========================================
         const firebaseConfig = {
           apiKey: "AIzaSyDdzCiachuhbE9jATz-TesPI2vUVIJrHjM",
           authDomain: "sistemadegestion-7400d.firebaseapp.com",
@@ -944,45 +940,40 @@
           appId: "1:709030283072:web:5997837b36a448e9515ca5"
         };
 
-        const EMAIL_SERVICE_ID = "service_a7yozqh"; 
-        const EMAIL_TEMPLATE_ID = "template_7hlhnt8"; 
-        const EMAIL_PUBLIC_KEY = "2jVnfkJKKG0bpKN-U"; 
-
-        const EMAIL_ADMIN_SGC = "sistemadegestion@fcipty.com"; 
-        const EMAIL_GRUPO_SGC = "actualizacion@fcipty.com"; 
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = 'sgc-final-v6';
         
+        const EMAIL_SERVICE_ID = "service_a7yozqh"; 
+        const EMAIL_TEMPLATE_ID = "template_7hlhnt8"; 
+        const EMAIL_PUBLIC_KEY = "2jVnfkJKKG0bpKN-U"; 
+        const EMAIL_ADMIN_SGC = "sistemadegestion@fcipty.com"; 
+        const EMAIL_GRUPO_SGC = "actualizacion@fcipty.com"; 
+
         (function() { emailjs.init(EMAIL_PUBLIC_KEY); })();
 
         const CLOUD_NAME = "df79cjklp";
         const UPLOAD_PRESET = "fci_documentos";
 
-        // Variables Globales
+        // Variables Globales de Estado
         let currentUser = null;
         let selectedId = null;
         let selectedDocData = null; 
         let tempAction = "";
         let allUsers = []; 
         let allDepartamentos = []; 
-        
         let columnasMaestro = [];
         let estatusMaestro = [];
         let dataMaestro = [];
         let editandoMaestroId = null;
-        
         let globalSolicitudes = [];
         let globalAuditPlan = null;
         const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
 
         // ==========================================
-        // 2. FUNCIONES GLOBALES / UTILERÍA
-        // ¡IMPORTANTE!: Todo esto DEBE ir aquí arriba
+        // 2. FUNCIONES GLOBALES Y VISUALES (El navegador las aprende primero)
         // ==========================================
-        
         window.showLoading = () => document.getElementById('loading-overlay').style.display = 'flex';
         window.hideLoading = () => document.getElementById('loading-overlay').style.display = 'none';
 
@@ -1004,7 +995,14 @@
 
         window.toggleModPanel = v => document.getElementById('panel-mod').style.display = v === 'Creación' ? 'none' : 'grid';
         window.closeModal = () => document.getElementById('modal').style.display = 'none';
-        window.del = async (c, id) => { if(confirm("¿Eliminar este registro?")) await deleteDoc(doc(db, "artifacts", appId, "public", "data", c, id)); };
+        
+        window.del = async (c, id) => { 
+            if(confirm("¿Eliminar este registro?")) {
+                window.showLoading();
+                await deleteDoc(doc(db, "artifacts", appId, "public", "data", c, id)); 
+                window.hideLoading();
+            }
+        };
 
         window.getDownloadUrl = (url) => {
             if(!url) return "#";
@@ -1055,217 +1053,15 @@
         };
 
         // ==========================================
-        // 3. CARGA DE DATOS PRINCIPAL
+        // 3. LOGICA Y GESTIÓN DE DATOS (Auditoría, Listado, Solicitudes)
         // ==========================================
-        function cargarDatos() {
-            const path = (c) => collection(db, "artifacts", appId, "public", "data", c);
-
-            // CARGAR AUDITORIAS
-            onSnapshot(path("Auditorias"), s => {
-                const tb = document.getElementById('tbody-auditorias');
-                if(!tb) return;
-                let audits = [];
-                const yearFilter = document.getElementById('aud-year-select') ? document.getElementById('aud-year-select').value : new Date().getFullYear().toString();
-
-                s.forEach(d => { 
-                    let a = d.data(); a.id = d.id; 
-                    if(a.fecha && a.fecha.startsWith(yearFilter)) audits.push(a); 
-                });
-                audits.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-
-                let audHtml = "";
-                audits.forEach(a => {
-                    let estadoLabel = a.estado || 'Pendiente';
-                    let estadoBadge = estadoLabel === 'Completado' ? 'badge-success' : 'badge-warning';
-
-                    let btnAccion = "";
-                    if(currentUser && currentUser.permisos && (currentUser.permisos.admin || currentUser.permisos.p_gest_sgc)) {
-                        if(estadoLabel !== 'Completado') {
-                            btnAccion += `<button class="btn btn-success" style="padding:4px 8px; font-size:10px; margin-right:5px;" onclick="marcarAuditoriaCompletada('${a.id}')" title="Marcar como completada"><span class="material-icons-round" style="font-size:14px;">check</span></button>`;
-                        }
-                        btnAccion += `<button class="btn-icon-danger" onclick="del('Auditorias','${a.id}')"><span class="material-icons-round">delete</span></button>`;
-                    }
-                    audHtml += `<tr>
-                            <td><b>${window.formatearFechaAbreviada(a.fecha)}</b></td>
-                            <td>${a.hora_inicio || ''} - ${a.hora_fin || ''}</td>
-                            <td>${a.proceso}</td>
-                            <td>${a.auditado || '-'}</td>
-                            <td>${a.auditor || '-'}</td>
-                            <td>${a.lugar || '-'}</td>
-                            <td><span class="badge ${estadoBadge}">${estadoLabel}</span></td>
-                            <td class="no-export">${btnAccion}</td>
-                        </tr>`;
-                });
-                tb.innerHTML = audHtml;
-                if(currentUser && currentUser.permisos && (currentUser.permisos.admin || currentUser.permisos.p_gest_sgc)) {
-                    verificarAlertasAuditoria(audits);
-                }
-            });
-
-            // CARGAR USUARIOS
-            onSnapshot(path("Usuarios"), s => {
-                const tb = document.getElementById('tbody-users');
-                if(!tb) return;
-                allUsers = []; 
-                let usersHtml = "";
-                let userOptionsHtmlSingle = `<option value="">-- Seleccionar Usuario --</option>`;
-                let userOptionsHtmlMultiple = "";
-                
-                s.forEach(d => {
-                    const u = d.data();
-                    u.docId = d.id;
-                    allUsers.push(u); 
-                    let optStr = `<option value="${u.nombre}" data-email="${u.email || ''}">${u.nombre} (${u.gerencia})</option>`;
-                    userOptionsHtmlSingle += optStr;
-                    userOptionsHtmlMultiple += optStr;
-
-                    usersHtml += `<tr>
-                        <td><b>${u.nombre}</b><br><span style="font-size:10px;color:#64748b">${u.usuario}</span></td>
-                        <td>${u.email || '-'}</td>
-                        <td>${u.gerencia}<br><span class="badge badge-info">${u.role || 'N/A'}</span></td>
-                        <td>
-                            <button class="btn btn-info" style="padding:5px 10px; font-size:10px;" onclick="cargarUsuarioParaEditar('${u.usuario}')">EDITAR</button> 
-                            <button class="btn btn-danger" style="padding:5px 10px; font-size:10px;" onclick="del('Usuarios','${u.docId}')">X</button>
-                        </td>
-                    </tr>`;
-                });
-                tb.innerHTML = usersHtml;
-                if(document.getElementById('ah-lider')) document.getElementById('ah-lider').innerHTML = userOptionsHtmlSingle;
-                if(document.getElementById('ah-auditor')) document.getElementById('ah-auditor').innerHTML = userOptionsHtmlMultiple; 
-                if(document.getElementById('aud-auditado')) document.getElementById('aud-auditado').innerHTML = userOptionsHtmlMultiple;
-                if(document.getElementById('aud-auditor')) document.getElementById('aud-auditor').innerHTML = userOptionsHtmlMultiple;
-            });
-
-            // CARGAR GERENCIAS
-            onSnapshot(path("Gerencias"), s => {
-                let h = "<option value=''>-- Seleccionar Gerencia --</option>", l = "";
-                s.forEach(d => {
-                    const g = d.data();
-                    h += `<option value="${g.nombre}">${g.nombre}</option>`;
-                    l += `<div class="settings-item"><span>${g.nombre}</span><button class="btn-icon-danger" onclick="del('Gerencias','${d.id}')"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`;
-                });
-                if(document.getElementById('sol-ger')) document.getElementById('sol-ger').innerHTML = h;
-                if(document.getElementById('lm-gerencia')) document.getElementById('lm-gerencia').innerHTML = h;
-                if(document.getElementById('u-ger-sel')) document.getElementById('u-ger-sel').innerHTML = h;
-                if(document.getElementById('d-ger-sel')) document.getElementById('d-ger-sel').innerHTML = h; 
-                if(document.getElementById('list-ger')) document.getElementById('list-ger').innerHTML = l;
-                if(document.getElementById('sol-ger') && document.getElementById('sol-ger').value) { document.getElementById('sol-ger').dispatchEvent(new Event('change')); }
-            });
-
-            // CARGAR DEPARTAMENTOS
-            onSnapshot(path("Departamentos"), s => {
-                let l = "";
-                allDepartamentos = [];
-                s.forEach(d => {
-                    const dep = d.data(); dep.docId = d.id; allDepartamentos.push(dep);
-                    l += `<div class="settings-item"><span>${dep.nombre} <small style="color:#94a3b8; margin-left:5px;">(${dep.gerencia || 'Sin Gerencia'})</small></span><button class="btn-icon-danger" onclick="del('Departamentos','${d.id}')"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`;
-                });
-                if(document.getElementById('list-dep')) document.getElementById('list-dep').innerHTML = l;
-                if(document.getElementById('sol-ger')) document.getElementById('sol-ger').dispatchEvent(new Event('change'));
-            });
-
-            // CARGAR CONFIGURACIÓN MAESTRO
-            const docConfigMaestro = doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings");
-            onSnapshot(docConfigMaestro, d => {
-                if(d.exists()) {
-                    columnasMaestro = d.data().columnas || ['Código', 'Gerencia', 'Departamento', 'Tipo de documento', 'Nombre del documento', 'Fecha de Creación', 'Fecha última versión', 'Versión', 'Ubicación del Documento', 'Estatus', 'Código Anterior'];
-                    estatusMaestro = d.data().estatus || ['Vigente', 'Obsoleto', 'En Revisión'];
-                } else {
-                    columnasMaestro = ['Código', 'Gerencia', 'Departamento', 'Tipo de documento', 'Nombre del documento', 'Fecha de Creación', 'Fecha última versión', 'Versión', 'Ubicación del Documento', 'Estatus', 'Código Anterior'];
-                    estatusMaestro = ['Vigente', 'Obsoleto', 'En Revisión'];
-                    setDoc(docConfigMaestro, { columnas: columnasMaestro, estatus: estatusMaestro }, {merge: true});
-                }
-                window.renderListasConfig();
-                window.renderTablaMaestro();
-            });
-
-            // CARGAR SOLICITUDES
-            onSnapshot(path("Solicitudes"), s => {
-                const tbHist = document.getElementById('tbody-historial');
-                const tbGest = document.getElementById('tbody-gestionar');
-                if(!tbHist || !tbGest) return;
-                
-                let stats = { total:0, p:0, o:0 };
-                let solicitudesList = [];
-                s.forEach(d => { let data = d.data(); data.docId = d.id; solicitudesList.push(data); });
-                solicitudesList.sort((a, b) => { return a.customId > b.customId ? 1 : -1; });
-                globalSolicitudes = solicitudesList; 
-
-                let histHtml = "";
-                let gestHtml = "";
-
-                solicitudesList.forEach(sol => {
-                    if(!currentUser) return;
-                    const p = currentUser.permisos || {};
-                    let estadoStr = (sol.estado || "").toUpperCase();
-                    let isAprobadoFinal = estadoStr.includes('APROBADO FINAL');
-                    let isCancelado = estadoStr === 'ANULADO' || estadoStr === 'RECHAZADO';
-
-                    stats.total++;
-                    if(!isAprobadoFinal && !isCancelado) stats.p++; 
-                    else if(isAprobadoFinal) stats.o++;
-
-                    let esInvolucrado = sol.involucrados && currentUser.email && sol.involucrados.includes(currentUser.email.toLowerCase());
-                    let ver = p.p_ver_all || 
-                              (p.p_ver_ger && sol.gerencia === currentUser.gerencia) || 
-                              (p.p_ver_propias && (sol.uid === currentUser.usuario || esInvolucrado));
-                    
-                    let badgeClass = 'badge-info';
-                    if(estadoStr.includes('APROBADO')) badgeClass = 'badge-success';
-                    if(isCancelado) badgeClass = 'badge-danger';
-                    if(estadoStr.includes('PENDIENTE')) badgeClass = 'badge-warning';
-
-                    let faseActual = PASOS_NOMBRES[sol.idx] || "";
-                    let estadoMostrar = sol.estado;
-                    let infoFase = "";
-                    if (isAprobadoFinal) { estadoMostrar = "APROBADO FINAL"; } 
-                    else if (!isCancelado && faseActual) { infoFase = `<br><span style="font-size:10px; color:#64748b; font-weight:700; display:inline-block; margin-top:5px;">📍 Etapa: ${faseActual}</span>`; }
-
-                    if(ver) { histHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button></td></tr>`; }
-                    
-                    let gestionar = false;
-                    if(p.p_gest_sgc && (sol.idx === 0 || sol.idx === 1 || sol.idx === 3) && !isCancelado && !isAprobadoFinal) gestionar = true;
-                    if(p.p_ger_apr && sol.idx === 2 && sol.gerencia === currentUser.gerencia && !isCancelado && !isAprobadoFinal) gestionar = true;
-
-                    if(gestionar) { gestHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-primary" onclick="verDetalle('${sol.docId}')">Gestionar</button></td></tr>`; }
-                });
-                
-                tbHist.innerHTML = histHtml;
-                tbGest.innerHTML = gestHtml;
-                
-                if(document.getElementById('dash-total')) document.getElementById('dash-total').innerText = stats.total;
-                if(document.getElementById('dash-pend')) document.getElementById('dash-pend').innerText = stats.p;
-                if(document.getElementById('dash-ok')) document.getElementById('dash-ok').innerText = stats.o;
-                
-                if(stats.total > 0) {
-                    if(document.getElementById('bar-pend')) document.getElementById('bar-pend').style.width = (stats.p / stats.total * 100) + "%";
-                    if(document.getElementById('bar-ok')) document.getElementById('bar-ok').style.width = (stats.o / stats.total * 100) + "%";
-                }
-                if(document.getElementById('dash-date')) {
-                    document.getElementById('dash-date').innerText = new Date().toLocaleDateString('es-PA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                }
-            });
-
-            // CARGAR LISTADO MAESTRO
-            onSnapshot(path("ListadoMaestro"), s => {
-                dataMaestro = [];
-                s.forEach(d => { let data = d.data(); data.docId = d.id; dataMaestro.push(data); });
-                window.renderTablaMaestro();
-            });
-        }
-
-        // ==========================================
-        // 4. LÓGICA DE AUDITORÍA Y LISTADOS
-        // ==========================================
-
         window.toggleAuditHeaderForm = () => {
             const form = document.getElementById('audit-header-edit');
             const view = document.getElementById('audit-header-view');
             const isEditing = form.style.display === 'block';
             
             if(isEditing) {
-                form.style.display = 'none';
-                view.style.display = 'block';
+                form.style.display = 'none'; view.style.display = 'block';
             } else {
                 const y = document.getElementById('aud-year-select').value;
                 document.getElementById('edit-year-label').innerText = y;
@@ -1282,20 +1078,15 @@
                     document.getElementById('ah-extra-emails').value = (globalAuditPlan.extra_correos || []).join(', ');
 
                     let liderSel = document.getElementById('ah-lider');
-                    for(let i=0; i<liderSel.options.length; i++){
-                        if(liderSel.options[i].value === globalAuditPlan.lider) liderSel.selectedIndex = i;
-                    }
+                    for(let i=0; i<liderSel.options.length; i++){ if(liderSel.options[i].value === globalAuditPlan.lider) liderSel.selectedIndex = i; }
 
                     let audSel = document.getElementById('ah-auditor');
                     let auditoresGuardados = globalAuditPlan.auditor_nombres || [];
-                    for(let i=0; i<audSel.options.length; i++){
-                        audSel.options[i].selected = auditoresGuardados.includes(audSel.options[i].value);
-                    }
+                    for(let i=0; i<audSel.options.length; i++){ audSel.options[i].selected = auditoresGuardados.includes(audSel.options[i].value); }
                 } else {
                     document.getElementById('ah-obj').value = ''; document.getElementById('ah-alcance').value = ''; document.getElementById('ah-tecnica').value = ''; document.getElementById('ah-criterios').value = ''; document.getElementById('ah-ref').value = ''; document.getElementById('ah-fecha').value = ''; document.getElementById('ah-tec').value = ''; document.getElementById('ah-rrhh').value = ''; document.getElementById('ah-extra-emails').value = ''; document.getElementById('ah-lider').selectedIndex = 0; document.getElementById('ah-auditor').selectedIndex = -1;
                 }
-                form.style.display = 'block';
-                view.style.display = 'none';
+                form.style.display = 'block'; view.style.display = 'none';
             }
         };
 
@@ -1303,10 +1094,7 @@
             const year = document.getElementById('aud-year-select').value;
             const docId = `Plan_${year}`;
             let motivo = "Creación inicial";
-            if(globalAuditPlan) {
-                motivo = prompt("Motivo de la modificación del Plan Anual:");
-                if(!motivo) return alert("El motivo es obligatorio para editar.");
-            }
+            if(globalAuditPlan) { motivo = prompt("Motivo de la modificación del Plan Anual:"); if(!motivo) return alert("El motivo es obligatorio para editar."); }
 
             const liderSel = document.getElementById('ah-lider');
             const liderName = liderSel.options[liderSel.selectedIndex]?.value || "";
@@ -1352,7 +1140,6 @@
                     document.getElementById('view-ah-mod-info').innerText = modInfo;
                 } else { globalAuditPlan = null; viewObj.style.display = 'none'; }
             });
-            cargarDatos(); 
         };
 
         window.guardarAuditoria = async () => {
@@ -1415,7 +1202,6 @@
                     const dest = { to: globalAuditPlan.correos.join(',') };
                     const msg = `Se aproxima la auditoría del proceso: ${a.proceso} programada para el ${window.formatearFechaAbreviada(a.fecha)} en ${a.lugar}.\n\nRequisitos a evaluar: ${a.requisitos}\nAuditados: ${a.auditado}\nAuditores: ${a.auditor}.`;
                     sendNotification(dest, asunto, msg);
-                    console.log("Alerta automática enviada:", asunto, a.proceso);
                 }
             });
         }
@@ -1552,43 +1338,11 @@
             document.getElementById('lm-generic-file').value = "";
         };
 
-        if(document.getElementById('import-excel-file')){
-            document.getElementById('import-excel-file').addEventListener('change', async (e) => {
-                const file = e.target.files[0]; if(!file) return; window.showLoading(); const reader = new FileReader();
-                reader.onload = async (evt) => {
-                    try {
-                        const data = new Uint8Array(evt.target.result); const workbook = XLSX.read(data, {type: 'array'});
-                        const sheetName = workbook.SheetNames[0]; const sheet = workbook.Sheets[sheetName];
-                        const json = XLSX.utils.sheet_to_json(sheet, {defval: ""});
-                        if(json.length > 0) {
-                            const colsExcel = Object.keys(json[0]);
-                            await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: colsExcel, estatus: estatusMaestro }, {merge: true});
-                            for(let row of json) { row.importado_por = currentUser.nombre; row.fecha_importacion = new Date().toISOString(); await addDoc(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), row); }
-                            alert(`Se importaron ${json.length} registros.`);
-                        }
-                    } catch(error) { console.error(error); alert("Error leyendo Excel."); }
-                    window.hideLoading(); e.target.value = ''; 
-                }; reader.readAsArrayBuffer(file);
-            });
-        }
-
         window.exportarExcelListado = () => {
             let tablaOriginal = document.getElementById("tabla-listado-maestro"); if(!tablaOriginal) return;
             let tablaClon = tablaOriginal.cloneNode(true); let elementsToRemove = tablaClon.querySelectorAll('.no-export'); elementsToRemove.forEach(el => el.parentNode.removeChild(el));
             let wb = XLSX.utils.table_to_book(tablaClon, {sheet:"Listado Maestro"}); XLSX.writeFile(wb, "Listado_Maestro_SGC.xlsx");
         };
-
-        if(document.getElementById('sol-ger')){
-            document.getElementById('sol-ger').addEventListener('change', (e) => {
-                const gSelected = e.target.value;
-                const gerente = allUsers.find(u => u.gerencia === gSelected && u.permisos && u.permisos.p_ger_apr === true);
-                if (gerente) { document.getElementById('sol-gerente-display').value = gerente.nombre; document.getElementById('sol-email-gerente').value = gerente.email || "Sin Email"; } 
-                else { document.getElementById('sol-gerente-display').value = "No asignado"; document.getElementById('sol-email-gerente').value = ""; }
-                const depSelect = document.getElementById('sol-dep'); let depHtml = "<option value=''>-- Seleccionar Departamento --</option>";
-                const depsFiltrados = allDepartamentos.filter(d => d.gerencia === gSelected); depsFiltrados.forEach(d => { depHtml += `<option value="${d.nombre}">${d.nombre}</option>`; });
-                depSelect.innerHTML = depHtml;
-            });
-        }
 
         window.cargarUsuarioParaEditar = (usuarioId) => {
             const u = allUsers.find(x => x.usuario === usuarioId); if(!u) return;
@@ -1741,16 +1495,6 @@
             const dest = await getDatosEnvio(selectedDocData); sendNotification(dest, `Cancelación: ${selectedDocData.customId}`, `ANULADA por ${currentUser.nombre}.`); window.hideLoading(); window.closeModal();
         }
 
-        document.getElementById('btnConfirmAction').onclick = async () => {
-            const box = document.getElementById('m-extra-input'); const txtHTML = box.innerHTML; const f = document.getElementById('m-file-gestion'); let mensajeFinal = ""; let nEst = "";
-            if (tempAction === "Respuesta") { mensajeFinal = `<b>Respuesta del Usuario:</b><br>${txtHTML}`; nEst = "Respuesta Recibida"; } 
-            else { mensajeFinal = `<b>${tempAction}:</b><br>${txtHTML}`; if(tempAction === 'Reunión') { const fechaReunion = document.getElementById('m-date-meeting').value; if(!fechaReunion) return alert("Selecciona fecha"); mensajeFinal += `<br><br>📅 <b>Fecha Asignada:</b> ${fechaReunion.replace('T', ' ')}`; } nEst = tempAction === 'Rechazado' ? 'Rechazado' : `En ${tempAction}`; }
-            window.showLoading(); let fileUrl = null; if(f.files[0]) { fileUrl = await uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error subiendo archivo."); } }
-            let chatPayload = {u: currentUser.nombre, m: mensajeFinal, t: new Date().toLocaleString()}; if (fileUrl) chatPayload.archivo = fileUrl;
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: nEst, chat: arrayUnion(chatPayload) });
-            const dest = await getDatosEnvio(selectedDocData); sendNotification(dest, `Actualización: ${selectedDocData.customId}`, mensajeFinal.replace(/<br>/g, "\n").replace(/<[^>]*>?/gm, '')); document.getElementById('m-input-area').style.display = 'none'; window.hideLoading(); window.closeModal();
-        };
-
         window.addInvolucrado = () => {
             const container = document.getElementById('lista-involucrados'); const div = document.createElement('div'); div.style.display = 'flex'; div.style.gap = '10px'; div.innerHTML = `<input type="email" placeholder="Correo (ej: juan@fcipty.com)" class="extra-email" style="margin-bottom:0; flex:1;"><button type="button" class="btn btn-danger" onclick="this.parentElement.remove()" style="padding:8px 12px;"><span class="material-icons-round" style="font-size:16px; margin:0;">delete</span></button>`; container.appendChild(div);
         };
@@ -1774,7 +1518,190 @@
 
         window.rechazar = () => { tempAction = 'Rechazado'; document.getElementById('m-input-area').style.display='block'; document.getElementById('reunion-container').style.display = 'none'; };
 
-        // Botones de Registro de Solicitud y Configuraciones Globales
+        function cargarDatos() {
+            const path = (c) => collection(db, "artifacts", appId, "public", "data", c);
+
+            // CARGAR AUDITORIAS
+            onSnapshot(path("Auditorias"), s => {
+                const tb = document.getElementById('tbody-auditorias'); if(!tb) return;
+                let audits = []; const yearFilter = document.getElementById('aud-year-select') ? document.getElementById('aud-year-select').value : new Date().getFullYear().toString();
+                s.forEach(d => { let a = d.data(); a.id = d.id; if(a.fecha && a.fecha.startsWith(yearFilter)) audits.push(a); });
+                audits.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+                let audHtml = "";
+                audits.forEach(a => {
+                    let estadoLabel = a.estado || 'Pendiente'; let estadoBadge = estadoLabel === 'Completado' ? 'badge-success' : 'badge-warning';
+                    let btnAccion = "";
+                    if(currentUser && currentUser.permisos && (currentUser.permisos.admin || currentUser.permisos.p_gest_sgc)) {
+                        if(estadoLabel !== 'Completado') { btnAccion += `<button class="btn btn-success" style="padding:4px 8px; font-size:10px; margin-right:5px;" onclick="marcarAuditoriaCompletada('${a.id}')" title="Marcar como completada"><span class="material-icons-round" style="font-size:14px;">check</span></button>`; }
+                        btnAccion += `<button class="btn-icon-danger" onclick="del('Auditorias','${a.id}')"><span class="material-icons-round">delete</span></button>`;
+                    }
+                    audHtml += `<tr><td><b>${window.formatearFechaAbreviada(a.fecha)}</b></td><td>${a.hora_inicio || ''} - ${a.hora_fin || ''}</td><td>${a.proceso}</td><td>${a.auditado || '-'}</td><td>${a.auditor || '-'}</td><td>${a.lugar || '-'}</td><td><span class="badge ${estadoBadge}">${estadoLabel}</span></td><td class="no-export">${btnAccion}</td></tr>`;
+                });
+                tb.innerHTML = audHtml;
+                if(currentUser && currentUser.permisos && (currentUser.permisos.admin || currentUser.permisos.p_gest_sgc)) verificarAlertasAuditoria(audits);
+            });
+
+            // CARGAR USUARIOS
+            onSnapshot(path("Usuarios"), s => {
+                const tb = document.getElementById('tbody-users'); if(!tb) return;
+                allUsers = []; let usersHtml = ""; let userOptionsHtmlSingle = `<option value="">-- Seleccionar Usuario --</option>`; let userOptionsHtmlMultiple = "";
+                s.forEach(d => {
+                    const u = d.data(); u.docId = d.id; allUsers.push(u); 
+                    let optStr = `<option value="${u.nombre}" data-email="${u.email || ''}">${u.nombre} (${u.gerencia})</option>`;
+                    userOptionsHtmlSingle += optStr; userOptionsHtmlMultiple += optStr;
+                    usersHtml += `<tr><td><b>${u.nombre}</b><br><span style="font-size:10px;color:#64748b">${u.usuario}</span></td><td>${u.email || '-'}</td><td>${u.gerencia}<br><span class="badge badge-info">${u.role || 'N/A'}</span></td><td><button class="btn btn-info" style="padding:5px 10px; font-size:10px;" onclick="cargarUsuarioParaEditar('${u.usuario}')">EDITAR</button> <button class="btn btn-danger" style="padding:5px 10px; font-size:10px;" onclick="del('Usuarios','${u.docId}')">X</button></td></tr>`;
+                });
+                tb.innerHTML = usersHtml;
+                if(document.getElementById('ah-lider')) document.getElementById('ah-lider').innerHTML = userOptionsHtmlSingle;
+                if(document.getElementById('ah-auditor')) document.getElementById('ah-auditor').innerHTML = userOptionsHtmlMultiple; 
+                if(document.getElementById('aud-auditado')) document.getElementById('aud-auditado').innerHTML = userOptionsHtmlMultiple;
+                if(document.getElementById('aud-auditor')) document.getElementById('aud-auditor').innerHTML = userOptionsHtmlMultiple;
+            });
+
+            // CARGAR GERENCIAS
+            onSnapshot(path("Gerencias"), s => {
+                let h = "<option value=''>-- Seleccionar Gerencia --</option>", l = "";
+                s.forEach(d => {
+                    const g = d.data(); h += `<option value="${g.nombre}">${g.nombre}</option>`;
+                    l += `<div class="settings-item"><span>${g.nombre}</span><button class="btn-icon-danger" onclick="del('Gerencias','${d.id}')"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`;
+                });
+                if(document.getElementById('sol-ger')) document.getElementById('sol-ger').innerHTML = h;
+                if(document.getElementById('lm-gerencia')) document.getElementById('lm-gerencia').innerHTML = h;
+                if(document.getElementById('u-ger-sel')) document.getElementById('u-ger-sel').innerHTML = h;
+                if(document.getElementById('d-ger-sel')) document.getElementById('d-ger-sel').innerHTML = h; 
+                if(document.getElementById('list-ger')) document.getElementById('list-ger').innerHTML = l;
+                if(document.getElementById('sol-ger') && document.getElementById('sol-ger').value) { document.getElementById('sol-ger').dispatchEvent(new Event('change')); }
+            });
+
+            // CARGAR DEPARTAMENTOS
+            onSnapshot(path("Departamentos"), s => {
+                let l = ""; allDepartamentos = [];
+                s.forEach(d => {
+                    const dep = d.data(); dep.docId = d.id; allDepartamentos.push(dep);
+                    l += `<div class="settings-item"><span>${dep.nombre} <small style="color:#94a3b8; margin-left:5px;">(${dep.gerencia || 'Sin Gerencia'})</small></span><button class="btn-icon-danger" onclick="del('Departamentos','${d.id}')"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`;
+                });
+                if(document.getElementById('list-dep')) document.getElementById('list-dep').innerHTML = l;
+                if(document.getElementById('sol-ger')) document.getElementById('sol-ger').dispatchEvent(new Event('change'));
+            });
+
+            // CARGAR CONFIGURACIÓN MAESTRO
+            const docConfigMaestro = doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings");
+            onSnapshot(docConfigMaestro, d => {
+                if(d.exists()) {
+                    columnasMaestro = d.data().columnas || ['Código', 'Gerencia', 'Departamento', 'Tipo de documento', 'Nombre del documento', 'Fecha de Creación', 'Fecha última versión', 'Versión', 'Ubicación del Documento', 'Estatus', 'Código Anterior'];
+                    estatusMaestro = d.data().estatus || ['Vigente', 'Obsoleto', 'En Revisión'];
+                } else {
+                    columnasMaestro = ['Código', 'Gerencia', 'Departamento', 'Tipo de documento', 'Nombre del documento', 'Fecha de Creación', 'Fecha última versión', 'Versión', 'Ubicación del Documento', 'Estatus', 'Código Anterior'];
+                    estatusMaestro = ['Vigente', 'Obsoleto', 'En Revisión'];
+                    setDoc(docConfigMaestro, { columnas: columnasMaestro, estatus: estatusMaestro }, {merge: true});
+                }
+                window.renderListasConfig(); window.renderTablaMaestro();
+            });
+
+            // CARGAR SOLICITUDES
+            onSnapshot(path("Solicitudes"), s => {
+                const tbHist = document.getElementById('tbody-historial'); const tbGest = document.getElementById('tbody-gestionar');
+                if(!tbHist || !tbGest) return;
+                
+                let stats = { total:0, p:0, o:0 }; let solicitudesList = [];
+                s.forEach(d => { let data = d.data(); data.docId = d.id; solicitudesList.push(data); });
+                solicitudesList.sort((a, b) => { return a.customId > b.customId ? 1 : -1; });
+                globalSolicitudes = solicitudesList; 
+
+                let histHtml = ""; let gestHtml = "";
+
+                solicitudesList.forEach(sol => {
+                    if(!currentUser) return;
+                    const p = currentUser.permisos || {};
+                    let estadoStr = (sol.estado || "").toUpperCase();
+                    let isAprobadoFinal = estadoStr.includes('APROBADO FINAL');
+                    let isCancelado = estadoStr === 'ANULADO' || estadoStr === 'RECHAZADO';
+
+                    stats.total++;
+                    if(!isAprobadoFinal && !isCancelado) stats.p++; else if(isAprobadoFinal) stats.o++;
+
+                    let esInvolucrado = sol.involucrados && currentUser.email && sol.involucrados.includes(currentUser.email.toLowerCase());
+                    let ver = p.p_ver_all || (p.p_ver_ger && sol.gerencia === currentUser.gerencia) || (p.p_ver_propias && (sol.uid === currentUser.usuario || esInvolucrado));
+                    
+                    let badgeClass = 'badge-info';
+                    if(estadoStr.includes('APROBADO')) badgeClass = 'badge-success';
+                    if(isCancelado) badgeClass = 'badge-danger';
+                    if(estadoStr.includes('PENDIENTE')) badgeClass = 'badge-warning';
+
+                    let faseActual = PASOS_NOMBRES[sol.idx] || ""; let estadoMostrar = sol.estado; let infoFase = "";
+                    if (isAprobadoFinal) { estadoMostrar = "APROBADO FINAL"; } else if (!isCancelado && faseActual) { infoFase = `<br><span style="font-size:10px; color:#64748b; font-weight:700; display:inline-block; margin-top:5px;">📍 Etapa: ${faseActual}</span>`; }
+
+                    if(ver) { histHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button></td></tr>`; }
+                    
+                    let gestionar = false;
+                    if(p.p_gest_sgc && (sol.idx === 0 || sol.idx === 1 || sol.idx === 3) && !isCancelado && !isAprobadoFinal) gestionar = true;
+                    if(p.p_ger_apr && sol.idx === 2 && sol.gerencia === currentUser.gerencia && !isCancelado && !isAprobadoFinal) gestionar = true;
+
+                    if(gestionar) { gestHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-primary" onclick="verDetalle('${sol.docId}')">Gestionar</button></td></tr>`; }
+                });
+                
+                tbHist.innerHTML = histHtml; tbGest.innerHTML = gestHtml;
+                if(document.getElementById('dash-total')) document.getElementById('dash-total').innerText = stats.total;
+                if(document.getElementById('dash-pend')) document.getElementById('dash-pend').innerText = stats.p;
+                if(document.getElementById('dash-ok')) document.getElementById('dash-ok').innerText = stats.o;
+            });
+
+            // CARGAR LISTADO MAESTRO
+            onSnapshot(path("ListadoMaestro"), s => {
+                dataMaestro = []; s.forEach(d => { let data = d.data(); data.docId = d.id; dataMaestro.push(data); });
+                window.renderTablaMaestro();
+            });
+        }
+
+
+        // ==========================================
+        // 4. EVENTOS Y ASIGNACIONES HTML
+        // ==========================================
+        if(document.getElementById('sol-ger')){
+            document.getElementById('sol-ger').addEventListener('change', (e) => {
+                const gSelected = e.target.value;
+                const gerente = allUsers.find(u => u.gerencia === gSelected && u.permisos && u.permisos.p_ger_apr === true);
+                if (gerente) { document.getElementById('sol-gerente-display').value = gerente.nombre; document.getElementById('sol-email-gerente').value = gerente.email || "Sin Email"; } 
+                else { document.getElementById('sol-gerente-display').value = "No asignado"; document.getElementById('sol-email-gerente').value = ""; }
+                const depSelect = document.getElementById('sol-dep'); let depHtml = "<option value=''>-- Seleccionar Departamento --</option>";
+                const depsFiltrados = allDepartamentos.filter(d => d.gerencia === gSelected); depsFiltrados.forEach(d => { depHtml += `<option value="${d.nombre}">${d.nombre}</option>`; });
+                depSelect.innerHTML = depHtml;
+            });
+        }
+
+        if(document.getElementById('import-excel-file')){
+            document.getElementById('import-excel-file').addEventListener('change', async (e) => {
+                const file = e.target.files[0]; if(!file) return; window.showLoading(); const reader = new FileReader();
+                reader.onload = async (evt) => {
+                    try {
+                        const data = new Uint8Array(evt.target.result); const workbook = XLSX.read(data, {type: 'array'});
+                        const sheetName = workbook.SheetNames[0]; const sheet = workbook.Sheets[sheetName];
+                        const json = XLSX.utils.sheet_to_json(sheet, {defval: ""});
+                        if(json.length > 0) {
+                            const colsExcel = Object.keys(json[0]);
+                            await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: colsExcel, estatus: estatusMaestro }, {merge: true});
+                            for(let row of json) { row.importado_por = currentUser.nombre; row.fecha_importacion = new Date().toISOString(); await addDoc(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), row); }
+                            alert(`Se importaron ${json.length} registros.`);
+                        }
+                    } catch(error) { console.error(error); alert("Error leyendo Excel."); }
+                    window.hideLoading(); e.target.value = ''; 
+                }; reader.readAsArrayBuffer(file);
+            });
+        }
+
+        const btnConfirmAction = document.getElementById('btnConfirmAction');
+        if(btnConfirmAction) {
+            btnConfirmAction.onclick = async () => {
+                const box = document.getElementById('m-extra-input'); const txtHTML = box.innerHTML; const f = document.getElementById('m-file-gestion'); let mensajeFinal = ""; let nEst = "";
+                if (tempAction === "Respuesta") { mensajeFinal = `<b>Respuesta del Usuario:</b><br>${txtHTML}`; nEst = "Respuesta Recibida"; } 
+                else { mensajeFinal = `<b>${tempAction}:</b><br>${txtHTML}`; if(tempAction === 'Reunión') { const fechaReunion = document.getElementById('m-date-meeting').value; if(!fechaReunion) return alert("Selecciona fecha"); mensajeFinal += `<br><br>📅 <b>Fecha Asignada:</b> ${fechaReunion.replace('T', ' ')}`; } nEst = tempAction === 'Rechazado' ? 'Rechazado' : `En ${tempAction}`; }
+                window.showLoading(); let fileUrl = null; if(f.files[0]) { fileUrl = await uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error subiendo archivo."); } }
+                let chatPayload = {u: currentUser.nombre, m: mensajeFinal, t: new Date().toLocaleString()}; if (fileUrl) chatPayload.archivo = fileUrl;
+                await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: nEst, chat: arrayUnion(chatPayload) });
+                const dest = await getDatosEnvio(selectedDocData); sendNotification(dest, `Actualización: ${selectedDocData.customId}`, mensajeFinal.replace(/<br>/g, "\n").replace(/<[^>]*>?/gm, '')); document.getElementById('m-input-area').style.display = 'none'; window.hideLoading(); window.closeModal();
+            };
+        }
+
         const btnSendSol = document.getElementById('btnSendSol');
         if (btnSendSol) {
             btnSendSol.onclick = async () => {
@@ -1788,16 +1715,23 @@
             };
         }
 
-        document.getElementById('btnSaveUser').onclick = async () => {
-            const nom = document.getElementById('u-nom').value.trim(); const usr = document.getElementById('u-usr').value.toLowerCase().trim(); const pas = document.getElementById('u-pas').value.trim(); const ger = document.getElementById('u-ger-sel').value; const rol = document.getElementById('u-rol').value.trim(); const email = document.getElementById('u-email').value.trim().toLowerCase();
-            if(!nom || !usr || !pas || !ger) return alert("Nombre, Usuario, Contraseña y Gerencia son obligatorios.");
-            const permisos = { can_solicit: document.getElementById('p-solicitar').checked, p_ver_propias: document.getElementById('p-ver-propias').checked, p_ver_ger: document.getElementById('p-ver-ger').checked, p_gest_sgc: document.getElementById('p-gest-sgc').checked, p_ger_apr: document.getElementById('p-ger-apr').checked, p_users: document.getElementById('p-users').checked, p_struct: document.getElementById('p-struct').checked, p_ver_listado: document.getElementById('p-ver-listado').checked, admin: document.getElementById('p-admin').checked };
-            window.showLoading();
-            const docRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", usr); const snap = await getDoc(docRef);
-            if(snap.exists() && document.getElementById('user-form-title').innerText.includes("Registrar")) { window.hideLoading(); return alert("Ese ID de usuario ya existe. Elija otro o edítelo desde la tabla."); }
-            await setDoc(docRef, { nombre: nom, usuario: usr, pass: pas, gerencia: ger, role: rol, email: email, permisos: permisos });
-            window.resetUserForm(); window.hideLoading(); alert("Usuario guardado exitosamente.");
-        };
+        const btnSaveUser = document.getElementById('btnSaveUser');
+        if (btnSaveUser) {
+            btnSaveUser.onclick = async () => {
+                const nom = document.getElementById('u-nom').value.trim(); const usr = document.getElementById('u-usr').value.toLowerCase().trim(); const pas = document.getElementById('u-pas').value.trim(); const ger = document.getElementById('u-ger-sel').value; const rol = document.getElementById('u-rol').value.trim(); const email = document.getElementById('u-email').value.trim().toLowerCase();
+                if(!nom || !usr || !pas || !ger) return alert("Nombre, Usuario, Contraseña y Gerencia son obligatorios.");
+                const permisos = { can_solicit: document.getElementById('p-solicitar').checked, p_ver_propias: document.getElementById('p-ver-propias').checked, p_ver_ger: document.getElementById('p-ver-ger').checked, p_gest_sgc: document.getElementById('p-gest-sgc').checked, p_ger_apr: document.getElementById('p-ger-apr').checked, p_users: document.getElementById('p-users').checked, p_struct: document.getElementById('p-struct').checked, p_ver_listado: document.getElementById('p-ver-listado').checked, admin: document.getElementById('p-admin').checked };
+                window.showLoading();
+                const docRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", usr); const snap = await getDoc(docRef);
+                if(snap.exists() && document.getElementById('user-form-title').innerText.includes("Registrar")) { window.hideLoading(); return alert("Ese ID de usuario ya existe. Elija otro o edítelo desde la tabla."); }
+                await setDoc(docRef, { nombre: nom, usuario: usr, pass: pas, gerencia: ger, role: rol, email: email, permisos: permisos });
+                window.resetUserForm(); window.hideLoading(); alert("Usuario guardado exitosamente.");
+            };
+        }
+
+        document.getElementById('login-pass').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') { document.getElementById('btnLogin').click(); }
+        });
 
         document.getElementById('btnLogin').onclick = async () => {
             const u = document.getElementById('login-user').value.toLowerCase().trim();
@@ -1842,7 +1776,7 @@
         if(btnSaveDep) { btnSaveDep.onclick = async () => { const ger = document.getElementById('d-ger-sel').value; const nom = document.getElementById('d-nom').value.trim(); if(!ger || !nom) return alert("Seleccione Gerencia y escriba Departamento."); await addDoc(collection(db, "artifacts", appId, "public", "data", "Departamentos"), { nombre: nom, gerencia: ger }); document.getElementById('d-nom').value = ""; }; }
 
         // ==========================================
-        // 5. INICIALIZACIÓN (Debe estar al FINAL)
+        // 5. INICIALIZACIÓN DEL SISTEMA (AL FINAL)
         // ==========================================
         async function restaurarSesion() {
             const savedUser = localStorage.getItem('sgc_session_user');
@@ -1862,6 +1796,7 @@
             }
         }
 
+        // Llamar la restauración de sesión solo cuando todo el JS ha sido estructurado
         restaurarSesion();
 
     </script>
