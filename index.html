@@ -323,8 +323,7 @@
                     <div>
                         <label>Tipo Documento</label>
                         <select id="sol-tipo-doc">
-                            <option>Guía</option><option>Manual</option><option>Instructivo</option><option>Procedimiento</option><option>Formato</option>
-                        </select>
+                            </select>
                     </div>
                 </div>
 
@@ -364,10 +363,16 @@
                 <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px;">
                     <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0;">
                         Añadir Personas Involucradas / Co-solicitantes
-                        <button type="button" class="btn btn-info" style="padding: 4px 10px; font-size:11px;" onclick="addInvolucrado()"><span class="material-icons-round" style="font-size:14px; margin-right:4px;">person_add</span> Añadir Persona</button>
                     </label>
-                    <p style="font-size:10px; color:#64748b; margin-top:5px; margin-bottom:0;">Añade correos electrónicos de quienes necesiten ser notificados de los avances y resoluciones de este documento.</p>
-                    <div id="lista-involucrados" style="display:flex; flex-direction:column; gap:10px; margin-top:10px;"></div>
+                    <p style="font-size:10px; color:#64748b; margin-top:5px; margin-bottom:10px;">Selecciona usuarios de la plataforma para notificarles sobre este documento (evita errores de correos).</p>
+                    
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <select id="sol-involucrado-sel" style="margin:0; flex:1; background:white;">
+                            <option value="">-- Seleccionar Usuario --</option>
+                        </select>
+                        <button type="button" class="btn btn-info" style="padding: 4px 15px;" onclick="addInvolucradoList()"><span class="material-icons-round" style="font-size:16px; margin-right:4px;">person_add</span> Añadir</button>
+                    </div>
+                    <div id="lista-involucrados-tags" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
                 </div>
                 
                 <label>Justificación / Motivo</label>
@@ -477,7 +482,7 @@
                 <div style="display:flex; gap:10px; align-items:center; background:white; padding:8px 15px; border-radius:12px; border:1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <label style="margin:0; font-size:12px;">Año:</label>
                     <select id="aud-year-select" style="margin:0; width:130px; padding:8px; border:none; font-weight:bold; color:var(--primary); background:transparent; cursor:pointer;" onchange="cambiarAnioAuditoria(this.value)">
-                        </select>
+                    </select>
                     <div style="width:1px; height:20px; background:var(--border); margin:0 5px;"></div>
                     <button class="btn btn-info" id="btn-config-plan" style="display:none; padding:8px 12px; font-size:11px;" onclick="toggleAuditHeaderForm()">
                         <span class="material-icons-round" style="font-size:14px;">settings</span> Configurar Plan
@@ -726,12 +731,22 @@
             </div>
             
             <h3 style="margin:35px 0 15px; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
-                <span class="material-icons-round">view_column</span> Configuración Dinámica (Listado Maestro)
+                <span class="material-icons-round">view_column</span> Configuración Dinámica (Solicitudes y Listado Maestro)
             </h3>
             
-            <div class="grid-2">
+            <div class="grid-3">
+                <div class="card" style="border-top: 4px solid var(--success);">
+                    <h3 style="display:flex; align-items:center; gap:5px;"><span class="material-icons-round" style="color:var(--success);">description</span> Tipos de Documento</h3>
+                    <p style="font-size:11px; color:#64748b; margin-bottom:10px;">Opciones para la creación de solicitudes.</p>
+                    <div style="display:flex; gap:0; margin-bottom:15px;">
+                        <input type="text" id="doc-tipo-nom" placeholder="Ej: Anexo" style="margin:0; border-radius: 8px 0 0 8px; border-right:none;">
+                        <button class="btn btn-success" onclick="agregarTipoDoc()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button>
+                    </div>
+                    <div id="list-tipos-doc" class="settings-list"></div>
+                </div>
+
                 <div class="card" style="border-top: 4px solid #8b5cf6;">
-                    <h3 style="display:flex; align-items:center; gap:5px;"><span class="material-icons-round" style="color:#8b5cf6;">table_chart</span> Columnas de Tabla</h3>
+                    <h3 style="display:flex; align-items:center; gap:5px;"><span class="material-icons-round" style="color:#8b5cf6;">table_chart</span> Columnas Listado Maestro</h3>
                     <p style="font-size:11px; color:#64748b; margin-bottom:10px;">Agrega/elimina columnas de la base central.</p>
                     <div style="display:flex; gap:0; margin-bottom:15px;">
                         <input type="text" id="col-nom" placeholder="Ej: Nueva Columna" style="margin:0; border-radius: 8px 0 0 8px; border-right:none;">
@@ -741,8 +756,8 @@
                 </div>
 
                 <div class="card" style="border-top: 4px solid var(--warning);">
-                    <h3 style="display:flex; align-items:center; gap:5px;"><span class="material-icons-round" style="color:var(--warning);">label</span> Estatus de Documentos</h3>
-                    <p style="font-size:11px; color:#64748b; margin-bottom:10px;">Las opciones de ciclo de vida (Ej: Vigente, Obsoleto).</p>
+                    <h3 style="display:flex; align-items:center; gap:5px;"><span class="material-icons-round" style="color:var(--warning);">label</span> Estatus Listado Maestro</h3>
+                    <p style="font-size:11px; color:#64748b; margin-bottom:10px;">Ciclo de vida (Ej: Vigente, Obsoleto).</p>
                     <div style="display:flex; gap:0; margin-bottom:15px;">
                         <input type="text" id="est-nom" placeholder="Ej: Archivo Muerto" style="margin:0; border-radius: 8px 0 0 8px; border-right:none;">
                         <button class="btn btn-success" onclick="agregarEstatus()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button>
@@ -859,7 +874,9 @@
                         <p id="m-involucrados-list" style="font-size:13px; font-weight:600; color:#0369a1; word-break:break-all; margin-bottom: 10px;"></p>
                         
                         <div id="m-add-involucrado-section" style="display:flex; gap:10px; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
-                            <input type="email" id="m-new-involucrado" placeholder="Añadir nuevo correo (ej: juan@fcipty.com)" style="margin:0; padding:8px; font-size:12px; flex:1; background:white;">
+                            <select id="m-new-involucrado-sel" style="margin:0; padding:8px; font-size:12px; flex:1; background:white;">
+                                <option value="">-- Seleccionar Usuario --</option>
+                            </select>
                             <button class="btn btn-info" onclick="guardarNuevoInvolucrado()" style="padding:8px 12px; font-size:11px;">Añadir</button>
                         </div>
                     </div>
@@ -991,6 +1008,7 @@
         let tempAction = "";
         let allUsers = []; 
         let allDepartamentos = []; 
+        let tiposDocumento = [];
         let columnasMaestro = [];
         let estatusMaestro = [];
         let dataMaestro = [];
@@ -998,7 +1016,6 @@
         let globalSolicitudes = [];
         let globalAuditPlan = null;
         
-        // Variables exclusivas de Auditoria
         let globalAllAuditorias = [];
         let globalAuditorias = []; 
         
@@ -1054,7 +1071,6 @@
             return `${dia}-${mes}-${anio}`;
         };
 
-        // INICIALIZACIÓN DE SELECT DE AÑOS DE AUDITORÍA
         const yearSelect = document.getElementById('aud-year-select');
         if(yearSelect) {
             const currY = new Date().getFullYear();
@@ -1089,7 +1105,6 @@
             
             cargarDatos();
             
-            // Cargar por defecto el plan actual para SGC
             if(esSGC && document.getElementById('aud-year-select')) {
                 loadAuditPlan(document.getElementById('aud-year-select').value);
             }
@@ -1165,9 +1180,6 @@
             XLSX.writeFile(wb, `${nameF}.xlsx`);
         };
 
-        // ==========================================
-        // LÓGICA DE AUDITORÍA MEJORADA (CHECKBOXES)
-        // ==========================================
         window.cambiarAnioAuditoria = (val) => {
             if(val === 'nuevo') {
                 let nYear = prompt("Ingrese el nuevo año a registrar (ej: 2028):");
@@ -1196,7 +1208,6 @@
                 const y = document.getElementById('aud-year-select').value;
                 document.getElementById('edit-year-label').innerText = y;
                 
-                // Limpiar checkboxes previamente
                 document.querySelectorAll('#ah-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
 
                 if(globalAuditPlan) {
@@ -1423,31 +1434,58 @@
             return id;
         }
 
+        window.actualizarSelectTiposDoc = () => {
+            let html = '<option value="">-- Seleccione --</option>';
+            tiposDocumento.forEach(t => html += `<option value="${t}">${t}</option>`);
+            if(document.getElementById('sol-tipo-doc')) document.getElementById('sol-tipo-doc').innerHTML = html;
+        };
+
         window.renderListasConfig = () => {
             let hCol = ""; columnasMaestro.forEach((c, idx) => { hCol += `<div class="settings-item"><span>${c}</span><button class="btn-icon-danger" onclick="eliminarColumna(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; });
             if(document.getElementById('list-columnas')) document.getElementById('list-columnas').innerHTML = hCol;
+            
             let hEst = ""; estatusMaestro.forEach((e, idx) => { hEst += `<div class="settings-item"><span>${e}</span><button class="btn-icon-danger" onclick="eliminarEstatus(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; });
             if(document.getElementById('list-estatus')) document.getElementById('list-estatus').innerHTML = hEst;
+            
+            let hTipos = ""; tiposDocumento.forEach((t, idx) => { hTipos += `<div class="settings-item"><span>${t}</span><button class="btn-icon-danger" onclick="eliminarTipoDoc(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; });
+            if(document.getElementById('list-tipos-doc')) document.getElementById('list-tipos-doc').innerHTML = hTipos;
+            
+            window.actualizarSelectTiposDoc();
+        }
+
+        window.agregarTipoDoc = async () => {
+            let val = document.getElementById('doc-tipo-nom').value.trim(); 
+            if(!val) return; 
+            if(tiposDocumento.includes(val)) return alert("Ese tipo de documento ya existe.");
+            tiposDocumento.push(val); 
+            await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { tiposDoc: tiposDocumento }, {merge: true}); 
+            document.getElementById('doc-tipo-nom').value = "";
+        }
+
+        window.eliminarTipoDoc = async (idx) => {
+            if(!confirm("¿Eliminar este tipo de documento?")) return; 
+            tiposDocumento.splice(idx, 1);
+            await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { tiposDoc: tiposDocumento }, {merge: true});
         }
 
         window.agregarColumna = async () => {
             let val = document.getElementById('col-nom').value.trim(); if(!val) return; if (columnasMaestro.includes(val)) return alert("Esa columna ya existe.");
-            columnasMaestro.push(val); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: columnasMaestro, estatus: estatusMaestro }, {merge: true}); document.getElementById('col-nom').value = "";
+            columnasMaestro.push(val); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: columnasMaestro }, {merge: true}); document.getElementById('col-nom').value = "";
         }
 
         window.eliminarColumna = async (idx) => {
             if(!confirm("¿Eliminar columna?")) return; columnasMaestro.splice(idx, 1);
-            await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: columnasMaestro, estatus: estatusMaestro }, {merge: true});
+            await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: columnasMaestro }, {merge: true});
         }
 
         window.agregarEstatus = async () => {
             let val = document.getElementById('est-nom').value.trim(); if(!val) return; if (estatusMaestro.includes(val)) return alert("Ese estatus ya existe.");
-            estatusMaestro.push(val); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: columnasMaestro, estatus: estatusMaestro }, {merge: true}); document.getElementById('est-nom').value = "";
+            estatusMaestro.push(val); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { estatus: estatusMaestro }, {merge: true}); document.getElementById('est-nom').value = "";
         }
 
         window.eliminarEstatus = async (idx) => {
             if(!confirm("¿Eliminar este estatus?")) return; estatusMaestro.splice(idx, 1);
-            await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: columnasMaestro, estatus: estatusMaestro }, {merge: true});
+            await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { estatus: estatusMaestro }, {merge: true});
         }
 
         window.renderTablaMaestro = () => {
@@ -1553,7 +1591,15 @@
             
             if(s.accion !== 'Creación') { document.getElementById('m-extra-panel').style.display = 'block'; document.getElementById('m-cod').innerText = s.cod_ref; document.getElementById('m-ver').innerText = s.ver_ref; document.getElementById('m-fecha-ult').innerText = window.formatearFechaAbreviada(s.fecha_ref); } else document.getElementById('m-extra-panel').style.display = 'none';
 
-            document.getElementById('m-involucrados-list').innerText = s.involucrados && s.involucrados.length > 0 ? s.involucrados.join(', ') : "No hay personas extras añadidas.";
+            // Convertir involucrados a formato visual con nombre si es posible
+            let invHTML = "No hay personas extras añadidas.";
+            if(s.involucrados && s.involucrados.length > 0) {
+                invHTML = s.involucrados.map(email => {
+                    let userFound = allUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+                    return userFound ? `${userFound.nombre} (${email})` : email;
+                }).join('<br>');
+            }
+            document.getElementById('m-involucrados-list').innerHTML = invHTML;
 
             for(let i=1; i<=4; i++) {
                 const st = document.getElementById('s'+i); st.className = 'step'; 
@@ -1675,15 +1721,48 @@
             const dest = await getDatosEnvio(selectedDocData); sendNotification(dest, `Cancelación: ${selectedDocData.customId}`, `ANULADA por ${currentUser.nombre}.`); window.hideLoading(); window.closeModal();
         }
 
-        window.addInvolucrado = () => {
-            const container = document.getElementById('lista-involucrados'); const div = document.createElement('div'); div.style.display = 'flex'; div.style.gap = '10px'; div.innerHTML = `<input type="email" placeholder="Correo (ej: juan@fcipty.com)" class="extra-email" style="margin-bottom:0; flex:1;"><button type="button" class="btn btn-danger" onclick="this.parentElement.remove()" style="padding:8px 12px;"><span class="material-icons-round" style="font-size:16px; margin:0;">delete</span></button>`; container.appendChild(div);
+        window.addInvolucradoList = () => {
+            const sel = document.getElementById('sol-involucrado-sel');
+            const email = sel.value;
+            const name = sel.options[sel.selectedIndex].text;
+            
+            if(!email) return alert("Seleccione un usuario válido.");
+            
+            const existingTags = Array.from(document.querySelectorAll('.involucrado-item'));
+            if(existingTags.some(el => el.dataset.email === email)) {
+                return alert("El usuario ya está en la lista.");
+            }
+
+            const div = document.createElement('div');
+            div.className = 'involucrado-item badge badge-info';
+            div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '5px'; div.style.fontSize = '12px'; div.style.padding = '6px 12px';
+            div.dataset.email = email;
+            div.innerHTML = `${name} <span class="material-icons-round" style="font-size:14px; cursor:pointer; color:var(--danger);" onclick="this.parentElement.remove()">close</span>`;
+            
+            document.getElementById('lista-involucrados-tags').appendChild(div);
+            sel.value = "";
         };
 
         window.guardarNuevoInvolucrado = async () => {
-            const newEmail = document.getElementById('m-new-involucrado').value.trim().toLowerCase(); if(!newEmail || !newEmail.includes('@')) return alert('Ingresa un correo válido.'); window.showLoading();
-            let currentInv = selectedDocData.involucrados || []; if(currentInv.includes(newEmail)) { window.hideLoading(); return alert('Ya está en la lista.'); } currentInv.push(newEmail);
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { involucrados: currentInv, chat: arrayUnion({u: currentUser.nombre, m: `👥 Añadió a ${newEmail} como involucrado.`, t: new Date().toLocaleString()}) });
-            document.getElementById('m-new-involucrado').value = ''; window.hideLoading(); window.verDetalle(selectedId);
+            const sel = document.getElementById('m-new-involucrado-sel');
+            const newEmail = sel.value;
+            const newName = sel.options[sel.selectedIndex].text;
+            
+            if(!newEmail || !newEmail.includes('@')) return alert('Selecciona un usuario válido.'); 
+            window.showLoading();
+            
+            let currentInv = selectedDocData.involucrados || []; 
+            if(currentInv.includes(newEmail)) { 
+                window.hideLoading(); return alert('El usuario ya está en la lista de involucrados.'); 
+            } 
+            
+            currentInv.push(newEmail);
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { 
+                involucrados: currentInv, 
+                chat: arrayUnion({u: currentUser.nombre, m: `👥 Añadió a ${newName} a la lista de involucrados.`, t: new Date().toLocaleString()}) 
+            });
+            
+            sel.value = ''; window.hideLoading(); window.verDetalle(selectedId);
         };
 
         window.filtrarTabla = (inputId, tbodyId) => {
@@ -1709,11 +1788,12 @@
                 renderTablaAuditorias(currentYearFilter);
             });
 
-            // CARGAR USUARIOS Y GENERAR CHECKBOXES
+            // CARGAR USUARIOS Y GENERAR SELECTS/CHECKBOXES
             onSnapshot(path("Usuarios"), s => {
                 const tb = document.getElementById('tbody-users'); if(!tb) return;
                 allUsers = []; let usersHtml = ""; 
                 let userOptionsHtmlSingle = `<option value="">-- Seleccionar Usuario --</option>`; 
+                let involucradosOptions = `<option value="">-- Seleccionar Usuario --</option>`; 
                 let checkboxHtml = "";
 
                 s.forEach(d => {
@@ -1722,15 +1802,24 @@
                     userOptionsHtmlSingle += `<option value="${u.nombre}" data-email="${u.email || ''}">${u.nombre} (${u.gerencia})</option>`;
                     checkboxHtml += `<label><input type="checkbox" value="${u.nombre}" data-email="${u.email || ''}"> ${u.nombre} <span style="font-size:10px;color:#94a3b8">(${u.gerencia})</span></label>`;
                     
+                    if(u.email) {
+                        involucradosOptions += `<option value="${u.email.toLowerCase()}">${u.nombre} (${u.email})</option>`;
+                    }
+
                     usersHtml += `<tr><td><b>${u.nombre}</b><br><span style="font-size:10px;color:#64748b">${u.usuario}</span></td><td>${u.email || '-'}</td><td>${u.gerencia}<br><span class="badge badge-info">${u.role || 'N/A'}</span></td><td><button class="btn btn-info" style="padding:5px 10px; font-size:10px;" onclick="cargarUsuarioParaEditar('${u.usuario}')">EDITAR</button> <button class="btn btn-danger" style="padding:5px 10px; font-size:10px;" onclick="del('Usuarios','${u.docId}')">X</button></td></tr>`;
                 });
                 
                 tb.innerHTML = usersHtml;
-                if(document.getElementById('ah-lider')) document.getElementById('ah-lider').innerHTML = userOptionsHtmlSingle;
                 
+                // Actualizar Selects de Auditoría
+                if(document.getElementById('ah-lider')) document.getElementById('ah-lider').innerHTML = userOptionsHtmlSingle;
                 if(document.getElementById('ah-auditor-list')) document.getElementById('ah-auditor-list').innerHTML = checkboxHtml;
                 if(document.getElementById('aud-auditado-list')) document.getElementById('aud-auditado-list').innerHTML = checkboxHtml;
                 if(document.getElementById('aud-auditor-list')) document.getElementById('aud-auditor-list').innerHTML = checkboxHtml;
+
+                // Actualizar Selects de Involucrados
+                if(document.getElementById('sol-involucrado-sel')) document.getElementById('sol-involucrado-sel').innerHTML = involucradosOptions;
+                if(document.getElementById('m-new-involucrado-sel')) document.getElementById('m-new-involucrado-sel').innerHTML = involucradosOptions;
             });
 
             // CARGAR GERENCIAS
@@ -1758,16 +1847,18 @@
                 if(document.getElementById('sol-ger')) document.getElementById('sol-ger').dispatchEvent(new Event('change'));
             });
 
-            // CARGAR CONFIGURACIÓN MAESTRO
+            // CARGAR CONFIGURACIÓN DINAMICA
             const docConfigMaestro = doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings");
             onSnapshot(docConfigMaestro, d => {
                 if(d.exists()) {
                     columnasMaestro = d.data().columnas || ['Código', 'Gerencia', 'Departamento', 'Tipo de documento', 'Nombre del documento', 'Fecha de Creación', 'Fecha última versión', 'Versión', 'Ubicación del Documento', 'Estatus', 'Código Anterior'];
                     estatusMaestro = d.data().estatus || ['Vigente', 'Obsoleto', 'En Revisión'];
+                    tiposDocumento = d.data().tiposDoc || ['Guía', 'Manual', 'Instructivo', 'Procedimiento', 'Formato'];
                 } else {
                     columnasMaestro = ['Código', 'Gerencia', 'Departamento', 'Tipo de documento', 'Nombre del documento', 'Fecha de Creación', 'Fecha última versión', 'Versión', 'Ubicación del Documento', 'Estatus', 'Código Anterior'];
                     estatusMaestro = ['Vigente', 'Obsoleto', 'En Revisión'];
-                    setDoc(docConfigMaestro, { columnas: columnasMaestro, estatus: estatusMaestro }, {merge: true});
+                    tiposDocumento = ['Guía', 'Manual', 'Instructivo', 'Procedimiento', 'Formato'];
+                    setDoc(docConfigMaestro, { columnas: columnasMaestro, estatus: estatusMaestro, tiposDoc: tiposDocumento }, {merge: true});
                 }
                 window.renderListasConfig(); window.renderTablaMaestro();
             });
@@ -1907,13 +1998,32 @@
         const btnSendSol = document.getElementById('btnSendSol');
         if (btnSendSol) {
             btnSendSol.onclick = async () => {
-                const tit = document.getElementById('sol-tit').value; const gerTarget = document.getElementById('sol-ger').value; if(!tit) return alert("Título obligatorio"); window.showLoading(); const f = document.getElementById('sol-file');
-                let fileName = f.files[0] ? f.files[0].name : ""; let url = null; if (f.files[0]) { url = await uploadToCloudinary(f.files[0]); if (!url) { window.hideLoading(); return alert("Error al subir archivo."); } }
-                const extraEmailsNodes = document.querySelectorAll('.extra-email'); const extraEmails = Array.from(extraEmailsNodes).map(el => el.value.trim().toLowerCase()).filter(e => e !== "" && e.includes('@')); const fci = await getNextFCI(); const gerenteEmailVisible = document.getElementById('sol-email-gerente').value;
+                const tit = document.getElementById('sol-tit').value; 
+                const gerTarget = document.getElementById('sol-ger').value; 
+                if(!tit) return alert("Título obligatorio"); 
+                window.showLoading(); 
+                const f = document.getElementById('sol-file');
+                
+                let fileName = f.files[0] ? f.files[0].name : ""; 
+                let url = null; 
+                if (f.files[0]) { url = await uploadToCloudinary(f.files[0]); if (!url) { window.hideLoading(); return alert("Error al subir archivo."); } }
+                
+                // Recopilar correos de las etiquetas visuales (badges)
+                const extraEmailsNodes = document.querySelectorAll('.involucrado-item'); 
+                const extraEmails = Array.from(extraEmailsNodes).map(el => el.dataset.email); 
+                
+                const fci = await getNextFCI(); 
+                const gerenteEmailVisible = document.getElementById('sol-email-gerente').value;
                 const now = new Date().toISOString();
+                
                 const data = { customId: fci, titulo: tit, accion: document.getElementById('sol-accion').value, tipoDoc: document.getElementById('sol-tipo-doc').value, gerencia: gerTarget, departamento: document.getElementById('sol-dep').value, motivo: document.getElementById('sol-motivo').value, cod_ref: document.getElementById('sol-cod-prev').value, ver_ref: document.getElementById('sol-ver-prev').value, fecha_ref: document.getElementById('sol-fecha-prev').value, solicitante: currentUser.nombre, solicitante_email: currentUser.email, uid: currentUser.usuario, involucrados: extraEmails, idx: 0, estado: "Pendiente Documentado", fase_0_ini: now, adjunto: url, adjunto_nombre: fileName, chat: [{u: "SISTEMA", m: "Solicitud creada exitosamente.", t: new Date().toLocaleString()}], fecha: now };
-                await addDoc(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), data); document.getElementById('lista-involucrados').innerHTML = "";
-                const toEmails = new Set([EMAIL_ADMIN_SGC, EMAIL_GRUPO_SGC, currentUser.email, ...extraEmails]); const destinatarios = { to: Array.from(toEmails).join(','), cc: gerenteEmailVisible }; sendNotification(destinatarios, "Nueva Solicitud Creada", `El usuario ${currentUser.nombre} ha creado la solicitud ${fci}.`);
+                
+                await addDoc(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), data); 
+                document.getElementById('lista-involucrados-tags').innerHTML = ""; // Limpiar lista
+                
+                const toEmails = new Set([EMAIL_ADMIN_SGC, EMAIL_GRUPO_SGC, currentUser.email, ...extraEmails]); 
+                const destinatarios = { to: Array.from(toEmails).join(','), cc: gerenteEmailVisible }; 
+                sendNotification(destinatarios, "Nueva Solicitud Creada", `El usuario ${currentUser.nombre} ha creado la solicitud ${fci}.`);
                 window.hideLoading(); alert("Solicitud Creada: " + fci); window.cambiarVista('sec-hist', document.getElementById('nav-hist'));
             };
         }
