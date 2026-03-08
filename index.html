@@ -143,9 +143,6 @@
         .search-bar { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 15px; width: 100%; max-width: 350px; font-size: 13px; outline: none; margin-bottom: 0; }
         .search-bar:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1); }
 
-        /* =======================================
-           DISEÑO RESPONSIVO (MÓVILES Y TABLETS)
-           ======================================= */
         @media (max-width: 768px) {
             body { flex-direction: column; overflow-y: auto; }
             .sidebar { position: fixed !important; left: -300px; top: 0; bottom: 0; z-index: 9000; transition: left 0.3s ease; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
@@ -197,17 +194,35 @@
         </div>
         
         <nav style="flex:1">
-            <button class="nav-link" id="nav-dash" onclick="cambiarVista('sec-dash', this)"><span class="material-icons-round">dashboard</span> Dashboard</button>
-            <button class="nav-link" id="nav-crear" onclick="cambiarVista('sec-crear', this)"><span class="material-icons-round">add_box</span> Crear Solicitud</button>
-            <button class="nav-link" id="nav-hist" onclick="cambiarVista('sec-hist', this)"><span class="material-icons-round">history</span> Mis Solicitudes</button>
-            <button class="nav-link" id="nav-gest" onclick="cambiarVista('sec-gest', this)"><span class="material-icons-round">fact_check</span> Gestionar Solicitudes</button>
-            <button class="nav-link" id="nav-audit" onclick="cambiarVista('sec-audit', this)"><span class="material-icons-round">calendar_month</span> Calendario Auditoría</button>
-            <button class="nav-link" id="nav-listado" onclick="cambiarVista('sec-listado', this)"><span class="material-icons-round">library_books</span> Listado Maestro</button>
+            <button class="nav-link" id="nav-dash" onclick="cambiarVista('sec-dash', this)">
+                <span class="material-icons-round">dashboard</span> Dashboard
+            </button>
+            <button class="nav-link" id="nav-crear" onclick="cambiarVista('sec-crear', this)">
+                <span class="material-icons-round">add_box</span> Crear Solicitud
+            </button>
+            <button class="nav-link" id="nav-hist" onclick="cambiarVista('sec-hist', this)">
+                <span class="material-icons-round">history</span> Mis Solicitudes
+            </button>
+            <button class="nav-link" id="nav-gest" onclick="cambiarVista('sec-gest', this)">
+                <span class="material-icons-round">fact_check</span> Gestionar Solicitudes
+            </button>
+
+            <button class="nav-link" id="nav-audit" onclick="cambiarVista('sec-audit', this)">
+                <span class="material-icons-round">calendar_month</span> Calendario Auditoría
+            </button>
+
+            <button class="nav-link" id="nav-listado" onclick="cambiarVista('sec-listado', this)">
+                <span class="material-icons-round">library_books</span> Listado Maestro
+            </button>
             
             <div id="admin-only" style="display:none; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 20px; padding-top: 20px;">
                 <p style="font-size:10px; color:#64748b; font-weight:800; margin-left:12px; margin-bottom:10px;">ADMINISTRACIÓN</p>
-                <button class="nav-link" id="nav-users" onclick="cambiarVista('sec-usuarios', this)"><span class="material-icons-round">people</span> Usuarios</button>
-                <button class="nav-link" id="nav-struct" onclick="cambiarVista('sec-estructura', this)"><span class="material-icons-round">account_tree</span> Estructura</button>
+                <button class="nav-link" id="nav-users" onclick="cambiarVista('sec-usuarios', this)">
+                    <span class="material-icons-round">people</span> Usuarios
+                </button>
+                <button class="nav-link" id="nav-struct" onclick="cambiarVista('sec-estructura', this)">
+                    <span class="material-icons-round">account_tree</span> Estructura
+                </button>
             </div>
         </nav>
         
@@ -536,8 +551,14 @@
                     <div><label>Requisitos (Norma/Cláusula)</label><input type="text" id="aud-req"></div>
                 </div>
                 <div class="grid-2" style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid var(--border); margin-bottom:15px;">
-                    <div><label style="color:var(--primary);">Auditado (Seleccionar Usuario)</label><select id="aud-auditado"></select></div>
-                    <div><label style="color:var(--primary);">Auditor (Seleccionar Usuario)</label><select id="aud-auditor"></select></div>
+                    <div>
+                        <label style="color:var(--primary);">Auditado(s) (Presione Ctrl/Cmd para selección múltiple)</label>
+                        <select id="aud-auditado" multiple style="height: 100px;"></select>
+                    </div>
+                    <div>
+                        <label style="color:var(--primary);">Auditor(es) (Presione Ctrl/Cmd para selección múltiple)</label>
+                        <select id="aud-auditor" multiple style="height: 100px;"></select>
+                    </div>
                 </div>
                 <label>Observaciones / Enfoque</label>
                 <textarea id="aud-obs" rows="2" placeholder="Detalles de lo que se va a revisar..."></textarea>
@@ -552,9 +573,10 @@
                                 <th>Fecha</th>
                                 <th>Horario</th>
                                 <th>Proceso / Área</th>
-                                <th>Auditado</th>
-                                <th>Auditor</th>
+                                <th>Auditado(s)</th>
+                                <th>Auditor(es)</th>
                                 <th>Lugar</th>
+                                <th>Estado</th>
                                 <th class="no-export">Acción</th>
                             </tr>
                         </thead>
@@ -956,282 +978,107 @@
 
         const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
 
-        // ==========================================
-        // LÓGICA DE AUDITORÍA Y USUARIOS DINÁMICOS
-        // ==========================================
-
-        window.toggleAuditHeaderForm = () => {
-            const form = document.getElementById('audit-header-edit');
-            const view = document.getElementById('audit-header-view');
-            const isEditing = form.style.display === 'block';
-            
-            if(isEditing) {
-                form.style.display = 'none';
-                view.style.display = 'block';
-            } else {
-                const y = document.getElementById('aud-year-select').value;
-                document.getElementById('edit-year-label').innerText = y;
-                
-                if(globalAuditPlan) {
-                    document.getElementById('ah-obj').value = globalAuditPlan.objetivo || '';
-                    document.getElementById('ah-alcance').value = globalAuditPlan.alcance || '';
-                    document.getElementById('ah-tecnica').value = globalAuditPlan.tecnica || '';
-                    document.getElementById('ah-criterios').value = globalAuditPlan.criterios || '';
-                    document.getElementById('ah-ref').value = globalAuditPlan.referencia || '';
-                    document.getElementById('ah-fecha').value = globalAuditPlan.fecha_elab || '';
-                    
-                    document.getElementById('ah-tec').value = globalAuditPlan.recursos_tec || '';
-                    document.getElementById('ah-rrhh').value = globalAuditPlan.recursos_hh || '';
-                    
-                    // Extra emails
-                    document.getElementById('ah-extra-emails').value = (globalAuditPlan.extra_correos || []).join(', ');
-
-                    // Seleccionar Lider
-                    let liderSel = document.getElementById('ah-lider');
-                    for(let i=0; i<liderSel.options.length; i++){
-                        if(liderSel.options[i].value === globalAuditPlan.lider) liderSel.selectedIndex = i;
-                    }
-
-                    // Seleccionar Multiples Auditores
-                    let audSel = document.getElementById('ah-auditor');
-                    let auditoresGuardados = globalAuditPlan.auditor_nombres || [];
-                    for(let i=0; i<audSel.options.length; i++){
-                        audSel.options[i].selected = auditoresGuardados.includes(audSel.options[i].value);
-                    }
-
-                } else {
-                    document.getElementById('ah-obj').value = '';
-                    document.getElementById('ah-alcance').value = '';
-                    document.getElementById('ah-tecnica').value = '';
-                    document.getElementById('ah-criterios').value = '';
-                    document.getElementById('ah-ref').value = '';
-                    document.getElementById('ah-fecha').value = '';
-                    document.getElementById('ah-tec').value = '';
-                    document.getElementById('ah-rrhh').value = '';
-                    document.getElementById('ah-extra-emails').value = '';
-                    document.getElementById('ah-lider').selectedIndex = 0;
-                    document.getElementById('ah-auditor').selectedIndex = -1;
-                }
-
-                form.style.display = 'block';
-                view.style.display = 'none';
+        // FUNCIONES AUXILIARES GLOBALES
+        window.getDownloadUrl = (url) => {
+            if(!url) return "#";
+            if(url.includes('res.cloudinary.com')) {
+                let parts = url.split('/upload/');
+                return parts[0] + '/upload/fl_attachment/' + parts[1];
             }
+            return url;
         };
 
-        window.saveAuditPlan = async () => {
-            const year = document.getElementById('aud-year-select').value;
-            const docId = `Plan_${year}`;
+        window.formatearFechaAbreviada = (fechaISO) => {
+            if (!fechaISO) return '';
+            const fecha = new Date(fechaISO);
+            if (isNaN(fecha)) return fechaISO; 
+            const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+            const dia = fecha.getDate();
+            const mes = meses[fecha.getMonth()];
+            const anio = fecha.getFullYear();
+            return `${dia}-${mes}-${anio}`;
+        };
+
+        window.toggleMenu = () => {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebar-overlay').classList.toggle('active');
+        };
+
+        window.logout = () => {
+            currentUser = null;
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('sidebar').style.display = 'none';
+            document.getElementById('main').style.display = 'none';
+            document.getElementById('admin-only').style.display = 'none';
+            document.getElementById('login-user').value = "";
+            document.getElementById('login-pass').value = "";
+        };
+
+        // ==========================================
+        // LOGIN (Solución getDocs y Tecla Enter)
+        // ==========================================
+        document.getElementById('login-pass').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('btnLogin').click();
+            }
+        });
+
+        document.getElementById('btnLogin').onclick = async () => {
+            const u = document.getElementById('login-user').value.toLowerCase().trim();
+            const p = document.getElementById('login-pass').value.trim();
             
-            let motivo = "Creación inicial";
-            if(globalAuditPlan) {
-                motivo = prompt("Motivo de la modificación del Plan Anual:");
-                if(!motivo) return alert("El motivo es obligatorio para editar.");
+            if (!u || !p) {
+                alert("Por favor, ingresa tu usuario y contraseña.");
+                return;
             }
-
-            // OBTENER VALORES DE LOS SELECTORES
-            const liderSel = document.getElementById('ah-lider');
-            const liderName = liderSel.options[liderSel.selectedIndex]?.value || "";
-            const liderEmail = liderSel.options[liderSel.selectedIndex]?.getAttribute('data-email') || "";
-
-            const audSel = document.getElementById('ah-auditor');
-            let audNombres = [];
-            let audEmails = [];
-            for(let opt of audSel.selectedOptions) {
-                audNombres.push(opt.value);
-                if(opt.dataset.email) audEmails.push(opt.dataset.email);
-            }
-
-            const extraEmails = document.getElementById('ah-extra-emails').value.split(',').map(e => e.trim().toLowerCase()).filter(e=>e.includes('@'));
-
-            // Crear Set unico de correos globales
-            let todosLosCorreos = new Set([...audEmails, ...extraEmails]);
-            if(liderEmail) todosLosCorreos.add(liderEmail);
-
-            const data = {
-                year: year,
-                objetivo: document.getElementById('ah-obj').value,
-                alcance: document.getElementById('ah-alcance').value,
-                tecnica: document.getElementById('ah-tecnica').value,
-                criterios: document.getElementById('ah-criterios').value,
-                referencia: document.getElementById('ah-ref').value,
-                fecha_elab: document.getElementById('ah-fecha').value,
-                
-                lider: liderName,
-                auditor: audNombres.join(', '), // para la tabla visual rápida
-                auditor_nombres: audNombres, // array de nombres
-                recursos_tec: document.getElementById('ah-tec').value,
-                recursos_hh: document.getElementById('ah-rrhh').value,
-                
-                extra_correos: extraEmails,
-                correos: Array.from(todosLosCorreos), // Lista consolidada
-                
-                modificado_por: currentUser.nombre,
-                ultima_modif: new Date().toISOString()
-            };
 
             showLoading();
-            if(globalAuditPlan) {
-                await updateDoc(doc(db, "artifacts", appId, "public", "data", "AuditPlans", docId), {
-                    ...data,
-                    historial: arrayUnion({ fecha: new Date().toISOString(), usuario: currentUser.nombre, motivo: motivo })
-                });
-            } else {
-                await setDoc(doc(db, "artifacts", appId, "public", "data", "AuditPlans", docId), {
-                    ...data,
-                    historial: [{ fecha: new Date().toISOString(), usuario: currentUser.nombre, motivo: motivo }]
-                });
-            }
-            hideLoading();
-            alert("Plan Anual actualizado.");
-            document.getElementById('audit-header-edit').style.display='none';
-            document.getElementById('audit-header-view').style.display='block';
-        };
 
-        window.loadAuditPlan = (year) => {
-            const docId = `Plan_${year}`;
-            document.getElementById('view-year-label').innerText = year;
-            
-            onSnapshot(doc(db, "artifacts", appId, "public", "data", "AuditPlans", docId), s => {
-                const viewObj = document.getElementById('audit-header-view');
-                if(s.exists()) {
-                    globalAuditPlan = s.data();
-                    viewObj.style.display = 'block'; // Mostrar la card si hay data
-                    
-                    document.getElementById('view-ah-obj').innerText = globalAuditPlan.objetivo || '-';
-                    document.getElementById('view-ah-alcance').innerText = globalAuditPlan.alcance || '-';
-                    document.getElementById('view-ah-tecnica').innerText = globalAuditPlan.tecnica || '-';
-                    document.getElementById('view-ah-criterios').innerText = globalAuditPlan.criterios || '-';
-                    document.getElementById('view-ah-ref').innerText = globalAuditPlan.referencia || '-';
-                    document.getElementById('view-ah-fecha').innerText = window.formatearFechaAbreviada(globalAuditPlan.fecha_elab) || '-';
-                    
-                    document.getElementById('view-ah-lider').innerText = globalAuditPlan.lider || '-';
-                    document.getElementById('view-ah-auditor').innerText = globalAuditPlan.auditor || '-';
-                    document.getElementById('view-ah-tec').innerText = globalAuditPlan.recursos_tec || '-';
-                    document.getElementById('view-ah-rrhh').innerText = globalAuditPlan.recursos_hh || '-';
-                    
-                    document.getElementById('view-ah-emails').innerText = (globalAuditPlan.correos || []).join(', ') || 'No hay correos registrados.';
-                    
-                    let modInfo = `Por: ${globalAuditPlan.modificado_por || '-'} el ${window.formatearFechaAbreviada(globalAuditPlan.ultima_modif)}`;
-                    if(globalAuditPlan.historial && globalAuditPlan.historial.length > 0) {
-                        let ultimoMotivo = globalAuditPlan.historial[globalAuditPlan.historial.length-1].motivo;
-                        modInfo += ` (Motivo: ${ultimoMotivo})`;
+            try {
+                // Crear administrador maestro si es necesario
+                if(u === 'admin' && p === '1130') {
+                    const adminRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", "admin");
+                    const snapAdmin = await getDoc(adminRef);
+                    if(!snapAdmin.exists()) {
+                        await setDoc(adminRef, {
+                            nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencia: "SGC", email: EMAIL_ADMIN_SGC,
+                            permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_users:true, p_struct:true, p_ver_listado:true, admin:true }
+                        });
                     }
-                    document.getElementById('view-ah-mod-info').innerText = modInfo;
-
-                } else {
-                    globalAuditPlan = null;
-                    viewObj.style.display = 'none'; // Ocultar si no hay plan configurado
                 }
-            });
-            cargarDatos(); 
-        };
 
-        window.guardarAuditoria = async () => {
-            const fecha = document.getElementById('aud-fecha').value;
-            const hIni = document.getElementById('aud-h-ini').value;
-            const hFin = document.getElementById('aud-h-fin').value;
-            const proceso = document.getElementById('aud-proceso').value;
-            const lugar = document.getElementById('aud-lugar').value;
-            const req = document.getElementById('aud-req').value;
-            const obs = document.getElementById('aud-obs').value;
-            
-            if(!fecha || !proceso) return alert("Fecha y Proceso son obligatorios.");
+                // Consultar las credenciales mediante GET en vez de Snapshot (Evita cuelgues)
+                const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", u), where("pass", "==", p));
+                const querySnapshot = await getDocs(q);
 
-            // Tomar nombres y correos de los selectores
-            const auditadoSel = document.getElementById('aud-auditado');
-            const auditorSel = document.getElementById('aud-auditor');
-            
-            const auditadoNom = auditadoSel.options[auditadoSel.selectedIndex]?.value || "";
-            const auditadoEmail = auditadoSel.options[auditadoSel.selectedIndex]?.getAttribute('data-email') || "";
-            
-            const auditorNom = auditorSel.options[auditorSel.selectedIndex]?.value || "";
-            const auditorEmail = auditorSel.options[auditorSel.selectedIndex]?.getAttribute('data-email') || "";
-
-            let data = {
-                fecha: fecha,
-                hora_inicio: hIni,
-                hora_fin: hFin,
-                lugar: lugar,
-                proceso: proceso,
-                requisitos: req,
-                auditado: auditadoNom,
-                auditado_email: auditadoEmail,
-                auditor: auditorNom,
-                auditor_email: auditorEmail,
-                observacion: obs,
-                creado_por: currentUser.nombre,
-                timestamp: new Date().toISOString()
-            };
-
-            showLoading();
-            await addDoc(collection(db, "artifacts", appId, "public", "data", "Auditorias"), data);
-
-            // PREPARAR Y ENVIAR NOTIFICACIÓN DETALLADA
-            let correosPlan = globalAuditPlan && globalAuditPlan.correos ? globalAuditPlan.correos : [];
-            let correosNotificacion = new Set([...correosPlan]);
-            if(auditadoEmail) correosNotificacion.add(auditadoEmail);
-            if(auditorEmail) correosNotificacion.add(auditorEmail);
-            correosNotificacion.add(EMAIL_ADMIN_SGC);
-
-            const mensajeEmail = `
-Se ha programado una nueva auditoría en el sistema:
-
-📅 Fecha: ${window.formatearFechaAbreviada(fecha)}
-⏰ Horario: ${hIni} - ${hFin}
-📍 Lugar: ${lugar}
-📋 Proceso/Área: ${proceso}
-📝 Requisitos: ${req}
-👤 Auditado: ${auditadoNom}
-🕵️‍♂️ Auditor(es): ${auditorNom}
-💬 Observaciones: ${obs || 'Ninguna'}
-
-Por favor, verificar y confirmar la agenda en el sistema SGC.`;
-
-            let destStr = Array.from(correosNotificacion).filter(e=>e && e.includes('@')).join(',');
-            
-            if(destStr) {
-                sendNotification({to: destStr, cc: ""}, "Programación de Auditoría: " + proceso, mensajeEmail);
+                if(!querySnapshot.empty) {
+                    currentUser = querySnapshot.docs[0].data();
+                    
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('sidebar').style.display = 'flex';
+                    document.getElementById('main').style.display = 'block';
+                    document.getElementById('curr-name').innerText = currentUser.nombre;
+                    document.getElementById('curr-ger').innerText = currentUser.gerencia || 'SGC Admin';
+                    
+                    if(currentUser.permisos && currentUser.permisos.admin) {
+                        document.getElementById('admin-only').style.display = 'block';
+                    }
+                    
+                    cargarDatos();
+                    cambiarVista('sec-dash', document.getElementById('nav-dash'));
+                } else { 
+                    alert("Credenciales incorrectas. Verifica tu usuario o contraseña."); 
+                }
+            } catch (error) {
+                console.error("Error al intentar iniciar sesión:", error);
+                alert("Hubo un problema al conectar con la base de datos. Revisa la consola para más detalles.");
+            } finally {
+                hideLoading();
             }
-            
-            document.getElementById('aud-proceso').value = "";
-            document.getElementById('aud-req').value = "";
-            document.getElementById('aud-obs').value = "";
-            document.getElementById('aud-auditado').selectedIndex = 0;
-            document.getElementById('aud-auditor').selectedIndex = 0;
-            
-            hideLoading();
-            alert("Auditoría programada y notificada correctamente.");
         };
-
-        // LÓGICA DE ALERTAS EN TIEMPO REAL AL CARGAR (Simulada para visualización y disparo EmailJS)
-        function verificarAlertasAuditoria(auditorias) {
-            if(!globalAuditPlan || !globalAuditPlan.correos || globalAuditPlan.correos.length === 0) return;
-            
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            
-            auditorias.forEach(a => {
-                const auditDate = new Date(a.fecha);
-                auditDate.setHours(0,0,0,0);
-                
-                const diffTime = auditDate - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
-                let asunto = "";
-                if(diffDays === 30) asunto = "🚨 Recordatorio: 1 Mes para Auditoría";
-                if(diffDays === 14) asunto = "⚠️ Recordatorio Urgente: 2 Semanas para Auditoría";
-                
-                if(asunto) {
-                    const dest = { to: globalAuditPlan.correos.join(',') };
-                    const msg = `Se aproxima la auditoría del proceso: ${a.proceso} programada para el ${window.formatearFechaAbreviada(a.fecha)} en ${a.lugar}.\n\nRequisitos a evaluar: ${a.requisitos}\nAuditado: ${a.auditado}\nAuditor: ${a.auditor}.`;
-                    sendNotification(dest, asunto, msg);
-                    console.log("Alerta automática enviada:", asunto, a.proceso);
-                }
-            });
-        }
 
         // ==========================================
-        // CARGA GENERAL DE DATOS
+        // CARGA GENERAL DE DATOS (ONSNAPSHOTS)
         // ==========================================
         function cargarDatos() {
             const path = (c) => collection(db, "artifacts", appId, "public", "data", c);
@@ -1253,9 +1100,15 @@ Por favor, verificar y confirmar la agenda en el sistema SGC.`;
 
                 let audHtml = "";
                 audits.forEach(a => {
-                    let btnDel = "";
+                    let estadoLabel = a.estado || 'Pendiente';
+                    let estadoBadge = estadoLabel === 'Completado' ? 'badge-success' : 'badge-warning';
+
+                    let btnAccion = "";
                     if(currentUser.permisos.admin || currentUser.permisos.p_gest_sgc) {
-                        btnDel = `<button class="btn-icon-danger" onclick="del('Auditorias','${a.id}')"><span class="material-icons-round">delete</span></button>`;
+                        if(estadoLabel !== 'Completado') {
+                            btnAccion += `<button class="btn btn-success" style="padding:4px 8px; font-size:10px; margin-right:5px;" onclick="marcarAuditoriaCompletada('${a.id}')" title="Marcar como completada"><span class="material-icons-round" style="font-size:14px;">check</span></button>`;
+                        }
+                        btnAccion += `<button class="btn-icon-danger" onclick="del('Auditorias','${a.id}')"><span class="material-icons-round">delete</span></button>`;
                     }
                     audHtml += `<tr>
                             <td><b>${window.formatearFechaAbreviada(a.fecha)}</b></td>
@@ -1264,7 +1117,8 @@ Por favor, verificar y confirmar la agenda en el sistema SGC.`;
                             <td>${a.auditado || '-'}</td>
                             <td>${a.auditor || '-'}</td>
                             <td>${a.lugar || '-'}</td>
-                            <td class="no-export">${btnDel}</td>
+                            <td><span class="badge ${estadoBadge}">${estadoLabel}</span></td>
+                            <td class="no-export">${btnAccion}</td>
                         </tr>`;
                 });
                 tb.innerHTML = audHtml;
@@ -1274,22 +1128,24 @@ Por favor, verificar y confirmar la agenda en el sistema SGC.`;
                 }
             });
 
-            // CARGAR USUARIOS PARA LOS SELECTORES (Auditoría, Permisos, etc.)
+            // CARGAR USUARIOS PARA LOS SELECTORES
             onSnapshot(path("Usuarios"), s => {
                 const tb = document.getElementById('tbody-users');
                 if(!tb) return;
                 
                 allUsers = []; 
                 let usersHtml = "";
-                
-                let userOptionsHtml = `<option value="">-- Seleccionar Usuario --</option>`;
+                let userOptionsHtmlSingle = `<option value="">-- Seleccionar Usuario --</option>`;
+                let userOptionsHtmlMultiple = "";
                 
                 s.forEach(d => {
                     const u = d.data();
                     u.docId = d.id;
                     allUsers.push(u); 
                     
-                    userOptionsHtml += `<option value="${u.nombre}" data-email="${u.email || ''}">${u.nombre} (${u.gerencia})</option>`;
+                    let optStr = `<option value="${u.nombre}" data-email="${u.email || ''}">${u.nombre} (${u.gerencia})</option>`;
+                    userOptionsHtmlSingle += optStr;
+                    userOptionsHtmlMultiple += optStr;
 
                     usersHtml += `<tr>
                         <td><b>${u.nombre}</b><br><span style="font-size:10px;color:#64748b">${u.usuario}</span></td>
@@ -1303,14 +1159,12 @@ Por favor, verificar y confirmar la agenda en el sistema SGC.`;
                 });
                 tb.innerHTML = usersHtml;
                 
-                // Actualizar todos los selectores de usuarios
-                if(document.getElementById('ah-lider')) document.getElementById('ah-lider').innerHTML = userOptionsHtml;
-                if(document.getElementById('ah-auditor')) document.getElementById('ah-auditor').innerHTML = userOptionsHtml.replace('<option value="">-- Seleccionar Usuario --</option>', ''); // Múltiple no necesita default vacío
-                if(document.getElementById('aud-auditado')) document.getElementById('aud-auditado').innerHTML = userOptionsHtml;
-                if(document.getElementById('aud-auditor')) document.getElementById('aud-auditor').innerHTML = userOptionsHtml;
+                if(document.getElementById('ah-lider')) document.getElementById('ah-lider').innerHTML = userOptionsHtmlSingle;
+                if(document.getElementById('ah-auditor')) document.getElementById('ah-auditor').innerHTML = userOptionsHtmlMultiple; 
+                if(document.getElementById('aud-auditado')) document.getElementById('aud-auditado').innerHTML = userOptionsHtmlMultiple;
+                if(document.getElementById('aud-auditor')) document.getElementById('aud-auditor').innerHTML = userOptionsHtmlMultiple;
             });
 
-            // Gerencias y Departamentos (igual que antes)
             onSnapshot(path("Gerencias"), s => {
                 let h = "<option value=''>-- Seleccionar Gerencia --</option>", l = "";
                 s.forEach(d => {
@@ -1339,7 +1193,6 @@ Por favor, verificar y confirmar la agenda en el sistema SGC.`;
                 if(document.getElementById('sol-ger')) document.getElementById('sol-ger').dispatchEvent(new Event('change'));
             });
 
-            // Config Maestro y Listado Maestro
             const docConfigMaestro = doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings");
             onSnapshot(docConfigMaestro, d => {
                 if(d.exists()) {
@@ -1354,7 +1207,6 @@ Por favor, verificar y confirmar la agenda en el sistema SGC.`;
                 renderTablaMaestro();
             });
 
-            // Solicitudes
             onSnapshot(path("Solicitudes"), s => {
                 const tbHist = document.getElementById('tbody-historial');
                 const tbGest = document.getElementById('tbody-gestionar');
@@ -1426,6 +1278,393 @@ Por favor, verificar y confirmar la agenda en el sistema SGC.`;
                 renderTablaMaestro();
             });
         }
+
+        // ==========================================
+        // LÓGICA DE AUDITORÍA Y USUARIOS DINÁMICOS
+        // ==========================================
+
+        window.toggleAuditHeaderForm = () => {
+            const form = document.getElementById('audit-header-edit');
+            const view = document.getElementById('audit-header-view');
+            const isEditing = form.style.display === 'block';
+            
+            if(isEditing) {
+                form.style.display = 'none';
+                view.style.display = 'block';
+            } else {
+                const y = document.getElementById('aud-year-select').value;
+                document.getElementById('edit-year-label').innerText = y;
+                
+                if(globalAuditPlan) {
+                    document.getElementById('ah-obj').value = globalAuditPlan.objetivo || '';
+                    document.getElementById('ah-alcance').value = globalAuditPlan.alcance || '';
+                    document.getElementById('ah-tecnica').value = globalAuditPlan.tecnica || '';
+                    document.getElementById('ah-criterios').value = globalAuditPlan.criterios || '';
+                    document.getElementById('ah-ref').value = globalAuditPlan.referencia || '';
+                    document.getElementById('ah-fecha').value = globalAuditPlan.fecha_elab || '';
+                    
+                    document.getElementById('ah-tec').value = globalAuditPlan.recursos_tec || '';
+                    document.getElementById('ah-rrhh').value = globalAuditPlan.recursos_hh || '';
+                    
+                    document.getElementById('ah-extra-emails').value = (globalAuditPlan.extra_correos || []).join(', ');
+
+                    let liderSel = document.getElementById('ah-lider');
+                    for(let i=0; i<liderSel.options.length; i++){
+                        if(liderSel.options[i].value === globalAuditPlan.lider) liderSel.selectedIndex = i;
+                    }
+
+                    let audSel = document.getElementById('ah-auditor');
+                    let auditoresGuardados = globalAuditPlan.auditor_nombres || [];
+                    for(let i=0; i<audSel.options.length; i++){
+                        audSel.options[i].selected = auditoresGuardados.includes(audSel.options[i].value);
+                    }
+
+                } else {
+                    document.getElementById('ah-obj').value = '';
+                    document.getElementById('ah-alcance').value = '';
+                    document.getElementById('ah-tecnica').value = '';
+                    document.getElementById('ah-criterios').value = '';
+                    document.getElementById('ah-ref').value = '';
+                    document.getElementById('ah-fecha').value = '';
+                    document.getElementById('ah-tec').value = '';
+                    document.getElementById('ah-rrhh').value = '';
+                    document.getElementById('ah-extra-emails').value = '';
+                    document.getElementById('ah-lider').selectedIndex = 0;
+                    document.getElementById('ah-auditor').selectedIndex = -1;
+                }
+
+                form.style.display = 'block';
+                view.style.display = 'none';
+            }
+        };
+
+        window.saveAuditPlan = async () => {
+            const year = document.getElementById('aud-year-select').value;
+            const docId = `Plan_${year}`;
+            
+            let motivo = "Creación inicial";
+            if(globalAuditPlan) {
+                motivo = prompt("Motivo de la modificación del Plan Anual:");
+                if(!motivo) return alert("El motivo es obligatorio para editar.");
+            }
+
+            const liderSel = document.getElementById('ah-lider');
+            const liderName = liderSel.options[liderSel.selectedIndex]?.value || "";
+            const liderEmail = liderSel.options[liderSel.selectedIndex]?.getAttribute('data-email') || "";
+
+            const audSel = document.getElementById('ah-auditor');
+            let audNombres = [];
+            let audEmails = [];
+            for(let opt of audSel.selectedOptions) {
+                audNombres.push(opt.value);
+                if(opt.dataset.email) audEmails.push(opt.dataset.email);
+            }
+
+            const extraEmails = document.getElementById('ah-extra-emails').value.split(',').map(e => e.trim().toLowerCase()).filter(e=>e.includes('@'));
+
+            let todosLosCorreos = new Set([...audEmails, ...extraEmails]);
+            if(liderEmail) todosLosCorreos.add(liderEmail);
+
+            const data = {
+                year: year,
+                objetivo: document.getElementById('ah-obj').value,
+                alcance: document.getElementById('ah-alcance').value,
+                tecnica: document.getElementById('ah-tecnica').value,
+                criterios: document.getElementById('ah-criterios').value,
+                referencia: document.getElementById('ah-ref').value,
+                fecha_elab: document.getElementById('ah-fecha').value,
+                
+                lider: liderName,
+                auditor: audNombres.join(', '), 
+                auditor_nombres: audNombres, 
+                recursos_tec: document.getElementById('ah-tec').value,
+                recursos_hh: document.getElementById('ah-rrhh').value,
+                
+                extra_correos: extraEmails,
+                correos: Array.from(todosLosCorreos), 
+                
+                modificado_por: currentUser.nombre,
+                ultima_modif: new Date().toISOString()
+            };
+
+            showLoading();
+            if(globalAuditPlan) {
+                await updateDoc(doc(db, "artifacts", appId, "public", "data", "AuditPlans", docId), {
+                    ...data,
+                    historial: arrayUnion({ fecha: new Date().toISOString(), usuario: currentUser.nombre, motivo: motivo })
+                });
+            } else {
+                await setDoc(doc(db, "artifacts", appId, "public", "data", "AuditPlans", docId), {
+                    ...data,
+                    historial: [{ fecha: new Date().toISOString(), usuario: currentUser.nombre, motivo: motivo }]
+                });
+            }
+            hideLoading();
+            alert("Plan Anual actualizado.");
+            document.getElementById('audit-header-edit').style.display='none';
+            document.getElementById('audit-header-view').style.display='block';
+        };
+
+        window.loadAuditPlan = (year) => {
+            const docId = `Plan_${year}`;
+            document.getElementById('view-year-label').innerText = year;
+            
+            onSnapshot(doc(db, "artifacts", appId, "public", "data", "AuditPlans", docId), s => {
+                const viewObj = document.getElementById('audit-header-view');
+                if(s.exists()) {
+                    globalAuditPlan = s.data();
+                    viewObj.style.display = 'block'; 
+                    
+                    document.getElementById('view-ah-obj').innerText = globalAuditPlan.objetivo || '-';
+                    document.getElementById('view-ah-alcance').innerText = globalAuditPlan.alcance || '-';
+                    document.getElementById('view-ah-tecnica').innerText = globalAuditPlan.tecnica || '-';
+                    document.getElementById('view-ah-criterios').innerText = globalAuditPlan.criterios || '-';
+                    document.getElementById('view-ah-ref').innerText = globalAuditPlan.referencia || '-';
+                    document.getElementById('view-ah-fecha').innerText = window.formatearFechaAbreviada(globalAuditPlan.fecha_elab) || '-';
+                    
+                    document.getElementById('view-ah-lider').innerText = globalAuditPlan.lider || '-';
+                    document.getElementById('view-ah-auditor').innerText = globalAuditPlan.auditor || '-';
+                    document.getElementById('view-ah-tec').innerText = globalAuditPlan.recursos_tec || '-';
+                    document.getElementById('view-ah-rrhh').innerText = globalAuditPlan.recursos_hh || '-';
+                    
+                    document.getElementById('view-ah-emails').innerText = (globalAuditPlan.correos || []).join(', ') || 'No hay correos registrados.';
+                    
+                    let modInfo = `Por: ${globalAuditPlan.modificado_por || '-'} el ${window.formatearFechaAbreviada(globalAuditPlan.ultima_modif)}`;
+                    if(globalAuditPlan.historial && globalAuditPlan.historial.length > 0) {
+                        let ultimoMotivo = globalAuditPlan.historial[globalAuditPlan.historial.length-1].motivo;
+                        modInfo += ` (Motivo: ${ultimoMotivo})`;
+                    }
+                    document.getElementById('view-ah-mod-info').innerText = modInfo;
+
+                } else {
+                    globalAuditPlan = null;
+                    viewObj.style.display = 'none';
+                }
+            });
+            cargarDatos(); 
+        };
+
+        window.guardarAuditoria = async () => {
+            const fecha = document.getElementById('aud-fecha').value;
+            const hIni = document.getElementById('aud-h-ini').value;
+            const hFin = document.getElementById('aud-h-fin').value;
+            const proceso = document.getElementById('aud-proceso').value;
+            const lugar = document.getElementById('aud-lugar').value;
+            const req = document.getElementById('aud-req').value;
+            const obs = document.getElementById('aud-obs').value;
+            
+            if(!fecha || !proceso) return alert("Fecha y Proceso son obligatorios.");
+
+            // Recopilar selección múltiple de Auditados
+            const auditadoSel = document.getElementById('aud-auditado');
+            let auditadoNombres = [];
+            let auditadoEmails = [];
+            for(let opt of auditadoSel.selectedOptions) {
+                if(opt.value) auditadoNombres.push(opt.value);
+                if(opt.dataset.email) auditadoEmails.push(opt.dataset.email);
+            }
+            
+            // Recopilar selección múltiple de Auditores
+            const auditorSel = document.getElementById('aud-auditor');
+            let auditorNombres = [];
+            let auditorEmails = [];
+            for(let opt of auditorSel.selectedOptions) {
+                if(opt.value) auditorNombres.push(opt.value);
+                if(opt.dataset.email) auditorEmails.push(opt.dataset.email);
+            }
+
+            let data = {
+                fecha: fecha,
+                hora_inicio: hIni,
+                hora_fin: hFin,
+                lugar: lugar,
+                proceso: proceso,
+                requisitos: req,
+                auditado: auditadoNombres.join(', '),
+                auditado_emails: auditadoEmails,
+                auditor: auditorNombres.join(', '),
+                auditor_emails: auditorEmails,
+                observacion: obs,
+                estado: "Pendiente",
+                creado_por: currentUser.nombre,
+                timestamp: new Date().toISOString()
+            };
+
+            showLoading();
+            await addDoc(collection(db, "artifacts", appId, "public", "data", "Auditorias"), data);
+
+            // PREPARAR Y ENVIAR NOTIFICACIÓN
+            let correosPlan = globalAuditPlan && globalAuditPlan.correos ? globalAuditPlan.correos : [];
+            let correosNotificacion = new Set([...correosPlan, ...auditadoEmails, ...auditorEmails]);
+            correosNotificacion.add(EMAIL_ADMIN_SGC);
+
+            const mensajeEmail = `
+Se ha programado una nueva auditoría en el sistema:
+
+📅 Fecha: ${window.formatearFechaAbreviada(fecha)}
+⏰ Horario: ${hIni} - ${hFin}
+📍 Lugar: ${lugar}
+📋 Proceso/Área: ${proceso}
+📝 Requisitos: ${req}
+👤 Auditado(s): ${data.auditado}
+🕵️‍♂️ Auditor(es): ${data.auditor}
+💬 Observaciones: ${obs || 'Ninguna'}
+
+Por favor, verificar y confirmar la agenda en el sistema SGC.`;
+
+            let destStr = Array.from(correosNotificacion).filter(e=>e && e.includes('@')).join(',');
+            
+            if(destStr) {
+                sendNotification({to: destStr, cc: ""}, "Programación de Auditoría: " + proceso, mensajeEmail);
+            }
+            
+            document.getElementById('aud-proceso').value = "";
+            document.getElementById('aud-req').value = "";
+            document.getElementById('aud-obs').value = "";
+            document.getElementById('aud-auditado').selectedIndex = -1;
+            document.getElementById('aud-auditor').selectedIndex = -1;
+            
+            hideLoading();
+            alert("Auditoría programada y notificada correctamente.");
+        };
+
+        window.marcarAuditoriaCompletada = async (id) => {
+            if(!confirm("¿Marcar esta auditoría como COMPLETADA?")) return;
+            showLoading();
+            
+            const docRef = doc(db, "artifacts", appId, "public", "data", "Auditorias", id);
+            const docSnap = await getDoc(docRef);
+            
+            if(docSnap.exists()) {
+                const a = docSnap.data();
+                await updateDoc(docRef, { estado: "Completado" });
+                
+                let emails = new Set([...(a.auditor_emails||[]), ...(a.auditado_emails||[])]);
+                if(globalAuditPlan && globalAuditPlan.correos) {
+                    globalAuditPlan.correos.forEach(e => emails.add(e));
+                }
+                emails.add(EMAIL_ADMIN_SGC);
+                
+                let destStr = Array.from(emails).filter(e=>e && e.includes('@')).join(',');
+                if(destStr) {
+                    sendNotification({to: destStr, cc: ""}, "✅ Auditoría Completada: " + a.proceso, `La auditoría del proceso ${a.proceso} programada para el ${window.formatearFechaAbreviada(a.fecha)} ha sido marcada como COMPLETADA exitosamente en el sistema SGC.\n\nAuditados: ${a.auditado}\nAuditores: ${a.auditor}`);
+                }
+                alert("Auditoría marcada como Completada y correos enviados.");
+            }
+            hideLoading();
+        };
+
+        function verificarAlertasAuditoria(auditorias) {
+            if(!globalAuditPlan || !globalAuditPlan.correos || globalAuditPlan.correos.length === 0) return;
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            auditorias.forEach(a => {
+                if(a.estado === "Completado") return;
+                
+                const auditDate = new Date(a.fecha);
+                auditDate.setHours(0,0,0,0);
+                
+                const diffTime = auditDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                let asunto = "";
+                if(diffDays === 30) asunto = "🚨 Recordatorio: 1 Mes para Auditoría";
+                if(diffDays === 14) asunto = "⚠️ Recordatorio Urgente: 2 Semanas para Auditoría";
+                
+                if(asunto) {
+                    const dest = { to: globalAuditPlan.correos.join(',') };
+                    const msg = `Se aproxima la auditoría del proceso: ${a.proceso} programada para el ${window.formatearFechaAbreviada(a.fecha)} en ${a.lugar}.\n\nRequisitos a evaluar: ${a.requisitos}\nAuditados: ${a.auditado}\nAuditores: ${a.auditor}.`;
+                    sendNotification(dest, asunto, msg);
+                    console.log("Alerta automática enviada:", asunto, a.proceso);
+                }
+            });
+        }
+
+        // ==========================================
+        // FUNCIONES DE ENVIO DE CORREO Y CLOUDINARY
+        // ==========================================
+        function sendNotification(destinatarios, subject, message) {
+            if (!destinatarios.to && !destinatarios.cc) return;
+            const templateParams = {
+                to_email: destinatarios.to,
+                cc_email: destinatarios.cc || "",
+                subject: subject,
+                message: message
+            };
+            emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, templateParams)
+                .then(() => { console.log('Notificación enviada a:', destinatarios); })
+                .catch((error) => { console.error('Error enviando notificación', error); });
+        }
+
+        async function getDatosEnvio(solicitudData) {
+            let managerEmail = "";
+            if(solicitudData.gerencia) {
+                try {
+                    const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("gerencia", "==", solicitudData.gerencia), where("permisos.p_ger_apr", "==", true));
+                    const snap = await getDocs(q);
+                    if(!snap.empty) managerEmail = snap.docs[0].data().email || "";
+                } catch(e) { console.error("Error buscando gerente", e); }
+            }
+            const toEmails = new Set([EMAIL_ADMIN_SGC, EMAIL_GRUPO_SGC, solicitudData.solicitante_email]);
+            if(solicitudData.involucrados) { solicitudData.involucrados.forEach(e => toEmails.add(e)); }
+            return { to: Array.from(toEmails).join(','), cc: managerEmail };
+        }
+
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", UPLOAD_PRESET);
+            try {
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
+                const data = await response.json();
+                return data.secure_url;
+            } catch (error) {
+                console.error("Error Upload Cloudinary:", error);
+                return null;
+            }
+        }
+
+        async function getNextFCI() {
+            const ref = doc(db, "artifacts", appId, "public", "data", "Contadores", "solicitudes");
+            let id = "";
+            await runTransaction(db, async (t) => {
+                const snap = await t.get(ref);
+                let count = 1;
+                if (snap.exists()) count = snap.data().count + 1;
+                t.set(ref, { count });
+                id = `FCI-SOL-${String(count).padStart(4, '0')}`;
+            });
+            return id;
+        }
+
+        window.exportarReporteSolicitudes = () => {
+            let dataExport = globalSolicitudes.map(s => {
+                let p = PASOS_NOMBRES[s.idx] || '';
+                let estadoFormat = s.estado === 'Aprobado Final' ? 'Aprobado Final' : (s.estado === 'Anulado' || s.estado === 'Rechazado' ? s.estado : `${s.estado} (${p})`);
+                return {
+                    "ID Solicitud": s.customId,
+                    "Solicitante": s.solicitante || '',
+                    "Gerencia": s.gerencia || '',
+                    "Departamento": s.departamento || '',
+                    "Acción": s.accion || '',
+                    "Tipo Documento": s.tipoDoc || '',
+                    "Título Documento": s.titulo || '',
+                    "Estado Actual": estadoFormat,
+                    "Fecha de Creación": s.fecha ? new Date(s.fecha).toLocaleString() : '',
+                    "Código Ref. Original": s.cod_ref || '',
+                    "Versión Original": s.ver_ref || '',
+                    "Código Final Asignado": s.codigo_final || '',
+                    "Versión Final Asignada": s.version_final || '',
+                    "Fecha Final": s.fecha_final || ''
+                }
+            });
+            let wb = XLSX.utils.book_new();
+            let ws = XLSX.utils.json_to_sheet(dataExport);
+            XLSX.utils.book_append_sheet(wb, ws, "Reporte Solicitudes");
+            XLSX.writeFile(wb, "Reporte_General_Solicitudes.xlsx");
+        };
 
         // ==========================================
         // RESTO DE FUNCIONES DEL SISTEMA
@@ -1668,6 +1907,68 @@ Por favor, verificar y confirmar la agenda en el sistema SGC.`;
             document.getElementById('btnSaveUser').innerText = "ACTUALIZAR USUARIO";
             document.getElementById('btnCancelEdit').style.display = 'inline-flex';
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        document.getElementById('btnSaveUser').onclick = async () => {
+            const nom = document.getElementById('u-nom').value.trim();
+            const usr = document.getElementById('u-usr').value.toLowerCase().trim();
+            const pas = document.getElementById('u-pas').value.trim();
+            const ger = document.getElementById('u-ger-sel').value;
+            const rol = document.getElementById('u-rol').value.trim();
+            const email = document.getElementById('u-email').value.trim().toLowerCase();
+            
+            if(!nom || !usr || !pas || !ger) return alert("Nombre, Usuario, Contraseña y Gerencia son obligatorios.");
+            
+            const permisos = {
+                can_solicit: document.getElementById('p-solicitar').checked,
+                p_ver_propias: document.getElementById('p-ver-propias').checked,
+                p_ver_ger: document.getElementById('p-ver-ger').checked,
+                p_gest_sgc: document.getElementById('p-gest-sgc').checked,
+                p_ger_apr: document.getElementById('p-ger-apr').checked,
+                p_users: document.getElementById('p-users').checked,
+                p_struct: document.getElementById('p-struct').checked,
+                p_ver_listado: document.getElementById('p-ver-listado').checked,
+                admin: document.getElementById('p-admin').checked
+            };
+
+            showLoading();
+            const docRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", usr);
+            const snap = await getDoc(docRef);
+            
+            if(snap.exists() && document.getElementById('user-form-title').innerText.includes("Registrar")) {
+                hideLoading();
+                return alert("Ese ID de usuario ya existe. Elija otro o edítelo desde la tabla.");
+            }
+
+            await setDoc(docRef, {
+                nombre: nom, usuario: usr, pass: pas, gerencia: ger, role: rol, email: email, permisos: permisos
+            });
+            
+            resetUserForm();
+            hideLoading();
+            alert("Usuario guardado exitosamente.");
+        };
+
+        window.resetUserForm = () => {
+            document.getElementById('user-form-title').innerText = "Registrar / Editar Usuario";
+            document.getElementById('u-nom').value = "";
+            document.getElementById('u-usr').value = "";
+            document.getElementById('u-usr').disabled = false;
+            document.getElementById('u-pas').value = "123";
+            document.getElementById('u-ger-sel').value = "";
+            document.getElementById('u-rol').value = "";
+            document.getElementById('u-email').value = "";
+            document.getElementById('p-solicitar').checked = false;
+            document.getElementById('p-ver-propias').checked = true;
+            document.getElementById('p-ver-ger').checked = false;
+            document.getElementById('p-gest-sgc').checked = false;
+            document.getElementById('p-ger-apr').checked = false;
+            document.getElementById('p-users').checked = false;
+            document.getElementById('p-struct').checked = false;
+            document.getElementById('p-ver-listado').checked = false;
+            document.getElementById('p-admin').checked = false;
+            document.getElementById('btnSaveUser').innerText = "GUARDAR USUARIO";
+            document.getElementById('btnCancelEdit').style.display = 'none';
         };
 
         window.actualizarDatosSGC = async () => {
@@ -2132,9 +2433,32 @@ Por favor, verificar y confirmar la agenda en el sistema SGC.`;
         };
         window.toggleModPanel = v => document.getElementById('panel-mod').style.display = v === 'Creación' ? 'none' : 'grid';
         window.closeModal = () => document.getElementById('modal').style.display = 'none';
+        
+        window.btnSaveGer = document.getElementById('btnSaveGer');
+        if(btnSaveGer) {
+            btnSaveGer.onclick = async () => {
+                const nom = document.getElementById('g-nom').value.trim();
+                if(!nom) return alert("Escriba un nombre para la gerencia.");
+                await addDoc(collection(db, "artifacts", appId, "public", "data", "Gerencias"), { nombre: nom });
+                document.getElementById('g-nom').value = "";
+            };
+        }
+
+        window.btnSaveDep = document.getElementById('btnSaveDep');
+        if(btnSaveDep) {
+            btnSaveDep.onclick = async () => {
+                const ger = document.getElementById('d-ger-sel').value;
+                const nom = document.getElementById('d-nom').value.trim();
+                if(!ger || !nom) return alert("Por favor, seleccione una Gerencia y escriba el nombre del Departamento.");
+                await addDoc(collection(db, "artifacts", appId, "public", "data", "Departamentos"), {
+                    nombre: nom, gerencia: ger
+                });
+                document.getElementById('d-nom').value = "";
+            };
+        }
+
         window.del = async (c, id) => { if(confirm("¿Eliminar este registro?")) await deleteDoc(doc(db, "artifacts", appId, "public", "data", c, id)); };
 
     </script>
 </body>
 </html>
-
