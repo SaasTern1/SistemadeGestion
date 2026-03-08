@@ -32,7 +32,6 @@
         /* Sidebar */
         .sidebar { width: 280px; background: var(--sidebar); color: white; display: none; flex-direction: column; padding: 20px; border-right: 1px solid rgba(255,255,255,0.1); }
         
-        /* CORRECCIÓN: display: flex en lugar de none para que los tabs sean visibles */
         .nav-link { 
             display: flex; align-items: center; padding: 12px; color: #94a3b8; border: none; 
             background: none; cursor: pointer; width: 100%; border-radius: 12px; margin-bottom: 5px; transition: 0.3s; font-size: 14px; text-align: left;
@@ -213,11 +212,11 @@
                 <span class="material-icons-round">fact_check</span> Gestionar Solicitudes
             </button>
 
-            <button class="nav-link" id="nav-audit" onclick="cambiarVista('sec-audit', this)">
+            <button class="nav-link" id="nav-audit" onclick="cambiarVista('sec-audit', this)" style="display:none;">
                 <span class="material-icons-round">calendar_month</span> Calendario Auditoría
             </button>
 
-            <button class="nav-link" id="nav-listado" onclick="cambiarVista('sec-listado', this)">
+            <button class="nav-link" id="nav-listado" onclick="cambiarVista('sec-listado', this)" style="display:none;">
                 <span class="material-icons-round">library_books</span> Listado Maestro
             </button>
             
@@ -973,7 +972,7 @@
         const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
 
         // ==========================================
-        // 2. FUNCIONES GLOBALES Y VISUALES (El navegador las aprende primero)
+        // 2. FUNCIONES GLOBALES Y VISUALES
         // ==========================================
         window.showLoading = () => document.getElementById('loading-overlay').style.display = 'flex';
         window.hideLoading = () => document.getElementById('loading-overlay').style.display = 'none';
@@ -1032,11 +1031,28 @@
             document.getElementById('curr-name').innerText = currentUser.nombre;
             document.getElementById('curr-ger').innerText = currentUser.gerencia || 'SGC Admin';
             
-            if(currentUser.permisos && currentUser.permisos.admin) {
+            const p = currentUser.permisos || {};
+            const esSGC = p.p_gest_sgc || p.admin;
+
+            // Administración Global
+            if(p.admin) {
                 document.getElementById('admin-only').style.display = 'block';
             } else {
                 document.getElementById('admin-only').style.display = 'none';
             }
+
+            // --- RESTRICCIONES DE VISTA Y BOTONES ---
+            
+            // 1. Calendario Auditoría (Solo SGC Admin)
+            document.getElementById('nav-audit').style.display = esSGC ? 'flex' : 'none';
+            document.getElementById('btn-config-plan').style.display = esSGC ? 'inline-flex' : 'none';
+            document.getElementById('audit-admin-panel').style.display = esSGC ? 'block' : 'none';
+
+            // 2. Listado Maestro (SGC Admin o los que tengan permiso de visualizarlo)
+            document.getElementById('nav-listado').style.display = (esSGC || p.p_ver_listado) ? 'flex' : 'none';
+            document.getElementById('btn-nuevo-maestro').style.display = esSGC ? 'inline-flex' : 'none';
+            document.getElementById('btn-import-maestro').style.display = esSGC ? 'inline-flex' : 'none';
+            document.getElementById('btn-export-list').style.display = esSGC ? 'inline-flex' : 'none';
             
             cargarDatos();
             window.cambiarVista('sec-dash', document.getElementById('nav-dash'));
