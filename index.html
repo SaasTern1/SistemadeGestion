@@ -54,6 +54,7 @@
         .card { background: white; padding: 25px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         
         label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: block; letter-spacing: 0.5px; }
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 15px; font-size: 14px; background: #fdfdfd; color: inherit; outline:none; transition: 0.2s; }
@@ -175,7 +176,7 @@
             
             .main { padding: 15px; overflow-y: visible; }
             
-            .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 15px; }
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; gap: 15px; }
             
             .modal-content { display: flex; flex-direction: column; height: 95vh; max-height: 95vh; overflow-y: auto; width: 95%; padding: 0; }
             .modal-main { padding: 20px; border-right: none; border-bottom: 1px solid var(--border); flex: none; height: auto; }
@@ -237,6 +238,10 @@
             </button>
             <button class="nav-link" id="nav-gest" onclick="cambiarVista('sec-gest', this)">
                 <span class="material-icons-round">fact_check</span> Gestionar Solicitudes
+            </button>
+            
+            <button class="nav-link" id="nav-audit" onclick="cambiarVista('sec-audit', this)">
+                <span class="material-icons-round">calendar_month</span> Calendario Auditoría
             </button>
 
             <button class="nav-link" id="nav-listado" onclick="cambiarVista('sec-listado', this)">
@@ -452,6 +457,51 @@
                         </thead>
                         <tbody id="tbody-gestionar">
                             </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-audit" class="section">
+            <h1 style="margin-bottom: 10px;">Calendario de Auditoría</h1>
+            <p style="color:#64748b; margin-bottom: 20px;">Programación y seguimiento de auditorías internas y externas.</p>
+
+            <div id="audit-admin-panel" style="display:none; background:white; padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px;">
+                <h3 style="margin-bottom:15px; color:var(--primary);">Programar Nueva Auditoría</h3>
+                <div class="grid-4">
+                    <div><label>Fecha Auditoría</label><input type="date" id="aud-fecha"></div>
+                    <div><label>Hora Inicio</label><input type="time" id="aud-h-ini"></div>
+                    <div><label>Hora Final</label><input type="time" id="aud-h-fin"></div>
+                    <div><label>Lugar</label><input type="text" id="aud-lugar" placeholder="Ej: Sala de Juntas"></div>
+                </div>
+                <div class="grid-2">
+                    <div><label>Proceso / Área / Actividad</label><input type="text" id="aud-proceso"></div>
+                    <div><label>Requisitos (Norma/Cláusula)</label><input type="text" id="aud-req"></div>
+                </div>
+                <div class="grid-2">
+                    <div><label>Auditado (Nombre - Cargo)</label><input type="text" id="aud-auditado"></div>
+                    <div><label>Auditor (Nombre - Cargo)</label><input type="text" id="aud-auditor"></div>
+                </div>
+                <label>Observaciones</label>
+                <textarea id="aud-obs" rows="2"></textarea>
+                <button class="btn btn-primary" onclick="guardarAuditoria()" style="width:100%;">AGREGAR AL CALENDARIO</button>
+            </div>
+
+            <div class="card" style="padding:0; overflow:hidden;">
+                <div class="table-responsive">
+                    <table id="tabla-auditorias">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Horario</th>
+                                <th>Proceso / Área</th>
+                                <th>Auditado</th>
+                                <th>Auditor</th>
+                                <th>Lugar</th>
+                                <th class="no-export">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-auditorias"></tbody>
                     </table>
                 </div>
             </div>
@@ -777,30 +827,6 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-form-listado">
-        <div class="modal-content" style="max-width: 800px; display:block; padding: 30px; height:auto; max-height:90vh; overflow-y:auto;">
-           <h2 style="color:var(--primary); margin-bottom: 20px; display:flex; align-items:center; gap:8px;">
-               <span class="material-icons-round">edit_document</span> 
-               <span id="lm-modal-title">Agregar Registro al Listado Maestro</span>
-           </h2>
-           
-           <div class="grid-2" id="dinamic-form-maestro"></div>
-           
-           <div style="background:#eff6ff; padding:15px; border-radius:10px; margin-top:15px; border:1px dashed var(--primary);">
-               <label style="color:var(--primary); font-size:11px;">Herramienta Rápida: Subir archivo y generar URL</label>
-               <div style="display:flex; gap:10px; align-items:center; margin-top:5px;">
-                   <input type="file" id="lm-generic-file" style="margin:0; background:white; flex:1;">
-                   <button class="btn btn-info" onclick="subirArchivoGenericoLM()">Subir y Llenar Campo</button>
-               </div>
-           </div>
-
-           <div style="display:flex; gap:10px; margin-top:20px;">
-               <button class="btn btn-primary" onclick="guardarRegistroMaestro()" style="flex:1;">Guardar Documento</button>
-               <button class="btn btn-dark" onclick="document.getElementById('modal-form-listado').style.display='none'" style="flex:1;">Cancelar</button>
-           </div>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
@@ -815,9 +841,9 @@
           appId: "1:709030283072:web:5997837b36a448e9515ca5"
         };
 
-        const EMAIL_SERVICE_ID = "service_vumxptj"; 
-        const EMAIL_TEMPLATE_ID = "template_9ch7ki8"; 
-        const EMAIL_PUBLIC_KEY = "kWsovOfdi7dBqLMw2-U"; 
+        const EMAIL_SERVICE_ID = "service_a7yozqh"; 
+        const EMAIL_TEMPLATE_ID = "template_7hlhnt8"; 
+        const EMAIL_PUBLIC_KEY = "2jVnfkJKKG0bpKN-U"; 
 
         const EMAIL_ADMIN_SGC = "sistemadegestion@fcipty.com"; 
         const EMAIL_GRUPO_SGC = "actualizacion@fcipty.com"; 
@@ -1134,13 +1160,25 @@
 
             const p = currentUser.permisos || {};
             
-            // ACTIVAMOS EL TAB DE DASHBOARD PARA QUE SEA VISIBLE
-            document.getElementById('nav-dash').classList.add('visible'); 
+            // RESTRICCION DASHBOARD: Solo Admin o SGC lo ven
+            if(p.admin || p.p_gest_sgc) {
+                document.getElementById('nav-dash').classList.add('visible');
+            } else {
+                document.getElementById('nav-dash').classList.remove('visible');
+            }
 
             if(p.can_solicit) document.getElementById('nav-crear').classList.add('visible');
             if(p.p_ver_propias || p.p_ver_ger || p.p_ver_all) document.getElementById('nav-hist').classList.add('visible');
             if(p.p_gest_sgc || p.p_ger_apr) document.getElementById('nav-gest').classList.add('visible');
             if(p.p_ver_listado || p.admin || p.p_gest_sgc) document.getElementById('nav-listado').classList.add('visible');
+            
+            // NUEVO TAB AUDITORIA: Visible para todos (pero con restricciones internas)
+            document.getElementById('nav-audit').classList.add('visible');
+            
+            // Si es admin, mostrar formulario de agregar auditoría
+            if(p.admin || p.p_gest_sgc) {
+                document.getElementById('audit-admin-panel').style.display = 'block';
+            }
 
             if(p.p_users || p.p_struct) document.getElementById('admin-only').style.display = 'block';
             if(p.p_users) document.getElementById('nav-users').classList.add('visible');
@@ -1161,8 +1199,73 @@
             document.getElementById('nav-hist').click();
         }
 
+        window.guardarAuditoria = async () => {
+            const fecha = document.getElementById('aud-fecha').value;
+            const hIni = document.getElementById('aud-h-ini').value;
+            const hFin = document.getElementById('aud-h-fin').value;
+            const proceso = document.getElementById('aud-proceso').value;
+            const lugar = document.getElementById('aud-lugar').value;
+            
+            if(!fecha || !proceso) return alert("Fecha y Proceso son obligatorios.");
+
+            let data = {
+                fecha: fecha,
+                hora_inicio: hIni,
+                hora_fin: hFin,
+                lugar: lugar,
+                proceso: proceso,
+                requisitos: document.getElementById('aud-req').value,
+                auditado: document.getElementById('aud-auditado').value,
+                auditor: document.getElementById('aud-auditor').value,
+                observacion: document.getElementById('aud-obs').value,
+                creado_por: currentUser.nombre,
+                timestamp: new Date().toISOString()
+            };
+
+            await addDoc(collection(db, "artifacts", appId, "public", "data", "Auditorias"), data);
+            
+            // Limpiar form
+            document.getElementById('aud-proceso').value = "";
+            document.getElementById('aud-req').value = "";
+            document.getElementById('aud-auditado').value = "";
+            document.getElementById('aud-obs').value = "";
+            alert("Auditoría programada correctamente.");
+        };
+
         function cargarDatos() {
             const path = (c) => collection(db, "artifacts", appId, "public", "data", c);
+
+            // CARGAR AUDITORIAS
+            onSnapshot(path("Auditorias"), s => {
+                const tb = document.getElementById('tbody-auditorias');
+                if(!tb) return;
+                tb.innerHTML = "";
+                
+                let audits = [];
+                s.forEach(d => { let a = d.data(); a.id = d.id; audits.push(a); });
+                
+                // Ordenar por fecha
+                audits.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+
+                audits.forEach(a => {
+                    let btnDel = "";
+                    if(currentUser.permisos.admin || currentUser.permisos.p_gest_sgc) {
+                        btnDel = `<button class="btn-icon-danger" onclick="del('Auditorias','${a.id}')"><span class="material-icons-round">delete</span></button>`;
+                    }
+                    
+                    tb.innerHTML += `
+                        <tr>
+                            <td><b>${window.formatearFechaAbreviada(a.fecha)}</b></td>
+                            <td>${a.hora_inicio || ''} - ${a.hora_fin || ''}</td>
+                            <td>${a.proceso}</td>
+                            <td>${a.auditado || '-'}</td>
+                            <td>${a.auditor || '-'}</td>
+                            <td>${a.lugar || '-'}</td>
+                            <td class="no-export">${btnDel}</td>
+                        </tr>
+                    `;
+                });
+            });
 
             onSnapshot(path("Gerencias"), s => {
                 let h = "<option value=''>-- Seleccionar Gerencia --</option>", l = "";
@@ -1616,7 +1719,7 @@
         window.verDetalle = async (id) => {
             selectedId = id;
             
-            // Limpiamos los editores enriquecidos al abrir un nuevo caso
+            // Limpiar los contenteditables cada vez que se abre una solicitud nueva
             document.getElementById('m-extra-input').innerHTML = "";
             document.getElementById('m-comentario-libre').innerHTML = "";
             
@@ -1678,7 +1781,7 @@
             }
 
             const esSGC = p.p_gest_sgc;
-            const esAdminSGC = p.admin || p.p_gest_sgc; // Validación para botón Reabrir
+            const esAdminSGC = p.admin || p.p_gest_sgc; // Validación para botón reabrir
             
             const esGestorSGC = esSGC && (s.idx === 0 || s.idx === 1 || s.idx === 3);
             const esGer = p.p_ger_apr && s.idx === 2 && s.gerencia === currentUser.gerencia;
@@ -1687,14 +1790,13 @@
             const esDuenio = s.uid === currentUser.usuario || esInvolucradoActivo;
             const activo = !isAprobadoFinalModal && estadoStr !== 'RECHAZADO' && estadoStr !== 'ANULADO';
 
-            // MOSTRAR BOTÓN DE REABRIR SI EL CASO ESTÁ CERRADO Y ES ADMIN/SGC
+            // Lógica para mostrar Botón Reabrir si la solicitud está cerrada y es Administrador
             if (esAdminSGC && !activo) {
                 document.getElementById('btn-reabrir').style.display = 'inline-flex';
             } else {
                 document.getElementById('btn-reabrir').style.display = 'none';
             }
 
-            // Ocultar/Mostrar paneles según estado
             document.getElementById('m-add-involucrado-section').style.display = activo ? 'flex' : 'none';
             document.getElementById('m-actions').style.display = (esGestorSGC || esGer) && activo ? 'block' : 'none';
             document.getElementById('applicant-actions').style.display = (esDuenio && activo) ? 'block' : 'none';
@@ -1800,7 +1902,6 @@
             document.getElementById('modal').style.display = 'flex';
         };
 
-        // FUNCIÓN PARA REABRIR SOLICITUD
         window.reabrirSolicitud = async () => {
             if(!confirm("⚠️ ¿Estás seguro de REABRIR esta solicitud? La solicitud volverá al estado inicial (Pendiente Documentado) y requerirá completar el ciclo nuevamente.")) return;
             
@@ -1821,8 +1922,7 @@
             document.getElementById('loading-overlay').style.display = 'none';
             alert("Solicitud reabierta de manera exitosa.");
             closeModal();
-            
-            // Forzar actualización de pantalla actual
+            // Actualizar vista
             if(document.getElementById('nav-hist').classList.contains('active')) document.getElementById('nav-hist').click();
             else if(document.getElementById('nav-gest').classList.contains('active')) document.getElementById('nav-gest').click();
         };
