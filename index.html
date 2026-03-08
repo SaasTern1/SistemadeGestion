@@ -199,14 +199,14 @@
         </div>
         
         <nav style="flex:1">
+            <button class="nav-link" id="nav-hist" onclick="cambiarVista('sec-hist', this)">
+                <span class="material-icons-round">history</span> Mis Solicitudes
+            </button>
             <button class="nav-link" id="nav-dash" onclick="cambiarVista('sec-dash', this)">
-                <span class="material-icons-round">dashboard</span> Dashboard
+                <span class="material-icons-round">dashboard</span> Dashboard Analytics
             </button>
             <button class="nav-link" id="nav-crear" onclick="cambiarVista('sec-crear', this)">
                 <span class="material-icons-round">add_box</span> Crear Solicitud
-            </button>
-            <button class="nav-link" id="nav-hist" onclick="cambiarVista('sec-hist', this)">
-                <span class="material-icons-round">history</span> Mis Solicitudes
             </button>
             <button class="nav-link" id="nav-gest" onclick="cambiarVista('sec-gest', this)">
                 <span class="material-icons-round">fact_check</span> Gestionar Solicitudes
@@ -251,42 +251,52 @@
             </button>
         </div>
 
-        <section id="sec-dash" class="section active">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+        <section id="sec-dash" class="section">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:25px;">
                 <div>
-                    <h1 style="font-size: 28px; font-weight: 800; color: var(--sidebar);">Panel General</h1>
-                    <p style="color: #64748b;">Resumen Operativo del Sistema</p>
+                    <h1 style="font-size: 28px; font-weight: 800; color: var(--sidebar);">Panel Analítico</h1>
+                    <p style="color: #64748b;">Métricas y Estado de Solicitudes</p>
                 </div>
             </div>
 
-            <div class="stats-grid grid-3" style="gap: 25px;">
-                <div class="card" style="position:relative; overflow:hidden; border:none; background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color:white;">
-                    <label style="color: rgba(255,255,255,0.8);">Total Solicitudes</label>
-                    <h2 id="dash-total" style="font-size:42px; margin:10px 0;">0</h2>
-                    <span class="material-icons-round" style="position:absolute; right:-10px; bottom:-10px; font-size:90px; opacity:0.2;">folder</span>
+            <h3 style="margin-bottom:15px; color:var(--primary); display:flex; align-items:center; gap:8px;"><span class="material-icons-round">person</span> Mis Estadísticas Personales</h3>
+            <div class="stats-grid grid-4" style="gap: 20px; margin-bottom: 35px;">
+                <div class="card" style="border-left: 5px solid var(--sidebar);">
+                    <label>Mis Solicitudes Totales</label>
+                    <h2 id="dash-mis-tot" style="font-size:36px; margin-top:5px;">0</h2>
                 </div>
+                <div class="card" style="border-left: 5px solid var(--warning); background:#fffbeb;">
+                    <label style="color:#92400e;">En Gestión / Pendientes</label>
+                    <h2 id="dash-mis-pend" style="font-size:36px; margin-top:5px; color:#92400e;">0</h2>
+                </div>
+                <div class="card" style="border-left: 5px solid var(--success); background:#f0fdf4;">
+                    <label style="color:#166534;">Aprobadas Oficialmente</label>
+                    <h2 id="dash-mis-ok" style="font-size:36px; margin-top:5px; color:#166534;">0</h2>
+                </div>
+                <div class="card" style="border-left: 5px solid var(--danger); background:#fef2f2;">
+                    <label style="color:#991b1b;">Rechazadas / Anuladas</label>
+                    <h2 id="dash-mis-rech" style="font-size:36px; margin-top:5px; color:#991b1b;">0</h2>
+                </div>
+            </div>
 
-                <div class="card" style="border-left: 6px solid var(--warning);">
-                    <div style="display:flex; justify-content:space-between;">
-                        <div>
-                            <label>Pendientes / En Gestión</label>
-                            <h2 id="dash-pend" style="font-size:38px; color: #92400e;">0</h2>
-                        </div>
-                        <div style="text-align:right;">
-                            <span class="badge badge-warning">Atención Req.</span>
-                        </div>
+            <div id="dash-admin-section" style="display:none; padding-top:20px; border-top:2px dashed var(--border);">
+                <h3 style="margin-bottom:15px; color:var(--info); display:flex; align-items:center; gap:8px;"><span class="material-icons-round">public</span> Visión Global SGC (Administración)</h3>
+                <div class="stats-grid grid-4" style="gap: 20px;">
+                    <div class="card" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color:white; border:none;">
+                        <label style="color:rgba(255,255,255,0.8);">Total Histórico Global</label>
+                        <h2 id="dash-glob-tot" style="font-size:36px; margin-top:5px;">0</h2>
                     </div>
-                </div>
-
-                <div class="card" style="border-left: 6px solid var(--success);">
-                    <div style="display:flex; justify-content:space-between;">
-                        <div>
-                            <label>Aprobados Final</label>
-                            <h2 id="dash-ok" style="font-size:38px; color: #065f46;">0</h2>
-                        </div>
-                        <div style="text-align:right;">
-                            <span class="badge badge-success">Meta OEA</span>
-                        </div>
+                    <div class="card" style="border-left: 5px solid var(--warning);">
+                        <label>Pendientes Globales</label>
+                        <h2 id="dash-glob-pend" style="font-size:36px; margin-top:5px; color:#d97706;">0</h2>
+                    </div>
+                    <div class="card" style="border-left: 5px solid var(--success);">
+                        <label>Aprobadas Globales</label>
+                        <h2 id="dash-glob-ok" style="font-size:36px; margin-top:5px; color:#059669;">0</h2>
+                    </div>
+                    <div class="card" style="border-left: 5px solid var(--danger);">
+                        <label>Anuladas Globales</label>
+                        <h2 id="dash-glob-rech" style="font-size:36px; margin-top:5px; color:#dc2626;">0</h2>
                     </div>
                 </div>
             </div>
@@ -371,10 +381,23 @@
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;">
                 <h1>Mis Solicitudes</h1>
             </div>
-            <div class="card" style="padding:0; padding-top:15px; overflow:hidden; margin-top:20px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px; padding: 0 15px; gap: 10px; flex-wrap: wrap;">
+
+            <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border);">
+                <label style="margin:0; font-size:12px; color:var(--primary);">Filtros para Exportar:</label>
+                <input type="date" id="hist-f-desde" class="search-bar" style="margin:0; max-width:130px; padding:8px;">
+                <input type="date" id="hist-f-hasta" class="search-bar" style="margin:0; max-width:130px; padding:8px;">
+                <select id="hist-f-estado" class="search-bar" style="margin:0; max-width:150px; padding:8px;">
+                    <option value="">Todos los Estados</option>
+                    <option value="Pendiente">Solo Pendientes</option>
+                    <option value="Aprobado Final">Solo Aprobados</option>
+                    <option value="Cancelado">Rechazados / Anulados</option>
+                </select>
+                <button class="btn btn-success" onclick="descargarExcelFiltrado(false, false)" style="padding: 8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar Mis Solicitudes</button>
+            </div>
+
+            <div class="card" style="padding:0; padding-top:15px; overflow:hidden;">
+                <div style="padding: 0 15px; margin-bottom:15px;">
                     <input type="text" id="search-hist" class="search-bar" placeholder="🔍 Buscar por ID, Título o Estado..." onkeyup="filtrarTabla('search-hist', 'tbody-historial')">
-                    <button id="btn-export-hist" class="btn btn-success" onclick="exportarReporteSolicitudes()" style="display:none;"><span class="material-icons-round" style="font-size:16px;">table_view</span> Exportar Reporte</button>
                 </div>
                 <div class="table-responsive">
                     <table id="tabla-mis-solicitudes"><thead><tr><th>ID</th><th>Solicitante</th><th>Documento</th><th>Estado</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-historial"></tbody></table>
@@ -383,26 +406,34 @@
         </section>
 
         <section id="sec-gest" class="section">
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:25px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;">
                 <div>
                     <h1 style="font-size: 26px; font-weight: 800;">Bandeja de Gestión Administrativa</h1>
                     <p style="color:#64748b; font-size:13px;">Documentos esperando revisión, firma o publicación final.</p>
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <button id="btn-export-gest" class="btn btn-success" onclick="exportarReporteSolicitudes()" style="display:none;">
-                        <span class="material-icons-round">download</span> Reporte Normal
-                    </button>
-                    <button id="btn-export-admin" class="btn btn-dark" onclick="exportarReporteCompletoAdmin()" style="display:none; gap:5px;">
-                        <span class="material-icons-round">insights</span> Excel Completo (Tiempos)
-                    </button>
-                </div>
+            </div>
+
+            <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border);">
+                <label style="margin:0; font-size:12px; color:var(--primary);">Filtros de Exportación:</label>
+                <input type="date" id="gest-f-desde" class="search-bar" style="margin:0; max-width:130px; padding:8px;">
+                <input type="date" id="gest-f-hasta" class="search-bar" style="margin:0; max-width:130px; padding:8px;">
+                <select id="gest-f-estado" class="search-bar" style="margin:0; max-width:150px; padding:8px;">
+                    <option value="">Todos los Estados</option>
+                    <option value="Pendiente">Solo Pendientes</option>
+                    <option value="Aprobado Final">Solo Aprobados</option>
+                    <option value="Cancelado">Rechazados / Anulados</option>
+                </select>
+                <button class="btn btn-success" onclick="descargarExcelFiltrado(true, false)" style="padding: 8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar Vista Normal</button>
+                <button id="btn-export-admin" class="btn btn-dark" onclick="descargarExcelFiltrado(true, true)" style="display:none; padding: 8px 15px; gap:5px;">
+                    <span class="material-icons-round" style="font-size:16px;">insights</span> Excel Completo (Con Tiempos)
+                </button>
             </div>
 
             <div class="card" style="padding:0; border-radius: 16px; overflow:hidden;">
                 <div style="background: #f8fafc; padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
                     <div style="flex:1; min-width:250px;">
                         <input type="text" id="search-gest" class="search-bar" style="max-width:100%; margin-bottom:0;" 
-                               placeholder="🔍 Buscar por ID, Solicitante o Documento..." 
+                               placeholder="🔍 Buscar en tabla por ID, Solicitante o Documento..." 
                                onkeyup="filtrarTabla('search-gest', 'tbody-gestionar')">
                     </div>
                     <div style="display:flex; gap:8px;">
@@ -947,9 +978,10 @@
         const db = getFirestore(app);
         const appId = 'sgc-final-v6';
         
-        const EMAIL_SERVICE_ID = "service_a7yozqh"; 
-        const EMAIL_TEMPLATE_ID = "template_7hlhnt8"; 
-        const EMAIL_PUBLIC_KEY = "2jVnfkJKKG0bpKN-U"; 
+        // ACTUALIZACIÓN CREDENCIALES EMAILJS SOLICITADAS
+        const EMAIL_SERVICE_ID = "service_vumxptj"; 
+        const EMAIL_TEMPLATE_ID = "template_z27y5yk"; 
+        const EMAIL_PUBLIC_KEY = "kWsovOfdi7dBqLMw2"; 
         const EMAIL_ADMIN_SGC = "sistemadegestion@fcipty.com"; 
         const EMAIL_GRUPO_SGC = "actualizacion@fcipty.com"; 
 
@@ -1044,23 +1076,20 @@
             }
 
             // --- RESTRICCIONES DE VISTA Y BOTONES ---
-            
-            // 1. Calendario Auditoría (Solo SGC Admin)
             document.getElementById('nav-audit').style.display = esSGC ? 'flex' : 'none';
             document.getElementById('btn-config-plan').style.display = esSGC ? 'inline-flex' : 'none';
             document.getElementById('audit-admin-panel').style.display = esSGC ? 'block' : 'none';
 
-            // 2. Listado Maestro (SGC Admin o los que tengan permiso de visualizarlo)
             document.getElementById('nav-listado').style.display = (esSGC || p.p_ver_listado) ? 'flex' : 'none';
             document.getElementById('btn-nuevo-maestro').style.display = esSGC ? 'inline-flex' : 'none';
             document.getElementById('btn-import-maestro').style.display = esSGC ? 'inline-flex' : 'none';
             document.getElementById('btn-export-list').style.display = esSGC ? 'inline-flex' : 'none';
 
-            // 3. Botón Reporte Completo (Solo Admin Total)
             document.getElementById('btn-export-admin').style.display = p.admin ? 'inline-flex' : 'none';
             
             cargarDatos();
-            window.cambiarVista('sec-dash', document.getElementById('nav-dash'));
+            // INICIO AUTOMÁTICO EN "MIS SOLICITUDES"
+            window.cambiarVista('sec-hist', document.getElementById('nav-hist'));
         };
 
         window.logout = () => {
@@ -1075,48 +1104,71 @@
         };
 
         // ==========================================
-        // EXPORTACIÓN DE TIEMPOS (ADMIN TOTAL)
+        // EXPORTACIÓN DE DATOS CON FILTROS
         // ==========================================
-        window.exportarReporteCompletoAdmin = () => {
+        window.descargarExcelFiltrado = (esGestor = false, isAdminTotal = false) => {
+            // Leer filtros
+            let prefijo = esGestor ? 'gest' : 'hist';
+            let desde = document.getElementById(`${prefijo}-f-desde`).value;
+            let hasta = document.getElementById(`${prefijo}-f-hasta`).value;
+            let estado = document.getElementById(`${prefijo}-f-estado`).value;
+
+            // Filtrar Array Global
+            let datosFiltrados = globalSolicitudes.filter(s => {
+                // 1. Permisos de visibilidad
+                if (!esGestor && !isAdminTotal) {
+                    let isMine = (s.uid === currentUser.usuario) || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()));
+                    if (!isMine) return false;
+                }
+                
+                // 2. Filtro Fechas (usando fecha creación)
+                if (desde && s.fecha < desde) return false;
+                if (hasta && s.fecha > hasta + "T23:59:59") return false;
+
+                // 3. Filtro Estados
+                if (estado) {
+                    let eStr = (s.estado || "").toUpperCase();
+                    if (estado === 'Pendiente' && (eStr.includes('APROBADO FINAL') || eStr === 'ANULADO' || eStr === 'RECHAZADO')) return false;
+                    if (estado === 'Aprobado Final' && !eStr.includes('APROBADO FINAL')) return false;
+                    if (estado === 'Cancelado' && eStr !== 'ANULADO' && eStr !== 'RECHAZADO') return false;
+                }
+                return true;
+            });
+
+            if(datosFiltrados.length === 0) return alert("No hay datos que coincidan con estos filtros.");
+
             const formatearDiferencia = (ini, fin) => {
                 if(!ini || !fin) return "N/A";
-                const ms = new Date(fin) - new Date(ini);
-                if(ms < 0) return "N/A";
-                const m = Math.floor(ms / 60000);
-                const h = Math.floor(m / 60);
-                const d = Math.floor(h / 24);
-                const remH = h % 24;
-                const remM = m % 60;
-                if (d > 0) return `${d}d ${remH}h ${remM}m`;
-                if (h > 0) return `${h}h ${remM}m`;
-                return `${m}m`;
+                const ms = new Date(fin) - new Date(ini); if(ms < 0) return "N/A";
+                const m = Math.floor(ms / 60000); const h = Math.floor(m / 60); const d = Math.floor(h / 24);
+                const remH = h % 24; const remM = m % 60;
+                if (d > 0) return `${d}d ${remH}h ${remM}m`; if (h > 0) return `${h}h ${remM}m`; return `${m}m`;
             };
 
-            const dataExport = globalSolicitudes.map(s => {
-                return {
-                    "ID Sistema": s.customId,
-                    "Solicitante": s.solicitante || '',
-                    "Email Solicitante": s.solicitante_email || '',
-                    "Gerencia": s.gerencia || '',
-                    "Departamento": s.departamento || '',
-                    "Acción": s.accion || '',
-                    "Tipo de Documento": s.tipoDoc || '',
-                    "Título del Documento": s.titulo || '',
-                    "Estado Actual": s.estado || '',
-                    "Fecha Creación": s.fecha ? new Date(s.fecha).toLocaleString() : '',
-                    "Tiempo Fase 1 (Documentado)": formatearDiferencia(s.fase_0_ini, s.fase_0_fin),
-                    "Tiempo Fase 2 (Verificado)": formatearDiferencia(s.fase_1_ini, s.fase_1_fin),
-                    "Tiempo Fase 3 (Aprob. Gerencia)": formatearDiferencia(s.fase_2_ini, s.fase_2_fin),
-                    "Tiempo Fase 4 (Aprob. SGC)": formatearDiferencia(s.fase_3_ini, s.fase_3_fin),
-                    "TIEMPO TOTAL DEL FLUJO": formatearDiferencia(s.fase_0_ini, s.fecha_final || s.fase_3_fin || s.fase_2_fin || s.fase_1_fin || s.fase_0_fin),
-                    "Código Final": s.codigo_final || '',
-                    "Versión Final": s.version_final || ''
+            // Mapear Columnas
+            let dataExport = datosFiltrados.map(s => {
+                let p = PASOS_NOMBRES[s.idx] || '';
+                let estadoFormat = s.estado === 'Aprobado Final' ? 'Aprobado Final' : (s.estado === 'Anulado' || s.estado === 'Rechazado' ? s.estado : `${s.estado} (${p})`);
+                
+                let baseObj = {
+                    "ID Solicitud": s.customId, "Solicitante": s.solicitante || '', "Email Solicitante": s.solicitante_email || '', "Gerencia": s.gerencia || '', "Departamento": s.departamento || '', "Acción": s.accion || '', "Tipo Documento": s.tipoDoc || '', "Título Documento": s.titulo || '', "Estado Actual": estadoFormat, "Fecha de Creación": s.fecha ? new Date(s.fecha).toLocaleString() : '', "Código Ref. Original": s.cod_ref || '', "Versión Original": s.ver_ref || '', "Código Final Asignado": s.codigo_final || '', "Versión Final Asignada": s.version_final || '', "Fecha Final": s.fecha_final || ''
                 };
+
+                if (isAdminTotal) {
+                    baseObj["Tiempo Fase 1 (Documentado)"] = formatearDiferencia(s.fase_0_ini, s.fase_0_fin);
+                    baseObj["Tiempo Fase 2 (Verificado)"] = formatearDiferencia(s.fase_1_ini, s.fase_1_fin);
+                    baseObj["Tiempo Fase 3 (Aprob. Gerencia)"] = formatearDiferencia(s.fase_2_ini, s.fase_2_fin);
+                    baseObj["Tiempo Fase 4 (Aprob. SGC)"] = formatearDiferencia(s.fase_3_ini, s.fase_3_fin);
+                    baseObj["TIEMPO TOTAL DEL FLUJO"] = formatearDiferencia(s.fase_0_ini, s.fecha_final || s.fase_3_fin || s.fase_2_fin || s.fase_1_fin || s.fase_0_fin);
+                }
+                return baseObj;
             });
+
+            let nameF = isAdminTotal ? "Reporte_Admin_Tiempos" : "Reporte_Solicitudes";
             let wb = XLSX.utils.book_new();
             let ws = XLSX.utils.json_to_sheet(dataExport);
-            XLSX.utils.book_append_sheet(wb, ws, "Tiempos_Base_Completa");
-            XLSX.writeFile(wb, "Reporte_Admin_Total_Tiempos_SGC.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "Datos_Filtrados");
+            XLSX.writeFile(wb, `${nameF}.xlsx`);
         };
 
         // ==========================================
@@ -1310,17 +1362,6 @@
             return id;
         }
 
-        window.exportarReporteSolicitudes = () => {
-            let dataExport = globalSolicitudes.map(s => {
-                let p = PASOS_NOMBRES[s.idx] || '';
-                let estadoFormat = s.estado === 'Aprobado Final' ? 'Aprobado Final' : (s.estado === 'Anulado' || s.estado === 'Rechazado' ? s.estado : `${s.estado} (${p})`);
-                return {
-                    "ID Solicitud": s.customId, "Solicitante": s.solicitante || '', "Gerencia": s.gerencia || '', "Departamento": s.departamento || '', "Acción": s.accion || '', "Tipo Documento": s.tipoDoc || '', "Título Documento": s.titulo || '', "Estado Actual": estadoFormat, "Fecha de Creación": s.fecha ? new Date(s.fecha).toLocaleString() : '', "Código Ref. Original": s.cod_ref || '', "Versión Original": s.ver_ref || '', "Código Final Asignado": s.codigo_final || '', "Versión Final Asignada": s.version_final || '', "Fecha Final": s.fecha_final || ''
-                }
-            });
-            let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dataExport); XLSX.utils.book_append_sheet(wb, ws, "Reporte Solicitudes"); XLSX.writeFile(wb, "Reporte_General_Solicitudes.xlsx");
-        };
-
         window.renderListasConfig = () => {
             let hCol = ""; columnasMaestro.forEach((c, idx) => { hCol += `<div class="settings-item"><span>${c}</span><button class="btn-icon-danger" onclick="eliminarColumna(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; });
             if(document.getElementById('list-columnas')) document.getElementById('list-columnas').innerHTML = hCol;
@@ -1403,12 +1444,6 @@
             if(targetInput) { targetInput.value = url; alert("Archivo subido y enlace colocado."); } 
             else { alert("Archivo subido. Copia este enlace:\n" + url); }
             document.getElementById('lm-generic-file').value = "";
-        };
-
-        window.exportarExcelListado = () => {
-            let tablaOriginal = document.getElementById("tabla-listado-maestro"); if(!tablaOriginal) return;
-            let tablaClon = tablaOriginal.cloneNode(true); let elementsToRemove = tablaClon.querySelectorAll('.no-export'); elementsToRemove.forEach(el => el.parentNode.removeChild(el));
-            let wb = XLSX.utils.table_to_book(tablaClon, {sheet:"Listado Maestro"}); XLSX.writeFile(wb, "Listado_Maestro_SGC.xlsx");
         };
 
         window.cargarUsuarioParaEditar = (usuarioId) => {
@@ -1683,15 +1718,20 @@
                 window.renderListasConfig(); window.renderTablaMaestro();
             });
 
-            // CARGAR SOLICITUDES
+            // CARGAR SOLICITUDES Y RENDERIZAR DASHBOARD/TABLAS
             onSnapshot(path("Solicitudes"), s => {
                 const tbHist = document.getElementById('tbody-historial'); const tbGest = document.getElementById('tbody-gestionar');
                 if(!tbHist || !tbGest) return;
                 
-                let stats = { total:0, p:0, o:0 }; let solicitudesList = [];
+                let solicitudesList = [];
                 s.forEach(d => { let data = d.data(); data.docId = d.id; solicitudesList.push(data); });
                 solicitudesList.sort((a, b) => { return a.customId > b.customId ? 1 : -1; });
                 globalSolicitudes = solicitudesList; 
+
+                // Variables para Dashboard Personal
+                let misTot = 0, misPend = 0, misOk = 0, misRech = 0;
+                // Variables para Dashboard Global
+                let globTot = 0, globPend = 0, globOk = 0, globRech = 0;
 
                 let histHtml = ""; let gestHtml = "";
 
@@ -1701,12 +1741,24 @@
                     let estadoStr = (sol.estado || "").toUpperCase();
                     let isAprobadoFinal = estadoStr.includes('APROBADO FINAL');
                     let isCancelado = estadoStr === 'ANULADO' || estadoStr === 'RECHAZADO';
+                    let isMine = (sol.uid === currentUser.usuario) || (sol.involucrados && currentUser.email && sol.involucrados.includes(currentUser.email.toLowerCase()));
 
-                    stats.total++;
-                    if(!isAprobadoFinal && !isCancelado) stats.p++; else if(isAprobadoFinal) stats.o++;
+                    // Cálculos Dashboard Global
+                    globTot++;
+                    if (isAprobadoFinal) globOk++;
+                    else if (isCancelado) globRech++;
+                    else globPend++;
 
-                    let esInvolucrado = sol.involucrados && currentUser.email && sol.involucrados.includes(currentUser.email.toLowerCase());
-                    let ver = p.p_ver_all || (p.p_ver_ger && sol.gerencia === currentUser.gerencia) || (p.p_ver_propias && (sol.uid === currentUser.usuario || esInvolucrado));
+                    // Cálculos Dashboard Personal
+                    if (isMine) {
+                        misTot++;
+                        if (isAprobadoFinal) misOk++;
+                        else if (isCancelado) misRech++;
+                        else misPend++;
+                    }
+
+                    // Renderizado de Tablas
+                    let ver = p.p_ver_all || (p.p_ver_ger && sol.gerencia === currentUser.gerencia) || (p.p_ver_propias && isMine);
                     
                     let badgeClass = 'badge-info';
                     if(estadoStr.includes('APROBADO')) badgeClass = 'badge-success';
@@ -1726,9 +1778,24 @@
                 });
                 
                 tbHist.innerHTML = histHtml; tbGest.innerHTML = gestHtml;
-                if(document.getElementById('dash-total')) document.getElementById('dash-total').innerText = stats.total;
-                if(document.getElementById('dash-pend')) document.getElementById('dash-pend').innerText = stats.p;
-                if(document.getElementById('dash-ok')) document.getElementById('dash-ok').innerText = stats.o;
+                
+                // Actualizar Dashboard UI
+                if(document.getElementById('dash-mis-tot')) {
+                    document.getElementById('dash-mis-tot').innerText = misTot;
+                    document.getElementById('dash-mis-pend').innerText = misPend;
+                    document.getElementById('dash-mis-ok').innerText = misOk;
+                    document.getElementById('dash-mis-rech').innerText = misRech;
+
+                    if(currentUser && (currentUser.permisos.p_gest_sgc || currentUser.permisos.admin)) {
+                        document.getElementById('dash-admin-section').style.display = 'block';
+                        document.getElementById('dash-glob-tot').innerText = globTot;
+                        document.getElementById('dash-glob-pend').innerText = globPend;
+                        document.getElementById('dash-glob-ok').innerText = globOk;
+                        document.getElementById('dash-glob-rech').innerText = globRech;
+                    } else {
+                        document.getElementById('dash-admin-section').style.display = 'none';
+                    }
+                }
             });
 
             // CARGAR LISTADO MAESTRO
@@ -1737,7 +1804,6 @@
                 window.renderTablaMaestro();
             });
         }
-
 
         // ==========================================
         // 4. EVENTOS Y ASIGNACIONES HTML
