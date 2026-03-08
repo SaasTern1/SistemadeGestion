@@ -31,11 +31,12 @@
 
         /* Sidebar */
         .sidebar { width: 280px; background: var(--sidebar); color: white; display: none; flex-direction: column; padding: 20px; border-right: 1px solid rgba(255,255,255,0.1); }
+        
+        /* CORRECCIÓN: display: flex en lugar de none para que los tabs sean visibles */
         .nav-link { 
-            display: none; align-items: center; padding: 12px; color: #94a3b8; border: none; 
+            display: flex; align-items: center; padding: 12px; color: #94a3b8; border: none; 
             background: none; cursor: pointer; width: 100%; border-radius: 12px; margin-bottom: 5px; transition: 0.3s; font-size: 14px; text-align: left;
         }
-        .nav-link.visible { display: flex; }
         .nav-link:hover { background: rgba(255,255,255,0.05); color: white; }
         .nav-link.active { background: var(--accent); color: white; font-weight: 600; }
         .nav-link span { margin-right: 12px; }
@@ -251,7 +252,7 @@
             </button>
         </div>
 
-        <section id="sec-dash" class="section">
+        <section id="sec-dash" class="section active">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
                 <div>
                     <h1 style="font-size: 28px; font-weight: 800; color: var(--sidebar);">Panel General</h1>
