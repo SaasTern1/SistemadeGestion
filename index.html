@@ -194,17 +194,35 @@
         </div>
         
         <nav style="flex:1">
-            <button class="nav-link" id="nav-dash" onclick="cambiarVista('sec-dash', this)"><span class="material-icons-round">dashboard</span> Dashboard</button>
-            <button class="nav-link" id="nav-crear" onclick="cambiarVista('sec-crear', this)"><span class="material-icons-round">add_box</span> Crear Solicitud</button>
-            <button class="nav-link" id="nav-hist" onclick="cambiarVista('sec-hist', this)"><span class="material-icons-round">history</span> Mis Solicitudes</button>
-            <button class="nav-link" id="nav-gest" onclick="cambiarVista('sec-gest', this)"><span class="material-icons-round">fact_check</span> Gestionar Solicitudes</button>
-            <button class="nav-link" id="nav-audit" onclick="cambiarVista('sec-audit', this)"><span class="material-icons-round">calendar_month</span> Calendario Auditoría</button>
-            <button class="nav-link" id="nav-listado" onclick="cambiarVista('sec-listado', this)"><span class="material-icons-round">library_books</span> Listado Maestro</button>
+            <button class="nav-link" id="nav-dash" onclick="cambiarVista('sec-dash', this)">
+                <span class="material-icons-round">dashboard</span> Dashboard
+            </button>
+            <button class="nav-link" id="nav-crear" onclick="cambiarVista('sec-crear', this)">
+                <span class="material-icons-round">add_box</span> Crear Solicitud
+            </button>
+            <button class="nav-link" id="nav-hist" onclick="cambiarVista('sec-hist', this)">
+                <span class="material-icons-round">history</span> Mis Solicitudes
+            </button>
+            <button class="nav-link" id="nav-gest" onclick="cambiarVista('sec-gest', this)">
+                <span class="material-icons-round">fact_check</span> Gestionar Solicitudes
+            </button>
+
+            <button class="nav-link" id="nav-audit" onclick="cambiarVista('sec-audit', this)">
+                <span class="material-icons-round">calendar_month</span> Calendario Auditoría
+            </button>
+
+            <button class="nav-link" id="nav-listado" onclick="cambiarVista('sec-listado', this)">
+                <span class="material-icons-round">library_books</span> Listado Maestro
+            </button>
             
             <div id="admin-only" style="display:none; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 20px; padding-top: 20px;">
                 <p style="font-size:10px; color:#64748b; font-weight:800; margin-left:12px; margin-bottom:10px;">ADMINISTRACIÓN</p>
-                <button class="nav-link" id="nav-users" onclick="cambiarVista('sec-usuarios', this)"><span class="material-icons-round">people</span> Usuarios</button>
-                <button class="nav-link" id="nav-struct" onclick="cambiarVista('sec-estructura', this)"><span class="material-icons-round">account_tree</span> Estructura</button>
+                <button class="nav-link" id="nav-users" onclick="cambiarVista('sec-usuarios', this)">
+                    <span class="material-icons-round">people</span> Usuarios
+                </button>
+                <button class="nav-link" id="nav-struct" onclick="cambiarVista('sec-estructura', this)">
+                    <span class="material-icons-round">account_tree</span> Estructura
+                </button>
             </div>
         </nav>
         
@@ -960,6 +978,307 @@
 
         const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
 
+        // FUNCIONES AUXILIARES GLOBALES
+        window.getDownloadUrl = (url) => {
+            if(!url) return "#";
+            if(url.includes('res.cloudinary.com')) {
+                let parts = url.split('/upload/');
+                return parts[0] + '/upload/fl_attachment/' + parts[1];
+            }
+            return url;
+        };
+
+        window.formatearFechaAbreviada = (fechaISO) => {
+            if (!fechaISO) return '';
+            const fecha = new Date(fechaISO);
+            if (isNaN(fecha)) return fechaISO; 
+            const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+            const dia = fecha.getDate();
+            const mes = meses[fecha.getMonth()];
+            const anio = fecha.getFullYear();
+            return `${dia}-${mes}-${anio}`;
+        };
+
+        window.toggleMenu = () => {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebar-overlay').classList.toggle('active');
+        };
+
+        window.logout = () => {
+            currentUser = null;
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('sidebar').style.display = 'none';
+            document.getElementById('main').style.display = 'none';
+            document.getElementById('admin-only').style.display = 'none';
+            document.getElementById('login-user').value = "";
+            document.getElementById('login-pass').value = "";
+        };
+
+        // ==========================================
+        // LOGIN (Solución getDocs y Tecla Enter)
+        // ==========================================
+        document.getElementById('login-pass').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('btnLogin').click();
+            }
+        });
+
+        document.getElementById('btnLogin').onclick = async () => {
+            const u = document.getElementById('login-user').value.toLowerCase().trim();
+            const p = document.getElementById('login-pass').value.trim();
+            
+            if (!u || !p) {
+                alert("Por favor, ingresa tu usuario y contraseña.");
+                return;
+            }
+
+            showLoading();
+
+            try {
+                // Crear administrador maestro si es necesario
+                if(u === 'admin' && p === '1130') {
+                    const adminRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", "admin");
+                    const snapAdmin = await getDoc(adminRef);
+                    if(!snapAdmin.exists()) {
+                        await setDoc(adminRef, {
+                            nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencia: "SGC", email: EMAIL_ADMIN_SGC,
+                            permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_users:true, p_struct:true, p_ver_listado:true, admin:true }
+                        });
+                    }
+                }
+
+                // Consultar las credenciales mediante GET en vez de Snapshot (Evita cuelgues)
+                const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", u), where("pass", "==", p));
+                const querySnapshot = await getDocs(q);
+
+                if(!querySnapshot.empty) {
+                    currentUser = querySnapshot.docs[0].data();
+                    
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('sidebar').style.display = 'flex';
+                    document.getElementById('main').style.display = 'block';
+                    document.getElementById('curr-name').innerText = currentUser.nombre;
+                    document.getElementById('curr-ger').innerText = currentUser.gerencia || 'SGC Admin';
+                    
+                    if(currentUser.permisos && currentUser.permisos.admin) {
+                        document.getElementById('admin-only').style.display = 'block';
+                    }
+                    
+                    cargarDatos();
+                    cambiarVista('sec-dash', document.getElementById('nav-dash'));
+                } else { 
+                    alert("Credenciales incorrectas. Verifica tu usuario o contraseña."); 
+                }
+            } catch (error) {
+                console.error("Error al intentar iniciar sesión:", error);
+                alert("Hubo un problema al conectar con la base de datos. Revisa la consola para más detalles.");
+            } finally {
+                hideLoading();
+            }
+        };
+
+        // ==========================================
+        // CARGA GENERAL DE DATOS (ONSNAPSHOTS)
+        // ==========================================
+        function cargarDatos() {
+            const path = (c) => collection(db, "artifacts", appId, "public", "data", c);
+
+            // CARGAR AUDITORIAS
+            onSnapshot(path("Auditorias"), s => {
+                const tb = document.getElementById('tbody-auditorias');
+                if(!tb) return;
+                
+                let audits = [];
+                const yearFilter = document.getElementById('aud-year-select').value;
+
+                s.forEach(d => { 
+                    let a = d.data(); 
+                    a.id = d.id; 
+                    if(a.fecha && a.fecha.startsWith(yearFilter)) audits.push(a); 
+                });
+                audits.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+
+                let audHtml = "";
+                audits.forEach(a => {
+                    let estadoLabel = a.estado || 'Pendiente';
+                    let estadoBadge = estadoLabel === 'Completado' ? 'badge-success' : 'badge-warning';
+
+                    let btnAccion = "";
+                    if(currentUser.permisos.admin || currentUser.permisos.p_gest_sgc) {
+                        if(estadoLabel !== 'Completado') {
+                            btnAccion += `<button class="btn btn-success" style="padding:4px 8px; font-size:10px; margin-right:5px;" onclick="marcarAuditoriaCompletada('${a.id}')" title="Marcar como completada"><span class="material-icons-round" style="font-size:14px;">check</span></button>`;
+                        }
+                        btnAccion += `<button class="btn-icon-danger" onclick="del('Auditorias','${a.id}')"><span class="material-icons-round">delete</span></button>`;
+                    }
+                    audHtml += `<tr>
+                            <td><b>${window.formatearFechaAbreviada(a.fecha)}</b></td>
+                            <td>${a.hora_inicio || ''} - ${a.hora_fin || ''}</td>
+                            <td>${a.proceso}</td>
+                            <td>${a.auditado || '-'}</td>
+                            <td>${a.auditor || '-'}</td>
+                            <td>${a.lugar || '-'}</td>
+                            <td><span class="badge ${estadoBadge}">${estadoLabel}</span></td>
+                            <td class="no-export">${btnAccion}</td>
+                        </tr>`;
+                });
+                tb.innerHTML = audHtml;
+                
+                if(currentUser.permisos.admin || currentUser.permisos.p_gest_sgc) {
+                    verificarAlertasAuditoria(audits);
+                }
+            });
+
+            // CARGAR USUARIOS PARA LOS SELECTORES
+            onSnapshot(path("Usuarios"), s => {
+                const tb = document.getElementById('tbody-users');
+                if(!tb) return;
+                
+                allUsers = []; 
+                let usersHtml = "";
+                let userOptionsHtmlSingle = `<option value="">-- Seleccionar Usuario --</option>`;
+                let userOptionsHtmlMultiple = "";
+                
+                s.forEach(d => {
+                    const u = d.data();
+                    u.docId = d.id;
+                    allUsers.push(u); 
+                    
+                    let optStr = `<option value="${u.nombre}" data-email="${u.email || ''}">${u.nombre} (${u.gerencia})</option>`;
+                    userOptionsHtmlSingle += optStr;
+                    userOptionsHtmlMultiple += optStr;
+
+                    usersHtml += `<tr>
+                        <td><b>${u.nombre}</b><br><span style="font-size:10px;color:#64748b">${u.usuario}</span></td>
+                        <td>${u.email || '-'}</td>
+                        <td>${u.gerencia}<br><span class="badge badge-info">${u.role || 'N/A'}</span></td>
+                        <td>
+                            <button class="btn btn-info" style="padding:5px 10px; font-size:10px;" onclick="cargarUsuarioParaEditar('${u.usuario}')">EDITAR</button> 
+                            <button class="btn btn-danger" style="padding:5px 10px; font-size:10px;" onclick="del('Usuarios','${u.docId}')">X</button>
+                        </td>
+                    </tr>`;
+                });
+                tb.innerHTML = usersHtml;
+                
+                if(document.getElementById('ah-lider')) document.getElementById('ah-lider').innerHTML = userOptionsHtmlSingle;
+                if(document.getElementById('ah-auditor')) document.getElementById('ah-auditor').innerHTML = userOptionsHtmlMultiple; 
+                if(document.getElementById('aud-auditado')) document.getElementById('aud-auditado').innerHTML = userOptionsHtmlMultiple;
+                if(document.getElementById('aud-auditor')) document.getElementById('aud-auditor').innerHTML = userOptionsHtmlMultiple;
+            });
+
+            onSnapshot(path("Gerencias"), s => {
+                let h = "<option value=''>-- Seleccionar Gerencia --</option>", l = "";
+                s.forEach(d => {
+                    const g = d.data();
+                    h += `<option value="${g.nombre}">${g.nombre}</option>`;
+                    l += `<div class="settings-item"><span>${g.nombre}</span><button class="btn-icon-danger" onclick="del('Gerencias','${d.id}')"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`;
+                });
+                if(document.getElementById('sol-ger')) document.getElementById('sol-ger').innerHTML = h;
+                if(document.getElementById('lm-gerencia')) document.getElementById('lm-gerencia').innerHTML = h;
+                if(document.getElementById('u-ger-sel')) document.getElementById('u-ger-sel').innerHTML = h;
+                if(document.getElementById('d-ger-sel')) document.getElementById('d-ger-sel').innerHTML = h; 
+                if(document.getElementById('list-ger')) document.getElementById('list-ger').innerHTML = l;
+                if(document.getElementById('sol-ger') && document.getElementById('sol-ger').value) { document.getElementById('sol-ger').dispatchEvent(new Event('change')); }
+            });
+
+            onSnapshot(path("Departamentos"), s => {
+                let l = "";
+                allDepartamentos = [];
+                s.forEach(d => {
+                    const dep = d.data();
+                    dep.docId = d.id;
+                    allDepartamentos.push(dep);
+                    l += `<div class="settings-item"><span>${dep.nombre} <small style="color:#94a3b8; margin-left:5px;">(${dep.gerencia || 'Sin Gerencia'})</small></span><button class="btn-icon-danger" onclick="del('Departamentos','${d.id}')"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`;
+                });
+                if(document.getElementById('list-dep')) document.getElementById('list-dep').innerHTML = l;
+                if(document.getElementById('sol-ger')) document.getElementById('sol-ger').dispatchEvent(new Event('change'));
+            });
+
+            const docConfigMaestro = doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings");
+            onSnapshot(docConfigMaestro, d => {
+                if(d.exists()) {
+                    columnasMaestro = d.data().columnas || ['Código', 'Gerencia', 'Departamento', 'Tipo de documento', 'Nombre del documento', 'Fecha de Creación', 'Fecha última versión', 'Versión', 'Ubicación del Documento', 'Estatus', 'Código Anterior'];
+                    estatusMaestro = d.data().estatus || ['Vigente', 'Obsoleto', 'En Revisión'];
+                } else {
+                    columnasMaestro = ['Código', 'Gerencia', 'Departamento', 'Tipo de documento', 'Nombre del documento', 'Fecha de Creación', 'Fecha última versión', 'Versión', 'Ubicación del Documento', 'Estatus', 'Código Anterior'];
+                    estatusMaestro = ['Vigente', 'Obsoleto', 'En Revisión'];
+                    setDoc(docConfigMaestro, { columnas: columnasMaestro, estatus: estatusMaestro }, {merge: true});
+                }
+                renderListasConfig();
+                renderTablaMaestro();
+            });
+
+            onSnapshot(path("Solicitudes"), s => {
+                const tbHist = document.getElementById('tbody-historial');
+                const tbGest = document.getElementById('tbody-gestionar');
+                if(!tbHist || !tbGest) return;
+                
+                let stats = { total:0, p:0, o:0 };
+                let solicitudesList = [];
+                s.forEach(d => { let data = d.data(); data.docId = d.id; solicitudesList.push(data); });
+                solicitudesList.sort((a, b) => { return a.customId > b.customId ? 1 : -1; });
+                globalSolicitudes = solicitudesList; 
+
+                let histHtml = "";
+                let gestHtml = "";
+
+                solicitudesList.forEach(sol => {
+                    const p = currentUser.permisos || {};
+                    let estadoStr = (sol.estado || "").toUpperCase();
+                    let isAprobadoFinal = estadoStr.includes('APROBADO FINAL');
+                    let isCancelado = estadoStr === 'ANULADO' || estadoStr === 'RECHAZADO';
+
+                    stats.total++;
+                    if(!isAprobadoFinal && !isCancelado) stats.p++; 
+                    else if(isAprobadoFinal) stats.o++;
+
+                    let esInvolucrado = sol.involucrados && currentUser.email && sol.involucrados.includes(currentUser.email.toLowerCase());
+                    let ver = p.p_ver_all || 
+                              (p.p_ver_ger && sol.gerencia === currentUser.gerencia) || 
+                              (p.p_ver_propias && (sol.uid === currentUser.usuario || esInvolucrado));
+                    
+                    let badgeClass = 'badge-info';
+                    if(estadoStr.includes('APROBADO')) badgeClass = 'badge-success';
+                    if(isCancelado) badgeClass = 'badge-danger';
+                    if(estadoStr.includes('PENDIENTE')) badgeClass = 'badge-warning';
+
+                    let faseActual = PASOS_NOMBRES[sol.idx] || "";
+                    let estadoMostrar = sol.estado;
+                    let infoFase = "";
+                    if (isAprobadoFinal) { estadoMostrar = "APROBADO FINAL"; } 
+                    else if (!isCancelado && faseActual) { infoFase = `<br><span style="font-size:10px; color:#64748b; font-weight:700; display:inline-block; margin-top:5px;">📍 Etapa: ${faseActual}</span>`; }
+
+                    if(ver) { histHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button></td></tr>`; }
+                    
+                    let gestionar = false;
+                    if(p.p_gest_sgc && (sol.idx === 0 || sol.idx === 1 || sol.idx === 3) && !isCancelado && !isAprobadoFinal) gestionar = true;
+                    if(p.p_ger_apr && sol.idx === 2 && sol.gerencia === currentUser.gerencia && !isCancelado && !isAprobadoFinal) gestionar = true;
+
+                    if(gestionar) { gestHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-primary" onclick="verDetalle('${sol.docId}')">Gestionar</button></td></tr>`; }
+                });
+                
+                tbHist.innerHTML = histHtml;
+                tbGest.innerHTML = gestHtml;
+                
+                if(document.getElementById('dash-total')) document.getElementById('dash-total').innerText = stats.total;
+                if(document.getElementById('dash-pend')) document.getElementById('dash-pend').innerText = stats.p;
+                if(document.getElementById('dash-ok')) document.getElementById('dash-ok').innerText = stats.o;
+                
+                if(stats.total > 0) {
+                    if(document.getElementById('bar-pend')) document.getElementById('bar-pend').style.width = (stats.p / stats.total * 100) + "%";
+                    if(document.getElementById('bar-ok')) document.getElementById('bar-ok').style.width = (stats.o / stats.total * 100) + "%";
+                }
+                if(document.getElementById('dash-date')) {
+                    document.getElementById('dash-date').innerText = new Date().toLocaleDateString('es-PA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                }
+            });
+
+            onSnapshot(path("ListadoMaestro"), s => {
+                dataMaestro = [];
+                s.forEach(d => { let data = d.data(); data.docId = d.id; dataMaestro.push(data); });
+                renderTablaMaestro();
+            });
+        }
+
         // ==========================================
         // LÓGICA DE AUDITORÍA Y USUARIOS DINÁMICOS
         // ==========================================
@@ -1242,7 +1561,7 @@ Por favor, verificar y confirmar la agenda en el sistema SGC.`;
             today.setHours(0,0,0,0);
             
             auditorias.forEach(a => {
-                if(a.estado === "Completado") return; // No alertar si ya se completó
+                if(a.estado === "Completado") return;
                 
                 const auditDate = new Date(a.fecha);
                 auditDate.setHours(0,0,0,0);
@@ -1263,204 +1582,89 @@ Por favor, verificar y confirmar la agenda en el sistema SGC.`;
             });
         }
 
-        function cargarDatos() {
-            const path = (c) => collection(db, "artifacts", appId, "public", "data", c);
-
-            // CARGAR AUDITORIAS
-            onSnapshot(path("Auditorias"), s => {
-                const tb = document.getElementById('tbody-auditorias');
-                if(!tb) return;
-                
-                let audits = [];
-                const yearFilter = document.getElementById('aud-year-select').value;
-
-                s.forEach(d => { 
-                    let a = d.data(); 
-                    a.id = d.id; 
-                    if(a.fecha && a.fecha.startsWith(yearFilter)) audits.push(a); 
-                });
-                audits.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-
-                let audHtml = "";
-                audits.forEach(a => {
-                    let estadoLabel = a.estado || 'Pendiente';
-                    let estadoBadge = estadoLabel === 'Completado' ? 'badge-success' : 'badge-warning';
-
-                    let btnAccion = "";
-                    if(currentUser.permisos.admin || currentUser.permisos.p_gest_sgc) {
-                        if(estadoLabel !== 'Completado') {
-                            btnAccion += `<button class="btn btn-success" style="padding:4px 8px; font-size:10px; margin-right:5px;" onclick="marcarAuditoriaCompletada('${a.id}')" title="Marcar como completada"><span class="material-icons-round" style="font-size:14px;">check</span></button>`;
-                        }
-                        btnAccion += `<button class="btn-icon-danger" onclick="del('Auditorias','${a.id}')"><span class="material-icons-round">delete</span></button>`;
-                    }
-                    audHtml += `<tr>
-                            <td><b>${window.formatearFechaAbreviada(a.fecha)}</b></td>
-                            <td>${a.hora_inicio || ''} - ${a.hora_fin || ''}</td>
-                            <td>${a.proceso}</td>
-                            <td>${a.auditado || '-'}</td>
-                            <td>${a.auditor || '-'}</td>
-                            <td>${a.lugar || '-'}</td>
-                            <td><span class="badge ${estadoBadge}">${estadoLabel}</span></td>
-                            <td class="no-export">${btnAccion}</td>
-                        </tr>`;
-                });
-                tb.innerHTML = audHtml;
-                
-                if(currentUser.permisos.admin || currentUser.permisos.p_gest_sgc) {
-                    verificarAlertasAuditoria(audits);
-                }
-            });
-
-            // CARGAR USUARIOS PARA LOS SELECTORES (Auditoría, Permisos, etc.)
-            onSnapshot(path("Usuarios"), s => {
-                const tb = document.getElementById('tbody-users');
-                if(!tb) return;
-                
-                allUsers = []; 
-                let usersHtml = "";
-                let userOptionsHtmlSingle = `<option value="">-- Seleccionar Usuario --</option>`;
-                let userOptionsHtmlMultiple = "";
-                
-                s.forEach(d => {
-                    const u = d.data();
-                    u.docId = d.id;
-                    allUsers.push(u); 
-                    
-                    let optStr = `<option value="${u.nombre}" data-email="${u.email || ''}">${u.nombre} (${u.gerencia})</option>`;
-                    userOptionsHtmlSingle += optStr;
-                    userOptionsHtmlMultiple += optStr;
-
-                    usersHtml += `<tr>
-                        <td><b>${u.nombre}</b><br><span style="font-size:10px;color:#64748b">${u.usuario}</span></td>
-                        <td>${u.email || '-'}</td>
-                        <td>${u.gerencia}<br><span class="badge badge-info">${u.role || 'N/A'}</span></td>
-                        <td>
-                            <button class="btn btn-info" style="padding:5px 10px; font-size:10px;" onclick="cargarUsuarioParaEditar('${u.usuario}')">EDITAR</button> 
-                            <button class="btn btn-danger" style="padding:5px 10px; font-size:10px;" onclick="del('Usuarios','${u.docId}')">X</button>
-                        </td>
-                    </tr>`;
-                });
-                tb.innerHTML = usersHtml;
-                
-                if(document.getElementById('ah-lider')) document.getElementById('ah-lider').innerHTML = userOptionsHtmlSingle;
-                if(document.getElementById('ah-auditor')) document.getElementById('ah-auditor').innerHTML = userOptionsHtmlMultiple; 
-                if(document.getElementById('aud-auditado')) document.getElementById('aud-auditado').innerHTML = userOptionsHtmlMultiple;
-                if(document.getElementById('aud-auditor')) document.getElementById('aud-auditor').innerHTML = userOptionsHtmlMultiple;
-            });
-
-            onSnapshot(path("Gerencias"), s => {
-                let h = "<option value=''>-- Seleccionar Gerencia --</option>", l = "";
-                s.forEach(d => {
-                    const g = d.data();
-                    h += `<option value="${g.nombre}">${g.nombre}</option>`;
-                    l += `<div class="settings-item"><span>${g.nombre}</span><button class="btn-icon-danger" onclick="del('Gerencias','${d.id}')"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`;
-                });
-                if(document.getElementById('sol-ger')) document.getElementById('sol-ger').innerHTML = h;
-                if(document.getElementById('lm-gerencia')) document.getElementById('lm-gerencia').innerHTML = h;
-                if(document.getElementById('u-ger-sel')) document.getElementById('u-ger-sel').innerHTML = h;
-                if(document.getElementById('d-ger-sel')) document.getElementById('d-ger-sel').innerHTML = h; 
-                if(document.getElementById('list-ger')) document.getElementById('list-ger').innerHTML = l;
-                if(document.getElementById('sol-ger') && document.getElementById('sol-ger').value) { document.getElementById('sol-ger').dispatchEvent(new Event('change')); }
-            });
-
-            onSnapshot(path("Departamentos"), s => {
-                let l = "";
-                allDepartamentos = [];
-                s.forEach(d => {
-                    const dep = d.data();
-                    dep.docId = d.id;
-                    allDepartamentos.push(dep);
-                    l += `<div class="settings-item"><span>${dep.nombre} <small style="color:#94a3b8; margin-left:5px;">(${dep.gerencia || 'Sin Gerencia'})</small></span><button class="btn-icon-danger" onclick="del('Departamentos','${d.id}')"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`;
-                });
-                if(document.getElementById('list-dep')) document.getElementById('list-dep').innerHTML = l;
-                if(document.getElementById('sol-ger')) document.getElementById('sol-ger').dispatchEvent(new Event('change'));
-            });
-
-            const docConfigMaestro = doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings");
-            onSnapshot(docConfigMaestro, d => {
-                if(d.exists()) {
-                    columnasMaestro = d.data().columnas || ['Código', 'Gerencia', 'Departamento', 'Tipo de documento', 'Nombre del documento', 'Fecha de Creación', 'Fecha última versión', 'Versión', 'Ubicación del Documento', 'Estatus', 'Código Anterior'];
-                    estatusMaestro = d.data().estatus || ['Vigente', 'Obsoleto', 'En Revisión'];
-                } else {
-                    columnasMaestro = ['Código', 'Gerencia', 'Departamento', 'Tipo de documento', 'Nombre del documento', 'Fecha de Creación', 'Fecha última versión', 'Versión', 'Ubicación del Documento', 'Estatus', 'Código Anterior'];
-                    estatusMaestro = ['Vigente', 'Obsoleto', 'En Revisión'];
-                    setDoc(docConfigMaestro, { columnas: columnasMaestro, estatus: estatusMaestro }, {merge: true});
-                }
-                renderListasConfig();
-                renderTablaMaestro();
-            });
-
-            onSnapshot(path("Solicitudes"), s => {
-                const tbHist = document.getElementById('tbody-historial');
-                const tbGest = document.getElementById('tbody-gestionar');
-                if(!tbHist || !tbGest) return;
-                
-                let stats = { total:0, p:0, o:0 };
-                let solicitudesList = [];
-                s.forEach(d => { let data = d.data(); data.docId = d.id; solicitudesList.push(data); });
-                solicitudesList.sort((a, b) => { return a.customId > b.customId ? 1 : -1; });
-                globalSolicitudes = solicitudesList; 
-
-                let histHtml = "";
-                let gestHtml = "";
-
-                solicitudesList.forEach(sol => {
-                    const p = currentUser.permisos || {};
-                    let estadoStr = (sol.estado || "").toUpperCase();
-                    let isAprobadoFinal = estadoStr.includes('APROBADO FINAL');
-                    let isCancelado = estadoStr === 'ANULADO' || estadoStr === 'RECHAZADO';
-
-                    stats.total++;
-                    if(!isAprobadoFinal && !isCancelado) stats.p++; 
-                    else if(isAprobadoFinal) stats.o++;
-
-                    let esInvolucrado = sol.involucrados && currentUser.email && sol.involucrados.includes(currentUser.email.toLowerCase());
-                    let ver = p.p_ver_all || 
-                              (p.p_ver_ger && sol.gerencia === currentUser.gerencia) || 
-                              (p.p_ver_propias && (sol.uid === currentUser.usuario || esInvolucrado));
-                    
-                    let badgeClass = 'badge-info';
-                    if(estadoStr.includes('APROBADO')) badgeClass = 'badge-success';
-                    if(isCancelado) badgeClass = 'badge-danger';
-                    if(estadoStr.includes('PENDIENTE')) badgeClass = 'badge-warning';
-
-                    let faseActual = PASOS_NOMBRES[sol.idx] || "";
-                    let estadoMostrar = sol.estado;
-                    let infoFase = "";
-                    if (isAprobadoFinal) { estadoMostrar = "APROBADO FINAL"; } 
-                    else if (!isCancelado && faseActual) { infoFase = `<br><span style="font-size:10px; color:#64748b; font-weight:700; display:inline-block; margin-top:5px;">📍 Etapa: ${faseActual}</span>`; }
-
-                    if(ver) { histHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button></td></tr>`; }
-                    
-                    let gestionar = false;
-                    if(p.p_gest_sgc && (sol.idx === 0 || sol.idx === 1 || sol.idx === 3) && !isCancelado && !isAprobadoFinal) gestionar = true;
-                    if(p.p_ger_apr && sol.idx === 2 && sol.gerencia === currentUser.gerencia && !isCancelado && !isAprobadoFinal) gestionar = true;
-
-                    if(gestionar) { gestHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-primary" onclick="verDetalle('${sol.docId}')">Gestionar</button></td></tr>`; }
-                });
-                
-                tbHist.innerHTML = histHtml;
-                tbGest.innerHTML = gestHtml;
-                
-                if(document.getElementById('dash-total')) document.getElementById('dash-total').innerText = stats.total;
-                if(document.getElementById('dash-pend')) document.getElementById('dash-pend').innerText = stats.p;
-                if(document.getElementById('dash-ok')) document.getElementById('dash-ok').innerText = stats.o;
-                
-                if(stats.total > 0) {
-                    if(document.getElementById('bar-pend')) document.getElementById('bar-pend').style.width = (stats.p / stats.total * 100) + "%";
-                    if(document.getElementById('bar-ok')) document.getElementById('bar-ok').style.width = (stats.o / stats.total * 100) + "%";
-                }
-                if(document.getElementById('dash-date')) {
-                    document.getElementById('dash-date').innerText = new Date().toLocaleDateString('es-PA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                }
-            });
-
-            onSnapshot(path("ListadoMaestro"), s => {
-                dataMaestro = [];
-                s.forEach(d => { let data = d.data(); data.docId = d.id; dataMaestro.push(data); });
-                renderTablaMaestro();
-            });
+        // ==========================================
+        // FUNCIONES DE ENVIO DE CORREO Y CLOUDINARY
+        // ==========================================
+        function sendNotification(destinatarios, subject, message) {
+            if (!destinatarios.to && !destinatarios.cc) return;
+            const templateParams = {
+                to_email: destinatarios.to,
+                cc_email: destinatarios.cc || "",
+                subject: subject,
+                message: message
+            };
+            emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, templateParams)
+                .then(() => { console.log('Notificación enviada a:', destinatarios); })
+                .catch((error) => { console.error('Error enviando notificación', error); });
         }
+
+        async function getDatosEnvio(solicitudData) {
+            let managerEmail = "";
+            if(solicitudData.gerencia) {
+                try {
+                    const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("gerencia", "==", solicitudData.gerencia), where("permisos.p_ger_apr", "==", true));
+                    const snap = await getDocs(q);
+                    if(!snap.empty) managerEmail = snap.docs[0].data().email || "";
+                } catch(e) { console.error("Error buscando gerente", e); }
+            }
+            const toEmails = new Set([EMAIL_ADMIN_SGC, EMAIL_GRUPO_SGC, solicitudData.solicitante_email]);
+            if(solicitudData.involucrados) { solicitudData.involucrados.forEach(e => toEmails.add(e)); }
+            return { to: Array.from(toEmails).join(','), cc: managerEmail };
+        }
+
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", UPLOAD_PRESET);
+            try {
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
+                const data = await response.json();
+                return data.secure_url;
+            } catch (error) {
+                console.error("Error Upload Cloudinary:", error);
+                return null;
+            }
+        }
+
+        async function getNextFCI() {
+            const ref = doc(db, "artifacts", appId, "public", "data", "Contadores", "solicitudes");
+            let id = "";
+            await runTransaction(db, async (t) => {
+                const snap = await t.get(ref);
+                let count = 1;
+                if (snap.exists()) count = snap.data().count + 1;
+                t.set(ref, { count });
+                id = `FCI-SOL-${String(count).padStart(4, '0')}`;
+            });
+            return id;
+        }
+
+        window.exportarReporteSolicitudes = () => {
+            let dataExport = globalSolicitudes.map(s => {
+                let p = PASOS_NOMBRES[s.idx] || '';
+                let estadoFormat = s.estado === 'Aprobado Final' ? 'Aprobado Final' : (s.estado === 'Anulado' || s.estado === 'Rechazado' ? s.estado : `${s.estado} (${p})`);
+                return {
+                    "ID Solicitud": s.customId,
+                    "Solicitante": s.solicitante || '',
+                    "Gerencia": s.gerencia || '',
+                    "Departamento": s.departamento || '',
+                    "Acción": s.accion || '',
+                    "Tipo Documento": s.tipoDoc || '',
+                    "Título Documento": s.titulo || '',
+                    "Estado Actual": estadoFormat,
+                    "Fecha de Creación": s.fecha ? new Date(s.fecha).toLocaleString() : '',
+                    "Código Ref. Original": s.cod_ref || '',
+                    "Versión Original": s.ver_ref || '',
+                    "Código Final Asignado": s.codigo_final || '',
+                    "Versión Final Asignada": s.version_final || '',
+                    "Fecha Final": s.fecha_final || ''
+                }
+            });
+            let wb = XLSX.utils.book_new();
+            let ws = XLSX.utils.json_to_sheet(dataExport);
+            XLSX.utils.book_append_sheet(wb, ws, "Reporte Solicitudes");
+            XLSX.writeFile(wb, "Reporte_General_Solicitudes.xlsx");
+        };
 
         // ==========================================
         // RESTO DE FUNCIONES DEL SISTEMA
@@ -1703,6 +1907,68 @@ Por favor, verificar y confirmar la agenda en el sistema SGC.`;
             document.getElementById('btnSaveUser').innerText = "ACTUALIZAR USUARIO";
             document.getElementById('btnCancelEdit').style.display = 'inline-flex';
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        document.getElementById('btnSaveUser').onclick = async () => {
+            const nom = document.getElementById('u-nom').value.trim();
+            const usr = document.getElementById('u-usr').value.toLowerCase().trim();
+            const pas = document.getElementById('u-pas').value.trim();
+            const ger = document.getElementById('u-ger-sel').value;
+            const rol = document.getElementById('u-rol').value.trim();
+            const email = document.getElementById('u-email').value.trim().toLowerCase();
+            
+            if(!nom || !usr || !pas || !ger) return alert("Nombre, Usuario, Contraseña y Gerencia son obligatorios.");
+            
+            const permisos = {
+                can_solicit: document.getElementById('p-solicitar').checked,
+                p_ver_propias: document.getElementById('p-ver-propias').checked,
+                p_ver_ger: document.getElementById('p-ver-ger').checked,
+                p_gest_sgc: document.getElementById('p-gest-sgc').checked,
+                p_ger_apr: document.getElementById('p-ger-apr').checked,
+                p_users: document.getElementById('p-users').checked,
+                p_struct: document.getElementById('p-struct').checked,
+                p_ver_listado: document.getElementById('p-ver-listado').checked,
+                admin: document.getElementById('p-admin').checked
+            };
+
+            showLoading();
+            const docRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", usr);
+            const snap = await getDoc(docRef);
+            
+            if(snap.exists() && document.getElementById('user-form-title').innerText.includes("Registrar")) {
+                hideLoading();
+                return alert("Ese ID de usuario ya existe. Elija otro o edítelo desde la tabla.");
+            }
+
+            await setDoc(docRef, {
+                nombre: nom, usuario: usr, pass: pas, gerencia: ger, role: rol, email: email, permisos: permisos
+            });
+            
+            resetUserForm();
+            hideLoading();
+            alert("Usuario guardado exitosamente.");
+        };
+
+        window.resetUserForm = () => {
+            document.getElementById('user-form-title').innerText = "Registrar / Editar Usuario";
+            document.getElementById('u-nom').value = "";
+            document.getElementById('u-usr').value = "";
+            document.getElementById('u-usr').disabled = false;
+            document.getElementById('u-pas').value = "123";
+            document.getElementById('u-ger-sel').value = "";
+            document.getElementById('u-rol').value = "";
+            document.getElementById('u-email').value = "";
+            document.getElementById('p-solicitar').checked = false;
+            document.getElementById('p-ver-propias').checked = true;
+            document.getElementById('p-ver-ger').checked = false;
+            document.getElementById('p-gest-sgc').checked = false;
+            document.getElementById('p-ger-apr').checked = false;
+            document.getElementById('p-users').checked = false;
+            document.getElementById('p-struct').checked = false;
+            document.getElementById('p-ver-listado').checked = false;
+            document.getElementById('p-admin').checked = false;
+            document.getElementById('btnSaveUser').innerText = "GUARDAR USUARIO";
+            document.getElementById('btnCancelEdit').style.display = 'none';
         };
 
         window.actualizarDatosSGC = async () => {
@@ -2167,6 +2433,30 @@ Por favor, verificar y confirmar la agenda en el sistema SGC.`;
         };
         window.toggleModPanel = v => document.getElementById('panel-mod').style.display = v === 'Creación' ? 'none' : 'grid';
         window.closeModal = () => document.getElementById('modal').style.display = 'none';
+        
+        window.btnSaveGer = document.getElementById('btnSaveGer');
+        if(btnSaveGer) {
+            btnSaveGer.onclick = async () => {
+                const nom = document.getElementById('g-nom').value.trim();
+                if(!nom) return alert("Escriba un nombre para la gerencia.");
+                await addDoc(collection(db, "artifacts", appId, "public", "data", "Gerencias"), { nombre: nom });
+                document.getElementById('g-nom').value = "";
+            };
+        }
+
+        window.btnSaveDep = document.getElementById('btnSaveDep');
+        if(btnSaveDep) {
+            btnSaveDep.onclick = async () => {
+                const ger = document.getElementById('d-ger-sel').value;
+                const nom = document.getElementById('d-nom').value.trim();
+                if(!ger || !nom) return alert("Por favor, seleccione una Gerencia y escriba el nombre del Departamento.");
+                await addDoc(collection(db, "artifacts", appId, "public", "data", "Departamentos"), {
+                    nombre: nom, gerencia: ger
+                });
+                document.getElementById('d-nom').value = "";
+            };
+        }
+
         window.del = async (c, id) => { if(confirm("¿Eliminar este registro?")) await deleteDoc(doc(db, "artifacts", appId, "public", "data", c, id)); };
 
     </script>
