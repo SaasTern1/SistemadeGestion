@@ -68,7 +68,7 @@
         .btn-danger { background: var(--danger); color: white; }
         .btn-info { background: var(--info); color: white; }
         .btn-ghost { background: #f1f5f9; color: #475569; }
-        .btn-dark { background: #475569; color: white; }
+        .btn-dark { background: #1e293b; color: white; }
         .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
         table { width: 100%; border-collapse: collapse; }
@@ -388,9 +388,14 @@
                     <h1 style="font-size: 26px; font-weight: 800;">Bandeja de Gestión Administrativa</h1>
                     <p style="color:#64748b; font-size:13px;">Documentos esperando revisión, firma o publicación final.</p>
                 </div>
-                <button id="btn-export-gest" class="btn btn-success" onclick="exportarReporteSolicitudes()" style="display:none;">
-                    <span class="material-icons-round">download</span> Reporte Excel
-                </button>
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-export-gest" class="btn btn-success" onclick="exportarReporteSolicitudes()" style="display:none;">
+                        <span class="material-icons-round">download</span> Reporte Normal
+                    </button>
+                    <button id="btn-export-admin" class="btn btn-dark" onclick="exportarReporteCompletoAdmin()" style="display:none; gap:5px;">
+                        <span class="material-icons-round">insights</span> Excel Completo (Tiempos)
+                    </button>
+                </div>
             </div>
 
             <div class="card" style="padding:0; border-radius: 16px; overflow:hidden;">
@@ -924,9 +929,6 @@
     </div>
 
     <script type="module">
-        // ==========================================
-        // 1. IMPORTACIONES Y CONFIGURACIÓN INICIAL
-        // ==========================================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, setDoc, query, where, getDocs, arrayUnion, runTransaction, deleteDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
@@ -945,9 +947,9 @@
         const db = getFirestore(app);
         const appId = 'sgc-final-v6';
         
-        const EMAIL_SERVICE_ID = "service_vumxptj"; 
-        const EMAIL_TEMPLATE_ID = "template_z27y5yk"; 
-        const EMAIL_PUBLIC_KEY = "kWsovOfdi7dBqLMw2-U"; 
+        const EMAIL_SERVICE_ID = "service_a7yozqh"; 
+        const EMAIL_TEMPLATE_ID = "template_7hlhnt8"; 
+        const EMAIL_PUBLIC_KEY = "2jVnfkJKKG0bpKN-U"; 
         const EMAIL_ADMIN_SGC = "sistemadegestion@fcipty.com"; 
         const EMAIL_GRUPO_SGC = "actualizacion@fcipty.com"; 
 
@@ -1053,6 +1055,9 @@
             document.getElementById('btn-nuevo-maestro').style.display = esSGC ? 'inline-flex' : 'none';
             document.getElementById('btn-import-maestro').style.display = esSGC ? 'inline-flex' : 'none';
             document.getElementById('btn-export-list').style.display = esSGC ? 'inline-flex' : 'none';
+
+            // 3. Botón Reporte Completo (Solo Admin Total)
+            document.getElementById('btn-export-admin').style.display = p.admin ? 'inline-flex' : 'none';
             
             cargarDatos();
             window.cambiarVista('sec-dash', document.getElementById('nav-dash'));
@@ -1070,7 +1075,52 @@
         };
 
         // ==========================================
-        // 3. LOGICA Y GESTIÓN DE DATOS (Auditoría, Listado, Solicitudes)
+        // EXPORTACIÓN DE TIEMPOS (ADMIN TOTAL)
+        // ==========================================
+        window.exportarReporteCompletoAdmin = () => {
+            const formatearDiferencia = (ini, fin) => {
+                if(!ini || !fin) return "N/A";
+                const ms = new Date(fin) - new Date(ini);
+                if(ms < 0) return "N/A";
+                const m = Math.floor(ms / 60000);
+                const h = Math.floor(m / 60);
+                const d = Math.floor(h / 24);
+                const remH = h % 24;
+                const remM = m % 60;
+                if (d > 0) return `${d}d ${remH}h ${remM}m`;
+                if (h > 0) return `${h}h ${remM}m`;
+                return `${m}m`;
+            };
+
+            const dataExport = globalSolicitudes.map(s => {
+                return {
+                    "ID Sistema": s.customId,
+                    "Solicitante": s.solicitante || '',
+                    "Email Solicitante": s.solicitante_email || '',
+                    "Gerencia": s.gerencia || '',
+                    "Departamento": s.departamento || '',
+                    "Acción": s.accion || '',
+                    "Tipo de Documento": s.tipoDoc || '',
+                    "Título del Documento": s.titulo || '',
+                    "Estado Actual": s.estado || '',
+                    "Fecha Creación": s.fecha ? new Date(s.fecha).toLocaleString() : '',
+                    "Tiempo Fase 1 (Documentado)": formatearDiferencia(s.fase_0_ini, s.fase_0_fin),
+                    "Tiempo Fase 2 (Verificado)": formatearDiferencia(s.fase_1_ini, s.fase_1_fin),
+                    "Tiempo Fase 3 (Aprob. Gerencia)": formatearDiferencia(s.fase_2_ini, s.fase_2_fin),
+                    "Tiempo Fase 4 (Aprob. SGC)": formatearDiferencia(s.fase_3_ini, s.fase_3_fin),
+                    "TIEMPO TOTAL DEL FLUJO": formatearDiferencia(s.fase_0_ini, s.fecha_final || s.fase_3_fin || s.fase_2_fin || s.fase_1_fin || s.fase_0_fin),
+                    "Código Final": s.codigo_final || '',
+                    "Versión Final": s.version_final || ''
+                };
+            });
+            let wb = XLSX.utils.book_new();
+            let ws = XLSX.utils.json_to_sheet(dataExport);
+            XLSX.utils.book_append_sheet(wb, ws, "Tiempos_Base_Completa");
+            XLSX.writeFile(wb, "Reporte_Admin_Total_Tiempos_SGC.xlsx");
+        };
+
+        // ==========================================
+        // LOGICA DE AUDITORIA, LISTADO Y CONFIG
         // ==========================================
         window.toggleAuditHeaderForm = () => {
             const form = document.getElementById('audit-header-edit');
@@ -1467,7 +1517,13 @@
             if(!confirm("⚠️ ¿Estás seguro de REABRIR esta solicitud?")) return;
             let motivo = prompt("Describe el motivo de la reapertura:"); if(!motivo) return alert("Se requiere un motivo.");
             window.showLoading();
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Pendiente Documentado", idx: 0, chat: arrayUnion({u: currentUser.nombre, m: `<b style="color:var(--danger);">⚠️ REAPERTURA DE SOLICITUD POR ADMINISTRACIÓN</b><br><b>Motivo:</b> ${motivo}`, t: new Date().toLocaleString()}) });
+            const now = new Date().toISOString();
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { 
+                estado: "Pendiente Documentado", 
+                idx: 0, 
+                fase_0_ini: now, 
+                chat: arrayUnion({u: currentUser.nombre, m: `<b style="color:var(--danger);">⚠️ REAPERTURA DE SOLICITUD POR ADMINISTRACIÓN</b><br><b>Motivo:</b> ${motivo}`, t: new Date().toLocaleString()}) 
+            });
             const dest = await getDatosEnvio(selectedDocData); sendNotification(dest, `Solicitud Reabierta: ${selectedDocData.customId}`, `Motivo: ${motivo}`);
             window.hideLoading(); alert("Solicitud reabierta."); window.closeModal();
         };
@@ -1476,9 +1532,20 @@
 
         window.responderSolicitante = () => { tempAction = "Respuesta"; document.getElementById('m-input-area').style.display = 'block'; document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Detalla tu corrección...'); document.getElementById('reunion-container').style.display = 'none'; }
 
+        // GESTIÓN Y REGISTRO DE TIEMPOS ENTRE ETAPAS
         window.firmarPaso = async () => {
             const s = selectedDocData; const nIdx = s.idx + 1; const nEst = nIdx < 4 ? PASOS_NOMBRES[nIdx] : "Aprobado Final"; const faseAprobada = PASOS_NOMBRES[s.idx]; 
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { idx: nIdx, estado: nEst, chat: arrayUnion({u: currentUser.nombre, m: `✅ FASE COMPLETADA: ${faseAprobada}`, t: new Date().toLocaleString()}) });
+            const now = new Date().toISOString();
+            
+            let updates = { 
+                idx: nIdx, 
+                estado: nEst, 
+                [`fase_${s.idx}_fin`]: now,
+                [`fase_${nIdx}_ini`]: now,
+                chat: arrayUnion({u: currentUser.nombre, m: `✅ FASE COMPLETADA: ${faseAprobada}`, t: new Date().toLocaleString()}) 
+            };
+
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), updates);
             const dest = await getDatosEnvio(s); sendNotification(dest, `Avance: ${s.customId}`, `La solicitud avanzó a: ${nEst}.`); window.closeModal();
         };
 
@@ -1497,8 +1564,9 @@
             const codFinal = document.getElementById('m-final-cod').value; const ver = document.getElementById('m-final-ver').value; const fecha = document.getElementById('m-final-fecha').value; const com = document.getElementById('m-final-comentario').value; const f = document.getElementById('m-final-file');
             if(!ver || !fecha || !f.files[0]) return alert("Versión Final, Fecha y Documento son obligatorios.");
             window.showLoading(); let fileUrl = await uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error al subir."); }
+            const now = new Date().toISOString();
             let fileName = f.files[0].name; let chatPayload = {u: "SISTEMA (SGC)", m: `🏁 <b>SOLICITUD APROBADA FINALMENTE.</b><br>Ver: ${ver}. Obs: ${com}`, t: new Date().toLocaleString(), archivo: fileUrl};
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Aprobado Final", codigo_final: codFinal, version_final: ver, fecha_final: fecha, comentario_final: com, documento_final: fileUrl, documento_final_nombre: fileName, chat: arrayUnion(chatPayload) });
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Aprobado Final", codigo_final: codFinal, version_final: ver, fecha_final: fecha, comentario_final: com, documento_final: fileUrl, documento_final_nombre: fileName, fase_3_fin: now, chat: arrayUnion(chatPayload) });
             let dataMaestro = { estatus: "Vigente", registrado_por: "Sistema (Automático)", fecha_registro: new Date().toISOString() };
             columnasMaestro.forEach(c => { let low = c.toLowerCase(); if(low.includes('código') || low === 'codigo') dataMaestro[c] = codFinal || selectedDocData.cod_ref || "POR_ASIGNAR"; else if(low.includes('gerencia')) dataMaestro[c] = selectedDocData.gerencia; else if(low.includes('departamento')) dataMaestro[c] = selectedDocData.departamento; else if(low.includes('tipo')) dataMaestro[c] = selectedDocData.tipoDoc; else if(low.includes('nombre')) dataMaestro[c] = selectedDocData.titulo; else if(low.includes('vers')) dataMaestro[c] = ver; else if(low.includes('ubicaci') || low.includes('archivo') || low.includes('documento')) dataMaestro[c] = fileUrl; else if(low.includes('fecha última') || low.includes('fecha ultima') || low === 'fecha') dataMaestro[c] = fecha; });
             await addDoc(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), dataMaestro);
@@ -1725,7 +1793,8 @@
                 const tit = document.getElementById('sol-tit').value; const gerTarget = document.getElementById('sol-ger').value; if(!tit) return alert("Título obligatorio"); window.showLoading(); const f = document.getElementById('sol-file');
                 let fileName = f.files[0] ? f.files[0].name : ""; let url = null; if (f.files[0]) { url = await uploadToCloudinary(f.files[0]); if (!url) { window.hideLoading(); return alert("Error al subir archivo."); } }
                 const extraEmailsNodes = document.querySelectorAll('.extra-email'); const extraEmails = Array.from(extraEmailsNodes).map(el => el.value.trim().toLowerCase()).filter(e => e !== "" && e.includes('@')); const fci = await getNextFCI(); const gerenteEmailVisible = document.getElementById('sol-email-gerente').value;
-                const data = { customId: fci, titulo: tit, accion: document.getElementById('sol-accion').value, tipoDoc: document.getElementById('sol-tipo-doc').value, gerencia: gerTarget, departamento: document.getElementById('sol-dep').value, motivo: document.getElementById('sol-motivo').value, cod_ref: document.getElementById('sol-cod-prev').value, ver_ref: document.getElementById('sol-ver-prev').value, fecha_ref: document.getElementById('sol-fecha-prev').value, solicitante: currentUser.nombre, solicitante_email: currentUser.email, uid: currentUser.usuario, involucrados: extraEmails, idx: 0, estado: "Pendiente Documentado", adjunto: url, adjunto_nombre: fileName, chat: [{u: "SISTEMA", m: "Solicitud creada exitosamente.", t: new Date().toLocaleString()}], fecha: new Date().toISOString() };
+                const now = new Date().toISOString();
+                const data = { customId: fci, titulo: tit, accion: document.getElementById('sol-accion').value, tipoDoc: document.getElementById('sol-tipo-doc').value, gerencia: gerTarget, departamento: document.getElementById('sol-dep').value, motivo: document.getElementById('sol-motivo').value, cod_ref: document.getElementById('sol-cod-prev').value, ver_ref: document.getElementById('sol-ver-prev').value, fecha_ref: document.getElementById('sol-fecha-prev').value, solicitante: currentUser.nombre, solicitante_email: currentUser.email, uid: currentUser.usuario, involucrados: extraEmails, idx: 0, estado: "Pendiente Documentado", fase_0_ini: now, adjunto: url, adjunto_nombre: fileName, chat: [{u: "SISTEMA", m: "Solicitud creada exitosamente.", t: new Date().toLocaleString()}], fecha: now };
                 await addDoc(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), data); document.getElementById('lista-involucrados').innerHTML = "";
                 const toEmails = new Set([EMAIL_ADMIN_SGC, EMAIL_GRUPO_SGC, currentUser.email, ...extraEmails]); const destinatarios = { to: Array.from(toEmails).join(','), cc: gerenteEmailVisible }; sendNotification(destinatarios, "Nueva Solicitud Creada", `El usuario ${currentUser.nombre} ha creado la solicitud ${fci}.`);
                 window.hideLoading(); alert("Solicitud Creada: " + fci); window.cambiarVista('sec-hist', document.getElementById('nav-hist'));
