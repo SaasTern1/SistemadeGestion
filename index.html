@@ -101,12 +101,12 @@
         .btn-icon-danger { background: none; border: none; color: var(--danger); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: 0.2s; }
         .btn-icon-danger:hover { background: #fee2e2; }
 
-        /* Modal */
+        /* Modales */
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); display: none; align-items: center; justify-content: center; z-index: 4000; backdrop-filter: blur(4px); }
         .modal-content { background: white; width: 95%; max-width: 1200px; height: 90vh; border-radius: 24px; display: grid; grid-template-columns: 1fr 380px; overflow: hidden; }
         
-        #chat-box { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 10px; margin-bottom: 10px; }
-        .chat-msg { padding: 10px; background: white; border-radius: 8px; border-left: 4px solid var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-size: 12px; }
+        #chat-box, #chat-box-audit { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 10px; margin-bottom: 10px; }
+        .chat-msg { padding: 10px; background: white; border-radius: 8px; border-left: 4px solid var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-size: 12px; word-break: break-word; }
 
         /* Steps */
         .step-container { display: flex; justify-content: space-between; margin: 20px 0; position: relative; }
@@ -161,7 +161,7 @@
             .modal-content { display: flex; flex-direction: column; height: 95vh; max-height: 95vh; overflow-y: auto; width: 95%; padding: 0; }
             .modal-main { padding: 20px; border-right: none; border-bottom: 1px solid var(--border); flex: none; height: auto; }
             .modal-side { border-left: none; height: auto; }
-            #chat-box { height: 350px; }
+            #chat-box, #chat-box-audit { height: 350px; }
             .step label { font-size: 8px; line-height: 1.2; display: inline-block; padding: 0 2px; }
             .step-container::before { top: 10px; }
             .step-dot { width: 20px; height: 20px; font-size: 9px; border-width: 2px; }
@@ -311,7 +311,7 @@
             <div class="card" style="max-width: 900px; margin: auto;">
                 <h2 style="margin-bottom:20px;">Registrar Solicitud FCI-SOL</h2>
                 
-                <div class="grid-2">
+                <div class="grid-3">
                     <div>
                         <label>Acción Requerida</label>
                         <select id="sol-accion" onchange="toggleModPanel(this.value)">
@@ -324,6 +324,14 @@
                         <label>Tipo Documento</label>
                         <select id="sol-tipo-doc">
                             </select>
+                    </div>
+                    <div>
+                        <label>Prioridad de Solicitud</label>
+                        <select id="sol-prioridad">
+                            <option value="Normal">Normal</option>
+                            <option value="Básica">Básica</option>
+                            <option value="Alta">Alta (Urgente)</option>
+                        </select>
                     </div>
                 </div>
 
@@ -351,7 +359,7 @@
 
                 <div class="grid-2" style="background:#f0fdf4; padding:15px; border-radius:10px; margin-bottom:15px; border:1px solid #bbf7d0;">
                     <div>
-                        <label style="color:#166534">Gerente Responsable</label>
+                        <label style="color:#166534">Gerente(s) Responsable(s)</label>
                         <input type="text" id="sol-gerente-display" disabled style="background:transparent; border:none; font-weight:bold; color:#15803d; padding:0;">
                     </div>
                     <div>
@@ -364,7 +372,7 @@
                     <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0;">
                         Añadir Personas Involucradas / Co-solicitantes
                     </label>
-                    <p style="font-size:10px; color:#64748b; margin-top:5px; margin-bottom:10px;">Selecciona usuarios de la plataforma para notificarles sobre este documento (evita errores de correos).</p>
+                    <p style="font-size:10px; color:#64748b; margin-top:5px; margin-bottom:10px;">Selecciona usuarios de la plataforma para notificarles sobre este documento.</p>
                     
                     <div style="display:flex; gap:10px; margin-bottom:10px;">
                         <select id="sol-involucrado-sel" style="margin:0; flex:1; background:white;">
@@ -410,7 +418,7 @@
                     <input type="text" id="search-hist" class="search-bar" placeholder="🔍 Buscar por ID, Título o Estado..." onkeyup="filtrarTabla('search-hist', 'tbody-historial')">
                 </div>
                 <div class="table-responsive">
-                    <table id="tabla-mis-solicitudes"><thead><tr><th>ID</th><th>Solicitante</th><th>Documento</th><th>Estado</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-historial"></tbody></table>
+                    <table id="tabla-mis-solicitudes"><thead><tr><th>ID</th><th>Solicitante</th><th>Documento</th><th>Prioridad</th><th>Estado</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-historial"></tbody></table>
                 </div>
             </div>
         </section>
@@ -459,7 +467,7 @@
                             <tr>
                                 <th style="width: 120px;">ID Sistema</th>
                                 <th>Origen / Solicitante</th>
-                                <th>Documento y Tipo</th>
+                                <th>Documento y Prioridad</th>
                                 <th>Etapa Actual</th>
                                 <th class="no-export">Gestión</th>
                             </tr>
@@ -583,9 +591,9 @@
             <div id="audit-admin-panel" style="display:none; background:white; padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                 <h3 style="margin-bottom:15px; color:var(--primary); border-bottom:1px solid var(--border); padding-bottom:10px;">Programar Nueva Auditoría</h3>
                 <div class="grid-4">
-                    <div><label>Fecha Auditoría</label><input type="date" id="aud-fecha"></div>
-                    <div><label>Hora Inicio</label><input type="time" id="aud-h-ini"></div>
-                    <div><label>Hora Final</label><input type="time" id="aud-h-fin"></div>
+                    <div><label>Fecha Estimada</label><input type="date" id="aud-fecha"></div>
+                    <div><label>Hora Estimada Inicio</label><input type="time" id="aud-h-ini"></div>
+                    <div><label>Hora Estimada Final</label><input type="time" id="aud-h-fin"></div>
                     <div><label>Lugar</label><input type="text" id="aud-lugar" placeholder="Ej: Sala de Juntas"></div>
                 </div>
                 <div class="grid-2">
@@ -612,8 +620,8 @@
                     <table id="tabla-auditorias">
                         <thead>
                             <tr>
-                                <th>Fecha</th>
-                                <th>Horario</th>
+                                <th>Fecha Prog.</th>
+                                <th>Horario Prog.</th>
                                 <th>Proceso / Área</th>
                                 <th>Auditado(s)</th>
                                 <th>Auditor(es)</th>
@@ -671,11 +679,16 @@
                     </div>
                     <div class="grid-2">
                         <div><label>Contraseña</label><input type="text" id="u-pas" value="123"></div>
-                        <div><label>Gerencia</label><select id="u-ger-sel"></select></div>
+                        <div><label>Rol (Etiqueta Visual)</label><input type="text" id="u-rol" placeholder="Ej: Especialista SGC"></div>
                     </div>
                     <div class="grid-2">
-                        <div><label>Rol (Etiqueta Visual)</label><input type="text" id="u-rol" placeholder="Ej: Especialista SGC"></div>
-                        <div><label>Email Corporativo</label><input type="email" id="u-email" placeholder="ejemplo@fcipty.com"></div>
+                        <div style="grid-column: span 2;"><label>Email Corporativo</label><input type="email" id="u-email" placeholder="ejemplo@fcipty.com"></div>
+                    </div>
+                    
+                    <div>
+                        <label>Gerencias Vinculadas (Múltiples)</label>
+                        <div id="u-ger-list" class="checkbox-list" style="max-height: 120px;">
+                            </div>
                     </div>
 
                     <label style="margin-top:10px;">Permisos de Acceso del Usuario</label>
@@ -688,6 +701,9 @@
                         <div class="access-item"><span>Admin Usuarios</span><label class="switch"><input type="checkbox" id="p-users"><span class="slider"></span></label></div>
                         <div class="access-item"><span>Admin Estructura</span><label class="switch"><input type="checkbox" id="p-struct"><span class="slider"></span></label></div>
                         <div class="access-item"><span>Ver Listado Maestro</span><label class="switch"><input type="checkbox" id="p-ver-listado"><span class="slider"></span></label></div>
+                        <div class="access-item" style="background:#e0f2fe; border-color:#bae6fd;"><span>Ver Cal. Auditoría (Visor)</span><label class="switch"><input type="checkbox" id="p-audit-ver"><span class="slider"></span></label></div>
+                        <div class="access-item" style="background:#e0f2fe; border-color:#bae6fd;"><span>Admin Auditoría (Programar)</span><label class="switch"><input type="checkbox" id="p-audit-admin"><span class="slider"></span></label></div>
+
                         <div class="access-item" style="grid-column:span 2; border:1px dashed var(--danger); background:#fff5f5;">
                             <span style="color:var(--danger); font-weight:bold;">Admin Total (Acceso completo)</span><label class="switch"><input type="checkbox" id="p-admin"><span class="slider"></span></label>
                         </div>
@@ -697,7 +713,7 @@
                     <button class="btn btn-ghost" id="btnCancelEdit" style="width:100%; margin-top:5px; display:none;" onclick="resetUserForm()">CANCELAR EDICIÓN</button>
                 </div>
                 <div class="card table-responsive" style="padding:0;">
-                    <table id="table-users"><thead><tr><th>Usuario</th><th>Email</th><th>Rol/Gerencia</th><th>Acciones</th></tr></thead><tbody id="tbody-users"></tbody></table>
+                    <table id="table-users"><thead><tr><th>Usuario</th><th>Email</th><th>Rol/Gerencias</th><th>Acciones</th></tr></thead><tbody id="tbody-users"></tbody></table>
                 </div>
             </div>
         </section>
@@ -791,6 +807,15 @@
                     <div class="step" id="s4"><div class="step-dot">4</div><label>Pendiente Aprobación SGC</label></div>
                 </div>
 
+                <div id="m-admin-sla" style="display:none; margin-bottom:20px; background:#fffbeb; padding:15px; border-radius:12px; border: 1px dashed var(--warning);">
+                    <h4 style="color:#b45309; margin-bottom:10px; display:flex; align-items:center; gap:8px;"><span class="material-icons-round">timer</span> SLA (Tiempo Límite Esperado)</h4>
+                    <p style="font-size:11px; color:#92400e; margin-bottom:10px;">Establece o visualiza la fecha esperada para completar esta solicitud.</p>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="date" id="m-sla-date" style="margin:0; max-width:200px; background:white;">
+                        <button class="btn btn-warning" id="btn-save-sla" onclick="guardarSLA()" style="padding:8px 15px;">Guardar Límite</button>
+                    </div>
+                </div>
+
                 <div id="m-display-final" style="display:none; margin-bottom:20px; background:#f0fdf4; padding:20px; border-radius:12px; border: 1px solid #bbf7d0;">
                     <h4 style="color:#166534; margin-bottom:15px; display:flex; align-items:center; gap:8px;"><span class="material-icons-round">verified</span> Documento Finalizado y Publicado</h4>
                     <div class="grid-3">
@@ -845,13 +870,14 @@
 
                 <div id="m-original-data">
                     <h4 id="m-orig-title" class="locked-title" style="display:none;"><span class="material-icons-round">lock</span> Datos de la Solicitud (Histórico)</h4>
-                    <div class="grid-2" style="margin-top:20px;">
+                    <div class="grid-3" style="margin-top:20px;">
                         <div><label>Solicitante</label><p id="m-sol"></p></div>
                         <div><label>Gerencia</label><p id="m-ger"></p></div>
                         <div><label>Estado</label><span id="m-est" class="badge"></span></div>
                         <div><label>Tipo Documento</label><p id="m-tipo" style="font-weight:bold;"></p></div>
+                        <div><label>Prioridad</label><span id="m-prioridad" class="badge badge-dark"></span></div>
                         <div><label>Acción</label><p id="m-accion"></p></div>
-                        <div><label>Adjunto Original</label><div id="m-file-link"></div></div>
+                        <div style="grid-column: span 3;"><label>Adjunto Original</label><div id="m-file-link"></div></div>
                     </div>
 
                     <div id="m-extra-panel" style="display:none; background:#fffbeb; padding:15px; border-radius:10px; margin-top:15px;">
@@ -951,6 +977,81 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="modal-auditoria">
+        <div class="modal-content">
+            <div class="modal-main" style="padding:30px; overflow-y:auto; position: relative;">
+                
+                <div style="display:flex; justify-content:space-between; margin-bottom:20px; align-items: flex-start; border-bottom:2px solid var(--border); padding-bottom:15px;">
+                    <div>
+                        <h2 style="font-size:22px; color:var(--primary); margin-bottom:5px; display:flex; align-items:center; gap:8px;">
+                            <span class="material-icons-round">fact_check</span> Detalle de Auditoría
+                        </h2>
+                        <span id="ma-proceso" style="font-weight:800; color:var(--sidebar); font-size:16px;"></span>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-dark" onclick="cerrarModalAuditoria()" style="padding: 8px 15px;">Cerrar</button>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-bottom:15px;">
+                    <div><label>Fecha y Hora Programada</label><p><b id="ma-fecha"></b> (<span id="ma-hora"></span>)</p></div>
+                    <div><label>Lugar / Modalidad</label><p id="ma-lugar"></p></div>
+                    <div><label>Auditado(s)</label><p id="ma-auditado" style="color:var(--primary); font-weight:600;"></p></div>
+                    <div><label>Auditor(es)</label><p id="ma-auditor" style="color:var(--info); font-weight:600;"></p></div>
+                </div>
+
+                <div style="background:#f8fafc; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid var(--border);">
+                    <label>Requisitos (Norma/Cláusula)</label><p id="ma-req"></p>
+                    <label style="margin-top:10px;">Observaciones / Enfoque</label><p id="ma-obs"></p>
+                </div>
+
+                <div style="background:#eff6ff; padding:20px; border-radius:12px; border: 1px dashed var(--accent); margin-bottom:20px;">
+                    <h4 style="color:var(--primary); margin-bottom:15px; display:flex; align-items:center; gap:8px;"><span class="material-icons-round">timer</span> Ejecución y Tiempos Reales</h4>
+                    
+                    <div class="grid-3" style="margin-bottom:15px;">
+                        <div><label>Estado</label><span id="ma-estado-badge" class="badge badge-warning"></span></div>
+                        <div><label>Inicio Real</label><p id="ma-inicio-real" style="font-weight:bold;">---</p></div>
+                        <div><label>Fin Real</label><p id="ma-fin-real" style="font-weight:bold;">---</p></div>
+                    </div>
+                    
+                    <div><label>Duración Total</label><p id="ma-duracion" style="color:var(--success); font-weight:800; font-size:16px;">---</p></div>
+
+                    <div id="ma-controles-tiempo" style="display:flex; gap:10px; margin-top:20px;">
+                        <button id="btn-comenzar-auditoria" class="btn btn-primary" onclick="comenzarAuditoria()" style="flex:1; display:none;">▶️ COMENZAR AUDITORÍA</button>
+                        <button id="btn-finalizar-auditoria" class="btn btn-success" onclick="finalizarAuditoria()" style="flex:1; display:none;">⏹️ FINALIZAR AUDITORÍA</button>
+                    </div>
+                </div>
+
+                <div id="general-comment-area-audit" style="margin-top:30px; border-top:2px solid #e2e8f0; padding-top:20px;">
+                    <p style="font-weight:800; font-size:11px; color:#64748b; margin-bottom:10px;">AÑADIR HALLAZGO O COMENTARIO A LA BITÁCORA:</p>
+                    
+                    <div style="border:1px solid #cbd5e1; border-radius:8px; margin-bottom:10px; overflow:hidden; background:white;">
+                        <div style="background:#f8fafc; padding:5px; border-bottom:1px solid #cbd5e1; display:flex; gap:5px;">
+                            <button type="button" class="rt-btn" onclick="document.execCommand('bold',false,null)"><b>B</b></button>
+                            <button type="button" class="rt-btn" onclick="document.execCommand('italic',false,null)"><i>I</i></button>
+                            <button type="button" class="rt-btn" onclick="document.execCommand('underline',false,null)"><u>U</u></button>
+                            <button type="button" class="rt-btn" onclick="document.execCommand('insertUnorderedList',false,null)">• Lista</button>
+                        </div>
+                        <div id="ma-comentario-libre" contenteditable="true" data-placeholder="Describe el hallazgo, nota o acuerdo..." style="min-height:60px; padding:10px; outline:none; font-size:13px;"></div>
+                    </div>
+
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <div style="flex:1;">
+                            <label style="font-size:10px;">Evidencia (Opcional)</label>
+                            <input type="file" id="ma-file-comentario" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg" style="margin-bottom:0; padding:8px;">
+                        </div>
+                        <button class="btn btn-info" onclick="enviarComentarioAuditoria()" style="height:40px; margin-top:14px;">GUARDAR EN BITÁCORA</button>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-side" style="background:#f8fafc; border-left:1px solid #e2e8f0;">
+                <h4 style="padding:20px; border-bottom:1px solid #e2e8f0;">Bitácora de Auditoría</h4>
+                <div id="chat-box-audit"></div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="modal-form-listado">
         <div class="modal-content" style="max-width: 800px; display:block; padding: 30px; height:auto; max-height:90vh; overflow-y:auto;">
            <h2 style="color:var(--primary); margin-bottom: 20px; display:flex; align-items:center; gap:8px;">
@@ -1018,6 +1119,8 @@
         
         let globalAllAuditorias = [];
         let globalAuditorias = []; 
+        let selectedAuditId = null;
+        let selectedAuditData = null;
         
         const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
 
@@ -1042,6 +1145,7 @@
 
         window.toggleModPanel = v => document.getElementById('panel-mod').style.display = v === 'Creación' ? 'none' : 'grid';
         window.closeModal = () => document.getElementById('modal').style.display = 'none';
+        window.cerrarModalAuditoria = () => document.getElementById('modal-auditoria').style.display = 'none';
         
         window.del = async (c, id) => { 
             if(confirm("¿Eliminar este registro?")) {
@@ -1087,16 +1191,22 @@
             document.getElementById('sidebar').style.display = 'flex';
             document.getElementById('main').style.display = 'block';
             document.getElementById('curr-name').innerText = currentUser.nombre;
-            document.getElementById('curr-ger').innerText = currentUser.gerencia || 'SGC Admin';
+            document.getElementById('curr-ger').innerText = (currentUser.gerencias && currentUser.gerencias.length > 0) ? currentUser.gerencias.join(', ') : (currentUser.gerencia || 'SGC Admin');
             
             const p = currentUser.permisos || {};
             const esSGC = p.p_gest_sgc || p.admin;
 
             if(p.admin) { document.getElementById('admin-only').style.display = 'block'; } else { document.getElementById('admin-only').style.display = 'none'; }
 
-            document.getElementById('nav-audit').style.display = esSGC ? 'flex' : 'none';
-            document.getElementById('btn-config-plan').style.display = esSGC ? 'inline-flex' : 'none';
-            document.getElementById('audit-admin-panel').style.display = esSGC ? 'block' : 'none';
+            // Lógica de visualización pestaña auditoría
+            const verAuditoria = p.p_audit_ver || p.p_audit_admin || esSGC;
+            document.getElementById('nav-audit').style.display = verAuditoria ? 'flex' : 'none';
+            
+            // Si es admin de auditoria o SGC admin, ver controles
+            const adminAuditoria = p.p_audit_admin || esSGC;
+            document.getElementById('btn-config-plan').style.display = adminAuditoria ? 'inline-flex' : 'none';
+            document.getElementById('audit-admin-panel').style.display = adminAuditoria ? 'block' : 'none';
+            
             document.getElementById('nav-listado').style.display = (esSGC || p.p_ver_listado) ? 'flex' : 'none';
             document.getElementById('btn-nuevo-maestro').style.display = esSGC ? 'inline-flex' : 'none';
             document.getElementById('btn-import-maestro').style.display = esSGC ? 'inline-flex' : 'none';
@@ -1105,7 +1215,7 @@
             
             cargarDatos();
             
-            if(esSGC && document.getElementById('aud-year-select')) {
+            if(verAuditoria && document.getElementById('aud-year-select')) {
                 loadAuditPlan(document.getElementById('aud-year-select').value);
             }
             
@@ -1160,7 +1270,7 @@
                 let estadoFormat = s.estado === 'Aprobado Final' ? 'Aprobado Final' : (s.estado === 'Anulado' || s.estado === 'Rechazado' ? s.estado : `${s.estado} (${p})`);
                 
                 let baseObj = {
-                    "ID Solicitud": s.customId, "Solicitante": s.solicitante || '', "Email Solicitante": s.solicitante_email || '', "Gerencia": s.gerencia || '', "Departamento": s.departamento || '', "Acción": s.accion || '', "Tipo Documento": s.tipoDoc || '', "Título Documento": s.titulo || '', "Estado Actual": estadoFormat, "Fecha de Creación": s.fecha ? new Date(s.fecha).toLocaleString() : '', "Código Ref. Original": s.cod_ref || '', "Versión Original": s.ver_ref || '', "Código Final Asignado": s.codigo_final || '', "Versión Final Asignada": s.version_final || '', "Fecha Final": s.fecha_final || ''
+                    "ID Solicitud": s.customId, "Solicitante": s.solicitante || '', "Email Solicitante": s.solicitante_email || '', "Gerencia": s.gerencia || '', "Departamento": s.departamento || '', "Acción": s.accion || '', "Prioridad": s.prioridad || 'Normal', "Tipo Documento": s.tipoDoc || '', "Título Documento": s.titulo || '', "Estado Actual": estadoFormat, "Fecha Límite (SLA)": s.fecha_esperada_cierre || 'No definida', "Fecha de Creación": s.fecha ? new Date(s.fecha).toLocaleString() : '', "Código Ref. Original": s.cod_ref || '', "Versión Original": s.ver_ref || '', "Código Final Asignado": s.codigo_final || '', "Versión Final Asignada": s.version_final || '', "Fecha Final": s.fecha_final || ''
                 };
 
                 if (isAdminTotal) {
@@ -1180,6 +1290,9 @@
             XLSX.writeFile(wb, `${nameF}.xlsx`);
         };
 
+        // ==========================================
+        // LÓGICA DE AUDITORÍA AVANZADA
+        // ==========================================
         window.cambiarAnioAuditoria = (val) => {
             if(val === 'nuevo') {
                 let nYear = prompt("Ingrese el nuevo año a registrar (ej: 2028):");
@@ -1302,7 +1415,7 @@
                 if(cb.dataset.email) auditorEmails.push(cb.dataset.email);
             });
 
-            let data = { fecha: fecha, hora_inicio: hIni, hora_fin: hFin, lugar: lugar, proceso: proceso, requisitos: req, auditado: auditadoNombres.join(', '), auditado_emails: auditadoEmails, auditor: auditorNombres.join(', '), auditor_emails: auditorEmails, observacion: obs, estado: "Pendiente", creado_por: currentUser.nombre, timestamp: new Date().toISOString() };
+            let data = { fecha: fecha, hora_inicio: hIni, hora_fin: hFin, lugar: lugar, proceso: proceso, requisitos: req, auditado: auditadoNombres.join(', '), auditado_emails: auditadoEmails, auditor: auditorNombres.join(', '), auditor_emails: auditorEmails, observacion: obs, estado: "Programada", creado_por: currentUser.nombre, timestamp: new Date().toISOString(), bitacora: [] };
 
             window.showLoading();
             await addDoc(collection(db, "artifacts", appId, "public", "data", "Auditorias"), data);
@@ -1326,64 +1439,168 @@
 
         window.renderTablaAuditorias = (yearFilter) => {
             const tb = document.getElementById('tbody-auditorias'); if(!tb) return;
-            globalAuditorias = globalAllAuditorias.filter(a => a.fecha && a.fecha.startsWith(yearFilter));
+            let adminView = currentUser.permisos.p_audit_admin || currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
+            
+            // Filtrar por año y si no es admin, solo ver las propias
+            globalAuditorias = globalAllAuditorias.filter(a => {
+                let matchesYear = a.fecha && a.fecha.startsWith(yearFilter);
+                if(!matchesYear) return false;
+                
+                if(adminView) return true;
+                
+                // Solo ver si soy auditado o auditor
+                let miNombre = currentUser.nombre;
+                let soyInvolucrado = (a.auditado && a.auditado.includes(miNombre)) || (a.auditor && a.auditor.includes(miNombre));
+                return soyInvolucrado;
+            });
+            
             globalAuditorias.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
             
             let audHtml = "";
             globalAuditorias.forEach(a => {
-                let estadoLabel = a.estado || 'Pendiente'; let estadoBadge = estadoLabel === 'Completado' ? 'badge-success' : 'badge-warning';
-                let btnAccion = "";
-                if(currentUser && currentUser.permisos && (currentUser.permisos.admin || currentUser.permisos.p_gest_sgc)) {
-                    if(estadoLabel !== 'Completado') { btnAccion += `<button class="btn btn-success" style="padding:4px 8px; font-size:10px; margin-right:5px;" onclick="marcarAuditoriaCompletada('${a.id}')" title="Marcar como completada"><span class="material-icons-round" style="font-size:14px;">check</span></button>`; }
+                let estadoLabel = a.estado || 'Programada'; 
+                let estadoBadge = estadoLabel === 'Completada' ? 'badge-success' : (estadoLabel === 'En Progreso' ? 'badge-info' : 'badge-warning');
+                
+                let btnAccion = `<button class="btn btn-primary" style="padding:4px 8px; font-size:10px; margin-right:5px;" onclick="verModalAuditoria('${a.id}')"><span class="material-icons-round" style="font-size:14px; margin-right:4px;">visibility</span> Ver</button>`;
+                
+                if(adminView) {
                     btnAccion += `<button class="btn-icon-danger" onclick="del('Auditorias','${a.id}')"><span class="material-icons-round">delete</span></button>`;
                 }
-                audHtml += `<tr><td><b>${window.formatearFechaAbreviada(a.fecha)}</b></td><td>${a.hora_inicio || ''} - ${a.hora_fin || ''}</td><td>${a.proceso}</td><td>${a.auditado || '-'}</td><td>${a.auditor || '-'}</td><td>${a.lugar || '-'}</td><td><span class="badge ${estadoBadge}">${estadoLabel}</span></td><td class="no-export">${btnAccion}</td></tr>`;
+                audHtml += `<tr><td><b>${window.formatearFechaAbreviada(a.fecha)}</b></td><td>${a.hora_inicio || ''} - ${a.hora_fin || ''}</td><td>${a.proceso}</td><td>${a.auditado || '-'}</td><td>${a.auditor || '-'}</td><td>${a.lugar || '-'}</td><td><span class="badge ${estadoBadge}">${estadoLabel}</span></td><td class="no-export" style="display:flex; align-items:center;">${btnAccion}</td></tr>`;
             });
             tb.innerHTML = audHtml;
-            if(currentUser && currentUser.permisos && (currentUser.permisos.admin || currentUser.permisos.p_gest_sgc)) verificarAlertasAuditoria(globalAuditorias);
+            if(adminView) verificarAlertasAuditoria(globalAuditorias);
+        };
+        
+        window.verModalAuditoria = async (id) => {
+            selectedAuditId = id;
+            const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", id));
+            if(!docSnap.exists()) return;
+            selectedAuditData = docSnap.data();
+            const a = selectedAuditData;
+            
+            document.getElementById('ma-proceso').innerText = a.proceso || 'Sin Proceso';
+            document.getElementById('ma-fecha').innerText = window.formatearFechaAbreviada(a.fecha) || 'Sin Fecha';
+            document.getElementById('ma-hora').innerText = `${a.hora_inicio || '--:--'} a ${a.hora_fin || '--:--'}`;
+            document.getElementById('ma-lugar').innerText = a.lugar || 'N/A';
+            document.getElementById('ma-auditado').innerText = a.auditado || 'N/A';
+            document.getElementById('ma-auditor').innerText = a.auditor || 'N/A';
+            document.getElementById('ma-req').innerText = a.requisitos || 'Ninguno especificado.';
+            document.getElementById('ma-obs').innerText = a.observacion || 'Sin observaciones.';
+            
+            let estStr = a.estado || 'Programada';
+            let bdg = estStr === 'Completada' ? 'badge-success' : (estStr === 'En Progreso' ? 'badge-info' : 'badge-warning');
+            document.getElementById('ma-estado-badge').className = `badge ${bdg}`;
+            document.getElementById('ma-estado-badge').innerText = estStr.toUpperCase();
+            
+            // Tiempos reales
+            document.getElementById('ma-inicio-real').innerText = a.hora_real_inicio ? new Date(a.hora_real_inicio).toLocaleString() : '---';
+            document.getElementById('ma-fin-real').innerText = a.hora_real_fin ? new Date(a.hora_real_fin).toLocaleString() : '---';
+            
+            if(a.hora_real_inicio && a.hora_real_fin) {
+                let ms = new Date(a.hora_real_fin) - new Date(a.hora_real_inicio);
+                let mins = Math.floor(ms / 60000);
+                let hrs = Math.floor(mins / 60);
+                let remMins = mins % 60;
+                document.getElementById('ma-duracion').innerText = `${hrs} horas, ${remMins} minutos`;
+            } else {
+                document.getElementById('ma-duracion').innerText = '---';
+            }
+
+            // Permisos de Botones
+            const isAdminAudit = currentUser.permisos.p_audit_admin || currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
+            const isAuditor = a.auditor && a.auditor.includes(currentUser.nombre);
+            const canControl = isAdminAudit || isAuditor;
+            
+            document.getElementById('btn-comenzar-auditoria').style.display = (canControl && estStr === 'Programada') ? 'inline-block' : 'none';
+            document.getElementById('btn-finalizar-auditoria').style.display = (canControl && estStr === 'En Progreso') ? 'inline-block' : 'none';
+            
+            // Cargar Bitacora
+            const cb = document.getElementById('chat-box-audit');
+            cb.innerHTML = a.bitacora ? a.bitacora.map(c => `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}"><b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}${c.archivo ? `<br><a href="${window.getDownloadUrl(c.archivo)}" target="_blank" style="font-size:10px;color:blue" download="Evidencia_Auditoria">Ver Evidencia</a>` : ''}</div>`).join('') : '';
+
+            document.getElementById('modal-auditoria').style.display = 'flex';
         };
 
+        window.comenzarAuditoria = async () => {
+            if(!confirm("¿Iniciar la auditoría ahora? Se registrará la hora actual.")) return;
+            window.showLoading();
+            const now = new Date().toISOString();
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { 
+                estado: "En Progreso",
+                hora_real_inicio: now,
+                bitacora: arrayUnion({u: currentUser.nombre, m: `▶️ <b>AUDITORÍA INICIADA</b>`, t: new Date().toLocaleString()})
+            });
+            window.hideLoading();
+            verModalAuditoria(selectedAuditId); // Recargar modal
+        };
+
+        window.finalizarAuditoria = async () => {
+            if(!confirm("¿Finalizar la auditoría? Se registrará la hora de cierre y calculará la duración.")) return;
+            window.showLoading();
+            const now = new Date().toISOString();
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { 
+                estado: "Completada",
+                hora_real_fin: now,
+                bitacora: arrayUnion({u: currentUser.nombre, m: `⏹️ <b>AUDITORÍA COMPLETADA FINALIZADA</b>`, t: new Date().toLocaleString()})
+            });
+            
+            let emails = new Set([...(selectedAuditData.auditor_emails||[]), ...(selectedAuditData.auditado_emails||[])]);
+            if(globalAuditPlan && globalAuditPlan.correos) { globalAuditPlan.correos.forEach(e => emails.add(e)); }
+            emails.add(EMAIL_ADMIN_SGC);
+            let destStr = Array.from(emails).filter(e=>e && e.includes('@')).join(',');
+            if(destStr) { sendNotification({to: destStr, cc: ""}, "✅ Auditoría Completada: " + selectedAuditData.proceso, `La auditoría del proceso ${selectedAuditData.proceso} ha finalizado en el sistema SGC.\nPor favor revise el panel para el tiempo total e informes.`); }
+
+            window.hideLoading();
+            alert("Auditoría Finalizada");
+            verModalAuditoria(selectedAuditId); // Recargar
+        };
+
+        window.enviarComentarioAuditoria = async () => {
+            const box = document.getElementById('ma-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = document.getElementById('ma-file-comentario');
+            if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta evidencia.");
+            window.showLoading(); let fileUrl = null;
+            if (f.files[0]) { fileUrl = await uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error de red."); } }
+            let chatPayload = {u: currentUser.nombre, m: `💬 <b>Anotación/Hallazgo:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; if (fileUrl) chatPayload.archivo = fileUrl; 
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { bitacora: arrayUnion(chatPayload) });
+            
+            box.innerHTML = ""; f.value = ""; window.hideLoading(); 
+            verModalAuditoria(selectedAuditId); // Recargar
+        }
+
         window.exportarExcelAuditoria = () => {
-            if(globalAuditorias.length === 0) return alert("No hay auditorías registradas para este año.");
-            let dataExport = globalAuditorias.map(a => ({
-                "Fecha": a.fecha ? window.formatearFechaAbreviada(a.fecha) : '',
-                "Horario": `${a.hora_inicio || ''} - ${a.hora_fin || ''}`,
-                "Proceso / Área": a.proceso || '',
-                "Auditado(s)": a.auditado || '',
-                "Auditor(es)": a.auditor || '',
-                "Lugar": a.lugar || '',
-                "Requisitos": a.requisitos || '',
-                "Observaciones": a.observacion || '',
-                "Estado": a.estado || ''
-            }));
+            if(globalAuditorias.length === 0) return alert("No hay auditorías registradas en este filtro.");
+            let dataExport = globalAuditorias.map(a => {
+                let msTotal = "";
+                if(a.hora_real_inicio && a.hora_real_fin) {
+                    let m = Math.floor((new Date(a.hora_real_fin) - new Date(a.hora_real_inicio)) / 60000);
+                    msTotal = `${Math.floor(m/60)}h ${m%60}m`;
+                }
+                return {
+                    "Fecha Programada": a.fecha ? window.formatearFechaAbreviada(a.fecha) : '',
+                    "Horario Estimado": `${a.hora_inicio || ''} - ${a.hora_fin || ''}`,
+                    "Proceso / Área": a.proceso || '',
+                    "Auditado(s)": a.auditado || '',
+                    "Auditor(es)": a.auditor || '',
+                    "Lugar": a.lugar || '',
+                    "Estado": a.estado || '',
+                    "Inicio Real": a.hora_real_inicio ? new Date(a.hora_real_inicio).toLocaleString() : '',
+                    "Fin Real": a.hora_real_fin ? new Date(a.hora_real_fin).toLocaleString() : '',
+                    "Duración Total": msTotal
+                };
+            });
             let wb = XLSX.utils.book_new();
             let ws = XLSX.utils.json_to_sheet(dataExport);
             XLSX.utils.book_append_sheet(wb, ws, "Auditorias");
             let y = document.getElementById('aud-year-select').value;
-            XLSX.writeFile(wb, `Plan_Auditorias_${y}.xlsx`);
-        };
-
-        window.marcarAuditoriaCompletada = async (id) => {
-            if(!confirm("¿Marcar esta auditoría como COMPLETADA?")) return;
-            window.showLoading();
-            const docRef = doc(db, "artifacts", appId, "public", "data", "Auditorias", id); const docSnap = await getDoc(docRef);
-            if(docSnap.exists()) {
-                const a = docSnap.data(); await updateDoc(docRef, { estado: "Completado" });
-                let emails = new Set([...(a.auditor_emails||[]), ...(a.auditado_emails||[])]);
-                if(globalAuditPlan && globalAuditPlan.correos) { globalAuditPlan.correos.forEach(e => emails.add(e)); }
-                emails.add(EMAIL_ADMIN_SGC);
-                let destStr = Array.from(emails).filter(e=>e && e.includes('@')).join(',');
-                if(destStr) { sendNotification({to: destStr, cc: ""}, "✅ Auditoría Completada: " + a.proceso, `La auditoría del proceso ${a.proceso} programada para el ${window.formatearFechaAbreviada(a.fecha)} ha sido marcada como COMPLETADA exitosamente en el sistema SGC.\n\nAuditados: ${a.auditado}\nAuditores: ${a.auditor}`); }
-                alert("Auditoría marcada como Completada y correos enviados.");
-            }
-            window.hideLoading();
+            XLSX.writeFile(wb, `Reporte_Auditorias_${y}.xlsx`);
         };
 
         function verificarAlertasAuditoria(auditoriasArray) {
             if(!globalAuditPlan || !globalAuditPlan.correos || globalAuditPlan.correos.length === 0) return;
             const today = new Date(); today.setHours(0,0,0,0);
             auditoriasArray.forEach(a => {
-                if(a.estado === "Completado") return;
+                if(a.estado === "Completada") return;
                 const auditDate = new Date(a.fecha); auditDate.setHours(0,0,0,0);
                 const diffTime = auditDate - today; const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 let asunto = "";
@@ -1397,6 +1614,37 @@
             });
         }
 
+        // ==========================================
+        // FUNCIONES GENERALES Y CORE
+        // ==========================================
+
+        // ALERTA DIARIA DE PENDIENTES
+        async function checkDailyAlerts() {
+            if(!currentUser || (!currentUser.permisos.p_gest_sgc && !currentUser.permisos.admin)) return;
+            const ref = doc(db, "artifacts", appId, "public", "data", "Configuracion", "EstadoAlertas");
+            const snap = await getDoc(ref);
+            const today = new Date().toISOString().split('T')[0];
+            
+            if(!snap.exists() || snap.data().ultimaAlerta !== today) {
+                let pendientes = globalSolicitudes.filter(s => {
+                    let est = (s.estado || "").toUpperCase();
+                    return !est.includes('APROBADO FINAL') && est !== 'ANULADO' && est !== 'RECHAZADO';
+                });
+                
+                if(pendientes.length > 0) {
+                    let msg = `Hola Equipo SGC.\n\nEste es su resumen diario automático:\nActualmente hay ${pendientes.length} solicitudes pendientes en diferentes etapas del sistema que requieren atención o seguimiento.\n\nPor favor, revisen el panel de "Gestionar Solicitudes".`;
+                    sendNotification({to: EMAIL_GRUPO_SGC, cc: EMAIL_ADMIN_SGC}, "🔔 Alerta Diaria SGC: Solicitudes Pendientes", msg);
+                    
+                    if(!snap.exists()) {
+                        await setDoc(ref, { ultimaAlerta: today });
+                    } else {
+                        await updateDoc(ref, { ultimaAlerta: today });
+                    }
+                    console.log("Alerta diaria enviada.");
+                }
+            }
+        }
+
         function sendNotification(destinatarios, subject, message) {
             if (!destinatarios.to && !destinatarios.cc) return;
             const templateParams = { to_email: destinatarios.to, cc_email: destinatarios.cc || "", subject: subject, message: message };
@@ -1407,7 +1655,8 @@
             let managerEmail = "";
             if(solicitudData.gerencia) {
                 try {
-                    const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("gerencia", "==", solicitudData.gerencia), where("permisos.p_ger_apr", "==", true));
+                    // Ahora la gerencia en el usuario es un arreglo. Buscamos aquellos donde el array contiene la gerencia buscada.
+                    const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("gerencias", "array-contains", solicitudData.gerencia), where("permisos.p_ger_apr", "==", true));
                     const snap = await getDocs(q); if(!snap.empty) managerEmail = snap.docs[0].data().email || "";
                 } catch(e) { console.error("Error buscando gerente", e); }
             }
@@ -1548,16 +1797,42 @@
         window.cargarUsuarioParaEditar = (usuarioId) => {
             const u = allUsers.find(x => x.usuario === usuarioId); if(!u) return;
             document.getElementById('user-form-title').innerText = "Editando Usuario: " + u.usuario;
-            document.getElementById('u-nom').value = u.nombre || ''; document.getElementById('u-usr').value = u.usuario || ''; document.getElementById('u-usr').disabled = true; document.getElementById('u-pas').value = u.pass || ''; document.getElementById('u-ger-sel').value = u.gerencia || ''; document.getElementById('u-rol').value = u.role || ''; document.getElementById('u-email').value = u.email || '';
+            document.getElementById('u-nom').value = u.nombre || ''; 
+            document.getElementById('u-usr').value = u.usuario || ''; 
+            document.getElementById('u-usr').disabled = true; 
+            document.getElementById('u-pas').value = u.pass || ''; 
+            document.getElementById('u-rol').value = u.role || ''; 
+            document.getElementById('u-email').value = u.email || '';
+            
+            // Gerencias (Multiples)
+            let gers = u.gerencias || [];
+            if(!u.gerencias && u.gerencia) gers = [u.gerencia]; // Retrocompatibilidad
+            document.querySelectorAll('#u-ger-list input[type="checkbox"]').forEach(cb => {
+                cb.checked = gers.includes(cb.value);
+            });
+
             const p = u.permisos || {};
-            document.getElementById('p-solicitar').checked = p.can_solicit || false; document.getElementById('p-ver-propias').checked = p.p_ver_propias || false; document.getElementById('p-ver-ger').checked = p.p_ver_ger || false; document.getElementById('p-gest-sgc').checked = p.p_gest_sgc || false; document.getElementById('p-ger-apr').checked = p.p_ger_apr || false; document.getElementById('p-users').checked = p.p_users || false; document.getElementById('p-struct').checked = p.p_struct || false; document.getElementById('p-ver-listado').checked = p.p_ver_listado || false; document.getElementById('p-admin').checked = p.admin || false;
+            document.getElementById('p-solicitar').checked = p.can_solicit || false; 
+            document.getElementById('p-ver-propias').checked = p.p_ver_propias || false; 
+            document.getElementById('p-ver-ger').checked = p.p_ver_ger || false; 
+            document.getElementById('p-gest-sgc').checked = p.p_gest_sgc || false; 
+            document.getElementById('p-ger-apr').checked = p.p_ger_apr || false; 
+            document.getElementById('p-users').checked = p.p_users || false; 
+            document.getElementById('p-struct').checked = p.p_struct || false; 
+            document.getElementById('p-ver-listado').checked = p.p_ver_listado || false; 
+            document.getElementById('p-audit-ver').checked = p.p_audit_ver || false; 
+            document.getElementById('p-audit-admin').checked = p.p_audit_admin || false; 
+            document.getElementById('p-admin').checked = p.admin || false;
+
             document.getElementById('btnSaveUser').innerText = "ACTUALIZAR USUARIO"; document.getElementById('btnCancelEdit').style.display = 'inline-flex'; window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
         window.resetUserForm = () => {
             document.getElementById('user-form-title').innerText = "Registrar / Editar Usuario";
-            document.getElementById('u-nom').value = ""; document.getElementById('u-usr').value = ""; document.getElementById('u-usr').disabled = false; document.getElementById('u-pas').value = "123"; document.getElementById('u-ger-sel').value = ""; document.getElementById('u-rol').value = ""; document.getElementById('u-email').value = "";
-            document.getElementById('p-solicitar').checked = false; document.getElementById('p-ver-propias').checked = true; document.getElementById('p-ver-ger').checked = false; document.getElementById('p-gest-sgc').checked = false; document.getElementById('p-ger-apr').checked = false; document.getElementById('p-users').checked = false; document.getElementById('p-struct').checked = false; document.getElementById('p-ver-listado').checked = false; document.getElementById('p-admin').checked = false;
+            document.getElementById('u-nom').value = ""; document.getElementById('u-usr').value = ""; document.getElementById('u-usr').disabled = false; document.getElementById('u-pas').value = "123"; document.getElementById('u-rol').value = ""; document.getElementById('u-email').value = "";
+            document.querySelectorAll('#u-ger-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+            document.getElementById('p-solicitar').checked = false; document.getElementById('p-ver-propias').checked = true; document.getElementById('p-ver-ger').checked = false; document.getElementById('p-gest-sgc').checked = false; document.getElementById('p-ger-apr').checked = false; document.getElementById('p-users').checked = false; document.getElementById('p-struct').checked = false; document.getElementById('p-ver-listado').checked = false; document.getElementById('p-audit-ver').checked = false; document.getElementById('p-audit-admin').checked = false; document.getElementById('p-admin').checked = false;
             document.getElementById('btnSaveUser').innerText = "GUARDAR USUARIO"; document.getElementById('btnCancelEdit').style.display = 'none';
         };
 
@@ -1574,18 +1849,39 @@
             window.hideLoading(); alert("Datos actualizados correctamente."); window.closeModal();
         }
 
+        window.guardarSLA = async () => {
+            const dateSLA = document.getElementById('m-sla-date').value;
+            if(!dateSLA) return alert("Selecciona una fecha válida.");
+            window.showLoading();
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), {
+                fecha_esperada_cierre: dateSLA,
+                chat: arrayUnion({u: currentUser.nombre, m: `⏱️ <b>FECHA LÍMITE (SLA) ESTABLECIDA:</b> ${window.formatearFechaAbreviada(dateSLA)}`, t: new Date().toLocaleString()})
+            });
+            window.hideLoading(); alert("Fecha límite actualizada.");
+            verDetalle(selectedId);
+        };
+
         window.verDetalle = async (id) => {
             selectedId = id; document.getElementById('m-extra-input').innerHTML = ""; document.getElementById('m-comentario-libre').innerHTML = "";
             const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", id));
             selectedDocData = docSnap.data(); const s = selectedDocData; const p = currentUser.permisos;
             
             document.getElementById('m-id').innerText = s.customId; document.getElementById('m-tit').innerText = s.titulo; document.getElementById('m-sol').innerText = s.solicitante;
-            let estadoStr = (s.estado || "").toUpperCase(); let isAprobadoFinalModal = estadoStr.includes('APROBADO FINAL');
-            let badgeClass = 'badge-info'; if(estadoStr.includes('APROBADO')) badgeClass = 'badge-success'; if(estadoStr === 'ANULADO' || estadoStr === 'RECHAZADO') badgeClass = 'badge-danger'; if(estadoStr.includes('PENDIENTE')) badgeClass = 'badge-warning';
-            document.getElementById('m-est').innerText = isAprobadoFinalModal ? 'APROBADO FINAL' : s.estado; document.getElementById('m-est').className = `badge ${badgeClass}`;
-            let fActual = PASOS_NOMBRES[s.idx]; if (!isAprobadoFinalModal && estadoStr !== 'ANULADO' && estadoStr !== 'RECHAZADO' && fActual) { document.getElementById('m-est').innerHTML += ` <span style="font-size:10px; color:#64748b; font-weight:700; margin-left:8px; background:transparent; border:none; display:inline-block; vertical-align:middle;">(📍 Etapa: ${fActual})</span>`; }
+            let estadoStr = (s.estado || "").toUpperCase(); let isAprobadoFinalModal = estadoStr.includes('APROBADO FINAL'); let isCancelado = estadoStr === 'ANULADO' || estadoStr === 'RECHAZADO';
             
-            document.getElementById('m-ger').innerText = s.gerencia; document.getElementById('m-tipo').innerText = s.tipoDoc || "N/A"; document.getElementById('m-accion').innerText = s.accion; document.getElementById('m-jus').innerText = s.motivo || s.justificacion || "Sin justificación";
+            let badgeClass = 'badge-info'; if(estadoStr.includes('APROBADO')) badgeClass = 'badge-success'; if(isCancelado) badgeClass = 'badge-danger'; if(estadoStr.includes('PENDIENTE')) badgeClass = 'badge-warning';
+            document.getElementById('m-est').innerText = isAprobadoFinalModal ? 'APROBADO FINAL' : s.estado; document.getElementById('m-est').className = `badge ${badgeClass}`;
+            let fActual = PASOS_NOMBRES[s.idx]; if (!isAprobadoFinalModal && !isCancelado && fActual) { document.getElementById('m-est').innerHTML += ` <span style="font-size:10px; color:#64748b; font-weight:700; margin-left:8px; background:transparent; border:none; display:inline-block; vertical-align:middle;">(📍 Etapa: ${fActual})</span>`; }
+            
+            document.getElementById('m-ger').innerText = s.gerencia; document.getElementById('m-tipo').innerText = s.tipoDoc || "N/A"; 
+            
+            // Prioridad badge
+            let pr = s.prioridad || "Normal";
+            let bPr = pr === 'Alta' ? 'badge-danger' : (pr === 'Básica' ? 'badge-info' : 'badge-dark');
+            document.getElementById('m-prioridad').innerText = pr.toUpperCase();
+            document.getElementById('m-prioridad').className = `badge ${bPr}`;
+            
+            document.getElementById('m-accion').innerText = s.accion; document.getElementById('m-jus').innerText = s.motivo || s.justificacion || "Sin justificación";
             let adjOrigName = s.adjunto_nombre || "Descargar Archivo"; if(adjOrigName.startsWith('http')) { try { adjOrigName = decodeURIComponent(adjOrigName.split('/').pop().split('?')[0]); } catch(e){} }
             let dlUrl = s.adjunto ? window.getDownloadUrl(s.adjunto) : "#"; document.getElementById('m-file-link').innerHTML = s.adjunto ? `<a href="${dlUrl}" target="_blank" class="file-link" download="${adjOrigName}">📎 ${adjOrigName}</a>` : "Sin archivo";
             
@@ -1603,20 +1899,44 @@
 
             for(let i=1; i<=4; i++) {
                 const st = document.getElementById('s'+i); st.className = 'step'; 
-                if(estadoStr === 'ANULADO' || estadoStr === 'RECHAZADO') continue;
+                if(isCancelado) continue;
                 if(i <= s.idx) st.classList.add('completed'); 
                 if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active');
             }
 
-            const esSGC = p.p_gest_sgc; const esAdminSGC = p.admin || p.p_gest_sgc; const esGestorSGC = esSGC && (s.idx === 0 || s.idx === 1 || s.idx === 3); const esGer = p.p_ger_apr && s.idx === 2 && s.gerencia === currentUser.gerencia; const esInvolucradoActivo = s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()); const esDuenio = s.uid === currentUser.usuario || esInvolucradoActivo; const activo = !isAprobadoFinalModal && estadoStr !== 'RECHAZADO' && estadoStr !== 'ANULADO';
+            const esSGC = p.p_gest_sgc; const esAdminSGC = p.admin || p.p_gest_sgc; 
+            // NUEVO CONTROL: Si esAdminSGC, puede gestionar TODO (lo que no esté finalizado/cancelado)
+            const esGer = p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia);
+            
+            const activo = !isAprobadoFinalModal && !isCancelado;
+            const puedeGestionarSGC = esAdminSGC && activo;
+            const puedeGestionarGerente = esGer && s.idx === 2 && activo;
+
+            const esInvolucradoActivo = s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()); 
+            const esDuenio = s.uid === currentUser.usuario || esInvolucradoActivo; 
 
             document.getElementById('btn-reabrir').style.display = (esAdminSGC && !activo) ? 'inline-flex' : 'none';
             document.getElementById('m-add-involucrado-section').style.display = activo ? 'flex' : 'none';
-            document.getElementById('m-actions').style.display = (esGestorSGC || esGer) && activo ? 'block' : 'none';
+            document.getElementById('m-actions').style.display = (puedeGestionarSGC || puedeGestionarGerente) ? 'block' : 'none';
             document.getElementById('applicant-actions').style.display = (esDuenio && activo) ? 'block' : 'none';
             document.getElementById('m-input-area').style.display = 'none';
-            document.getElementById('general-comment-area').style.display = estadoStr !== 'ANULADO' ? 'block' : 'none';
+            document.getElementById('general-comment-area').style.display = !isCancelado ? 'block' : 'none';
             document.getElementById('btn-anular').style.display = (esSGC || esDuenio) && activo ? 'inline-block' : 'none';
+
+            // SLA Panel (Admin solo, o visible para todos si existe)
+            const slaPanel = document.getElementById('m-admin-sla');
+            const slaDateInput = document.getElementById('m-sla-date');
+            const slaBtn = document.getElementById('btn-save-sla');
+            if(s.fecha_esperada_cierre) {
+                slaPanel.style.display = 'block';
+                slaDateInput.value = s.fecha_esperada_cierre;
+                if(!esAdminSGC) { slaDateInput.disabled = true; slaBtn.style.display = 'none'; } else { slaDateInput.disabled = false; slaBtn.style.display = 'inline-block'; }
+            } else if (esAdminSGC && activo) {
+                slaPanel.style.display = 'block';
+                slaDateInput.value = ''; slaDateInput.disabled = false; slaBtn.style.display = 'inline-block';
+            } else {
+                slaPanel.style.display = 'none';
+            }
 
             document.getElementById('m-panel-final-sgc').style.display = 'none'; document.getElementById('m-panel-update-sgc').style.display = 'none'; document.getElementById('m-display-final').style.display = 'none'; document.getElementById('m-original-data').classList.remove('locked-data'); document.getElementById('m-orig-title').style.display = 'none';
 
@@ -1799,14 +2119,16 @@
                 s.forEach(d => {
                     const u = d.data(); u.docId = d.id; allUsers.push(u); 
                     
-                    userOptionsHtmlSingle += `<option value="${u.nombre}" data-email="${u.email || ''}">${u.nombre} (${u.gerencia})</option>`;
-                    checkboxHtml += `<label><input type="checkbox" value="${u.nombre}" data-email="${u.email || ''}"> ${u.nombre} <span style="font-size:10px;color:#94a3b8">(${u.gerencia})</span></label>`;
+                    let grShow = (u.gerencias && u.gerencias.length > 0) ? u.gerencias.join(', ') : (u.gerencia || 'N/A');
+                    
+                    userOptionsHtmlSingle += `<option value="${u.nombre}" data-email="${u.email || ''}">${u.nombre} (${grShow})</option>`;
+                    checkboxHtml += `<label><input type="checkbox" value="${u.nombre}" data-email="${u.email || ''}"> ${u.nombre} <span style="font-size:10px;color:#94a3b8">(${grShow})</span></label>`;
                     
                     if(u.email) {
                         involucradosOptions += `<option value="${u.email.toLowerCase()}">${u.nombre} (${u.email})</option>`;
                     }
 
-                    usersHtml += `<tr><td><b>${u.nombre}</b><br><span style="font-size:10px;color:#64748b">${u.usuario}</span></td><td>${u.email || '-'}</td><td>${u.gerencia}<br><span class="badge badge-info">${u.role || 'N/A'}</span></td><td><button class="btn btn-info" style="padding:5px 10px; font-size:10px;" onclick="cargarUsuarioParaEditar('${u.usuario}')">EDITAR</button> <button class="btn btn-danger" style="padding:5px 10px; font-size:10px;" onclick="del('Usuarios','${u.docId}')">X</button></td></tr>`;
+                    usersHtml += `<tr><td><b>${u.nombre}</b><br><span style="font-size:10px;color:#64748b">${u.usuario}</span></td><td>${u.email || '-'}</td><td>${grShow}<br><span class="badge badge-info">${u.role || 'N/A'}</span></td><td><button class="btn btn-info" style="padding:5px 10px; font-size:10px;" onclick="cargarUsuarioParaEditar('${u.usuario}')">EDITAR</button> <button class="btn btn-danger" style="padding:5px 10px; font-size:10px;" onclick="del('Usuarios','${u.docId}')">X</button></td></tr>`;
                 });
                 
                 tb.innerHTML = usersHtml;
@@ -1825,14 +2147,18 @@
             // CARGAR GERENCIAS
             onSnapshot(path("Gerencias"), s => {
                 let h = "<option value=''>-- Seleccionar Gerencia --</option>", l = "";
+                let checkGerHtml = "";
                 s.forEach(d => {
                     const g = d.data(); h += `<option value="${g.nombre}">${g.nombre}</option>`;
                     l += `<div class="settings-item"><span>${g.nombre}</span><button class="btn-icon-danger" onclick="del('Gerencias','${d.id}')"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`;
+                    checkGerHtml += `<label><input type="checkbox" value="${g.nombre}"> ${g.nombre}</label>`;
                 });
                 if(document.getElementById('sol-ger')) document.getElementById('sol-ger').innerHTML = h;
                 if(document.getElementById('u-ger-sel')) document.getElementById('u-ger-sel').innerHTML = h;
                 if(document.getElementById('d-ger-sel')) document.getElementById('d-ger-sel').innerHTML = h; 
                 if(document.getElementById('list-ger')) document.getElementById('list-ger').innerHTML = l;
+                if(document.getElementById('u-ger-list')) document.getElementById('u-ger-list').innerHTML = checkGerHtml;
+                
                 if(document.getElementById('sol-ger') && document.getElementById('sol-ger').value) { document.getElementById('sol-ger').dispatchEvent(new Event('change')); }
             });
 
@@ -1903,23 +2229,30 @@
                     }
 
                     // Renderizado de Tablas
-                    let ver = p.p_ver_all || (p.p_ver_ger && sol.gerencia === currentUser.gerencia) || (p.p_ver_propias && isMine);
+                    let ver = p.p_ver_all || (p.p_ver_ger && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia)) || (p.p_ver_propias && isMine);
                     
                     let badgeClass = 'badge-info';
                     if(estadoStr.includes('APROBADO')) badgeClass = 'badge-success';
                     if(isCancelado) badgeClass = 'badge-danger';
                     if(estadoStr.includes('PENDIENTE')) badgeClass = 'badge-warning';
 
+                    let pr = sol.prioridad || "Normal";
+                    let bPr = pr === 'Alta' ? 'badge-danger' : (pr === 'Básica' ? 'badge-info' : 'badge-dark');
+
                     let faseActual = PASOS_NOMBRES[sol.idx] || ""; let estadoMostrar = sol.estado; let infoFase = "";
                     if (isAprobadoFinal) { estadoMostrar = "APROBADO FINAL"; } else if (!isCancelado && faseActual) { infoFase = `<br><span style="font-size:10px; color:#64748b; font-weight:700; display:inline-block; margin-top:5px;">📍 Etapa: ${faseActual}</span>`; }
 
-                    if(ver) { histHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button></td></tr>`; }
+                    if(ver) { histHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${bPr}">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button></td></tr>`; }
                     
                     let gestionar = false;
-                    if(p.p_gest_sgc && (sol.idx === 0 || sol.idx === 1 || sol.idx === 3) && !isCancelado && !isAprobadoFinal) gestionar = true;
-                    if(p.p_ger_apr && sol.idx === 2 && sol.gerencia === currentUser.gerencia && !isCancelado && !isAprobadoFinal) gestionar = true;
+                    const activo = !isCancelado && !isAprobadoFinal;
+                    
+                    // Modificación: El gestor SGC o Admin puede gestionar todo lo que esté activo (Pendiente)
+                    if((p.p_gest_sgc || p.admin) && activo) gestionar = true;
+                    // El gerente solo gestiona si está en su etapa (2) y le pertenece la gerencia
+                    if(p.p_ger_apr && sol.idx === 2 && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia) && activo) gestionar = true;
 
-                    if(gestionar) { gestHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-primary" onclick="verDetalle('${sol.docId}')">Gestionar</button></td></tr>`; }
+                    if(gestionar) { gestHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}<br><span class="badge ${bPr}" style="margin-top:4px;">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-primary" onclick="verDetalle('${sol.docId}')">Gestionar</button></td></tr>`; }
                 });
                 
                 tbHist.innerHTML = histHtml; tbGest.innerHTML = gestHtml;
@@ -1941,6 +2274,9 @@
                         document.getElementById('dash-admin-section').style.display = 'none';
                     }
                 }
+
+                // Llamar comprobación de alertas (solo SGC)
+                setTimeout(() => { checkDailyAlerts(); }, 3000);
             });
 
             // CARGAR LISTADO MAESTRO
@@ -1953,9 +2289,20 @@
         if(document.getElementById('sol-ger')){
             document.getElementById('sol-ger').addEventListener('change', (e) => {
                 const gSelected = e.target.value;
-                const gerente = allUsers.find(u => u.gerencia === gSelected && u.permisos && u.permisos.p_ger_apr === true);
-                if (gerente) { document.getElementById('sol-gerente-display').value = gerente.nombre; document.getElementById('sol-email-gerente').value = gerente.email || "Sin Email"; } 
-                else { document.getElementById('sol-gerente-display').value = "No asignado"; document.getElementById('sol-email-gerente').value = ""; }
+                // Buscar usuarios que tengan permisos de gerente y la gerencia seleccionada esté en sus gerencias vinculadas
+                const gerentes = allUsers.filter(u => u.gerencias && u.gerencias.includes(gSelected) && u.permisos && u.permisos.p_ger_apr === true);
+                
+                if (gerentes && gerentes.length > 0) { 
+                    const nombres = gerentes.map(g => g.nombre).join(', ');
+                    const emails = gerentes.map(g => g.email || '').filter(e=>e).join(', ');
+                    document.getElementById('sol-gerente-display').value = nombres; 
+                    document.getElementById('sol-email-gerente').value = emails || "Sin Email"; 
+                } 
+                else { 
+                    document.getElementById('sol-gerente-display').value = "No asignado"; 
+                    document.getElementById('sol-email-gerente').value = ""; 
+                }
+                
                 const depSelect = document.getElementById('sol-dep'); let depHtml = "<option value=''>-- Seleccionar Departamento --</option>";
                 const depsFiltrados = allDepartamentos.filter(d => d.gerencia === gSelected); depsFiltrados.forEach(d => { depHtml += `<option value="${d.nombre}">${d.nombre}</option>`; });
                 depSelect.innerHTML = depHtml;
@@ -1972,7 +2319,7 @@
                         const json = XLSX.utils.sheet_to_json(sheet, {defval: ""});
                         if(json.length > 0) {
                             const colsExcel = Object.keys(json[0]);
-                            await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: colsExcel, estatus: estatusMaestro }, {merge: true});
+                            await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: colsExcel, estatus: estatusMaestro, tiposDoc: tiposDocumento }, {merge: true});
                             for(let row of json) { row.importado_por = currentUser.nombre; row.fecha_importacion = new Date().toISOString(); await addDoc(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), row); }
                             alert(`Se importaron ${json.length} registros.`);
                         }
@@ -2016,14 +2363,37 @@
                 const gerenteEmailVisible = document.getElementById('sol-email-gerente').value;
                 const now = new Date().toISOString();
                 
-                const data = { customId: fci, titulo: tit, accion: document.getElementById('sol-accion').value, tipoDoc: document.getElementById('sol-tipo-doc').value, gerencia: gerTarget, departamento: document.getElementById('sol-dep').value, motivo: document.getElementById('sol-motivo').value, cod_ref: document.getElementById('sol-cod-prev').value, ver_ref: document.getElementById('sol-ver-prev').value, fecha_ref: document.getElementById('sol-fecha-prev').value, solicitante: currentUser.nombre, solicitante_email: currentUser.email, uid: currentUser.usuario, involucrados: extraEmails, idx: 0, estado: "Pendiente Documentado", fase_0_ini: now, adjunto: url, adjunto_nombre: fileName, chat: [{u: "SISTEMA", m: "Solicitud creada exitosamente.", t: new Date().toLocaleString()}], fecha: now };
+                const data = { 
+                    customId: fci, 
+                    titulo: tit, 
+                    accion: document.getElementById('sol-accion').value, 
+                    tipoDoc: document.getElementById('sol-tipo-doc').value, 
+                    prioridad: document.getElementById('sol-prioridad').value,
+                    gerencia: gerTarget, 
+                    departamento: document.getElementById('sol-dep').value, 
+                    motivo: document.getElementById('sol-motivo').value, 
+                    cod_ref: document.getElementById('sol-cod-prev').value, 
+                    ver_ref: document.getElementById('sol-ver-prev').value, 
+                    fecha_ref: document.getElementById('sol-fecha-prev').value, 
+                    solicitante: currentUser.nombre, 
+                    solicitante_email: currentUser.email, 
+                    uid: currentUser.usuario, 
+                    involucrados: extraEmails, 
+                    idx: 0, 
+                    estado: "Pendiente Documentado", 
+                    fase_0_ini: now, 
+                    adjunto: url, 
+                    adjunto_nombre: fileName, 
+                    chat: [{u: "SISTEMA", m: "Solicitud creada exitosamente.", t: new Date().toLocaleString()}], 
+                    fecha: now 
+                };
                 
                 await addDoc(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), data); 
                 document.getElementById('lista-involucrados-tags').innerHTML = ""; // Limpiar lista
                 
                 const toEmails = new Set([EMAIL_ADMIN_SGC, EMAIL_GRUPO_SGC, currentUser.email, ...extraEmails]); 
                 const destinatarios = { to: Array.from(toEmails).join(','), cc: gerenteEmailVisible }; 
-                sendNotification(destinatarios, "Nueva Solicitud Creada", `El usuario ${currentUser.nombre} ha creado la solicitud ${fci}.`);
+                sendNotification(destinatarios, "Nueva Solicitud Creada", `El usuario ${currentUser.nombre} ha creado la solicitud ${fci} con prioridad ${data.prioridad}.`);
                 window.hideLoading(); alert("Solicitud Creada: " + fci); window.cambiarVista('sec-hist', document.getElementById('nav-hist'));
             };
         }
@@ -2031,13 +2401,35 @@
         const btnSaveUser = document.getElementById('btnSaveUser');
         if (btnSaveUser) {
             btnSaveUser.onclick = async () => {
-                const nom = document.getElementById('u-nom').value.trim(); const usr = document.getElementById('u-usr').value.toLowerCase().trim(); const pas = document.getElementById('u-pas').value.trim(); const ger = document.getElementById('u-ger-sel').value; const rol = document.getElementById('u-rol').value.trim(); const email = document.getElementById('u-email').value.trim().toLowerCase();
-                if(!nom || !usr || !pas || !ger) return alert("Nombre, Usuario, Contraseña y Gerencia son obligatorios.");
-                const permisos = { can_solicit: document.getElementById('p-solicitar').checked, p_ver_propias: document.getElementById('p-ver-propias').checked, p_ver_ger: document.getElementById('p-ver-ger').checked, p_gest_sgc: document.getElementById('p-gest-sgc').checked, p_ger_apr: document.getElementById('p-ger-apr').checked, p_users: document.getElementById('p-users').checked, p_struct: document.getElementById('p-struct').checked, p_ver_listado: document.getElementById('p-ver-listado').checked, admin: document.getElementById('p-admin').checked };
+                const nom = document.getElementById('u-nom').value.trim(); const usr = document.getElementById('u-usr').value.toLowerCase().trim(); const pas = document.getElementById('u-pas').value.trim(); const rol = document.getElementById('u-rol').value.trim(); const email = document.getElementById('u-email').value.trim().toLowerCase();
+                
+                // Recopilar múltiples gerencias
+                const gerenciasSel = [];
+                document.querySelectorAll('#u-ger-list input:checked').forEach(cb => {
+                    gerenciasSel.push(cb.value);
+                });
+
+                if(!nom || !usr || !pas || gerenciasSel.length === 0) return alert("Nombre, Usuario, Contraseña y al menos 1 Gerencia son obligatorios.");
+                
+                const permisos = { 
+                    can_solicit: document.getElementById('p-solicitar').checked, 
+                    p_ver_propias: document.getElementById('p-ver-propias').checked, 
+                    p_ver_ger: document.getElementById('p-ver-ger').checked, 
+                    p_gest_sgc: document.getElementById('p-gest-sgc').checked, 
+                    p_ger_apr: document.getElementById('p-ger-apr').checked, 
+                    p_users: document.getElementById('p-users').checked, 
+                    p_struct: document.getElementById('p-struct').checked, 
+                    p_ver_listado: document.getElementById('p-ver-listado').checked, 
+                    p_audit_ver: document.getElementById('p-audit-ver').checked, 
+                    p_audit_admin: document.getElementById('p-audit-admin').checked, 
+                    admin: document.getElementById('p-admin').checked 
+                };
                 window.showLoading();
                 const docRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", usr); const snap = await getDoc(docRef);
                 if(snap.exists() && document.getElementById('user-form-title').innerText.includes("Registrar")) { window.hideLoading(); return alert("Ese ID de usuario ya existe. Elija otro o edítelo desde la tabla."); }
-                await setDoc(docRef, { nombre: nom, usuario: usr, pass: pas, gerencia: ger, role: rol, email: email, permisos: permisos });
+                
+                // Guardo el campo gerencias como un array. Guardo gerencia (singular) como el primer elemento por compatibilidad temporal si es necesario.
+                await setDoc(docRef, { nombre: nom, usuario: usr, pass: pas, gerencias: gerenciasSel, gerencia: gerenciasSel[0], role: rol, email: email, permisos: permisos });
                 window.resetUserForm(); window.hideLoading(); alert("Usuario guardado exitosamente.");
             };
         }
@@ -2059,8 +2451,8 @@
                     const snapAdmin = await getDoc(adminRef);
                     if(!snapAdmin.exists()) {
                         await setDoc(adminRef, {
-                            nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencia: "SGC", email: EMAIL_ADMIN_SGC,
-                            permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_users:true, p_struct:true, p_ver_listado:true, admin:true }
+                            nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencias: ["SGC"], gerencia: "SGC", email: EMAIL_ADMIN_SGC,
+                            permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_users:true, p_struct:true, p_ver_listado:true, p_audit_admin:true, p_audit_ver:true, admin:true }
                         });
                     }
                 }
