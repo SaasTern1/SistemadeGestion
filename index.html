@@ -701,6 +701,7 @@
                         <div class="access-item"><span>Admin Usuarios</span><label class="switch"><input type="checkbox" id="p-users"><span class="slider"></span></label></div>
                         <div class="access-item"><span>Admin Estructura</span><label class="switch"><input type="checkbox" id="p-struct"><span class="slider"></span></label></div>
                         <div class="access-item"><span>Ver Listado Maestro</span><label class="switch"><input type="checkbox" id="p-ver-listado"><span class="slider"></span></label></div>
+                        
                         <div class="access-item" style="background:#e0f2fe; border-color:#bae6fd;"><span>Ver Cal. Auditoría (Visor)</span><label class="switch"><input type="checkbox" id="p-audit-ver"><span class="slider"></span></label></div>
                         <div class="access-item" style="background:#e0f2fe; border-color:#bae6fd;"><span>Admin Auditoría (Programar)</span><label class="switch"><input type="checkbox" id="p-audit-admin"><span class="slider"></span></label></div>
 
@@ -1288,6 +1289,28 @@
             let ws = XLSX.utils.json_to_sheet(dataExport);
             XLSX.utils.book_append_sheet(wb, ws, "Datos_Filtrados");
             XLSX.writeFile(wb, `${nameF}.xlsx`);
+        };
+
+        // ==========================================
+        // EXPORTACIÓN EXCEL LISTADO MAESTRO
+        // ==========================================
+        window.exportarExcelListado = () => {
+            if(dataMaestro.length === 0) return alert("No hay registros en el Listado Maestro para exportar.");
+            
+            // Mapeamos los datos para que el Excel solo tenga las columnas configuradas y en el orden correcto
+            let dataExport = dataMaestro.map(item => {
+                let rowObj = {};
+                columnasMaestro.forEach(col => {
+                    rowObj[col] = item[col] || "";
+                });
+                return rowObj;
+            });
+
+            // Usamos la librería XLSX para crear y descargar el archivo
+            let wb = XLSX.utils.book_new();
+            let ws = XLSX.utils.json_to_sheet(dataExport);
+            XLSX.utils.book_append_sheet(wb, ws, "Listado_Maestro");
+            XLSX.writeFile(wb, "Listado_Maestro_SGC.xlsx");
         };
 
         // ==========================================
@@ -1904,12 +1927,14 @@
                 if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active');
             }
 
-            const esSGC = p.p_gest_sgc; const esAdminSGC = p.admin || p.p_gest_sgc; 
-            // NUEVO CONTROL: Si esAdminSGC, puede gestionar TODO (lo que no esté finalizado/cancelado)
+            const esSGC = p.p_gest_sgc; 
+            const esAdminSGC = p.admin || p.p_gest_sgc; 
             const esGer = p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia);
             
             const activo = !isAprobadoFinalModal && !isCancelado;
-            const puedeGestionarSGC = esAdminSGC && activo;
+            
+            // MODIFICACIÓN: Si está en idx === 2, SGC no puede gestionar. Solo el gerente de la gerencia.
+            const puedeGestionarSGC = esAdminSGC && activo && s.idx !== 2; 
             const puedeGestionarGerente = esGer && s.idx === 2 && activo;
 
             const esInvolucradoActivo = s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()); 
@@ -1917,11 +1942,13 @@
 
             document.getElementById('btn-reabrir').style.display = (esAdminSGC && !activo) ? 'inline-flex' : 'none';
             document.getElementById('m-add-involucrado-section').style.display = activo ? 'flex' : 'none';
+            
+            // Ocultamos las acciones principales (avanzar/rechazar) de SGC en la fase de Gerencia
             document.getElementById('m-actions').style.display = (puedeGestionarSGC || puedeGestionarGerente) ? 'block' : 'none';
             document.getElementById('applicant-actions').style.display = (esDuenio && activo) ? 'block' : 'none';
             document.getElementById('m-input-area').style.display = 'none';
             document.getElementById('general-comment-area').style.display = !isCancelado ? 'block' : 'none';
-            document.getElementById('btn-anular').style.display = (esSGC || esDuenio) && activo ? 'inline-block' : 'none';
+            document.getElementById('btn-anular').style.display = ((puedeGestionarSGC || esDuenio) && activo) ? 'inline-block' : 'none'; // SGC no anula en fase de gerencia
 
             // SLA Panel (Admin solo, o visible para todos si existe)
             const slaPanel = document.getElementById('m-admin-sla');
@@ -2247,12 +2274,36 @@
                     let gestionar = false;
                     const activo = !isCancelado && !isAprobadoFinal;
                     
-                    // Modificación: El gestor SGC o Admin puede gestionar todo lo que esté activo (Pendiente)
-                    if((p.p_gest_sgc || p.admin) && activo) gestionar = true;
-                    // El gerente solo gestiona si está en su etapa (2) y le pertenece la gerencia
-                    if(p.p_ger_apr && sol.idx === 2 && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia) && activo) gestionar = true;
+                    if (activo) {
+                        if (sol.idx === 2) {
+                            // REGLA: En la etapa 3 (idx=2), SGC NO ve el botón de gestionar. Solo el gerente lo ve.
+                            if (p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia)) {
+                                gestionar = true;
+                            } else if (p.p_gest_sgc || p.admin) {
+                                // Le ponemos false explícitamente, pero queremos que al menos lo puedan "Ver"
+                                // Para que SGC lo tenga en su bandeja de gestión (como visor de estado), dejaremos que se pinte la fila
+                                // pero le inyectaremos un botón "Ver" en lugar de "Gestionar" si no es el gerente.
+                            }
+                        } else {
+                            // Otras etapas, SGC lo gestiona sin problema
+                            if (p.p_gest_sgc || p.admin) gestionar = true;
+                        }
+                    }
 
-                    if(gestionar) { gestHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}<br><span class="badge ${bPr}" style="margin-top:4px;">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-primary" onclick="verDetalle('${sol.docId}')">Gestionar</button></td></tr>`; }
+                    // Para que las solicitudes pendientes no desaparezcan de la bandeja de SGC cuando estén en Gerencia:
+                    let mostrarFilaGestionSGC = (p.p_gest_sgc || p.admin) && activo;
+                    let mostrarFilaGerente = p.p_ger_apr && sol.idx === 2 && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia) && activo;
+
+                    if(mostrarFilaGestionSGC || mostrarFilaGerente) { 
+                        let btnHtml = "";
+                        if(gestionar) {
+                            btnHtml = `<button class="btn btn-primary" onclick="verDetalle('${sol.docId}')">Gestionar</button>`;
+                        } else {
+                            btnHtml = `<button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button>`;
+                        }
+
+                        gestHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}<br><span class="badge ${bPr}" style="margin-top:4px;">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td>${btnHtml}</td></tr>`; 
+                    }
                 });
                 
                 tbHist.innerHTML = histHtml; tbGest.innerHTML = gestHtml;
