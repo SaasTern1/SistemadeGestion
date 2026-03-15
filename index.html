@@ -765,8 +765,14 @@
                 <div class="card" style="border-top: 4px solid #8b5cf6;">
                     <h3 style="display:flex; align-items:center; gap:5px;"><span class="material-icons-round" style="color:#8b5cf6;">table_chart</span> Columnas Listado Maestro</h3>
                     <p style="font-size:11px; color:#64748b; margin-bottom:10px;">Agrega/elimina columnas de la base central.</p>
-                    <div style="display:flex; gap:0; margin-bottom:15px;">
-                        <input type="text" id="col-nom" placeholder="Ej: Nueva Columna" style="margin:0; border-radius: 8px 0 0 8px; border-right:none;">
+                    <div style="display:flex; gap:0; margin-bottom:15px; flex-wrap:wrap;">
+                        <input type="text" id="col-nom" placeholder="Ej: Columna" style="margin:0; border-radius: 8px 0 0 8px; border-right:none; flex:1; min-width: 100px;">
+                        <select id="col-tipo" style="margin:0; border-radius: 0; border-right:none; width:110px; padding: 12px;">
+                            <option value="text">Texto</option>
+                            <option value="date">Fecha</option>
+                            <option value="number">Número</option>
+                            <option value="url">Enlace/File</option>
+                        </select>
                         <button class="btn btn-success" onclick="agregarColumna()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button>
                     </div>
                     <div id="list-columnas" class="settings-list"></div>
@@ -1010,7 +1016,7 @@
                     <h4 style="color:var(--primary); margin-bottom:15px; display:flex; align-items:center; gap:8px;"><span class="material-icons-round">timer</span> Ejecución y Tiempos Reales</h4>
                     
                     <div class="grid-3" style="margin-bottom:15px;">
-                        <div><label>Estado</label><span id="ma-estado-badge" class="badge badge-warning"></span></div>
+                        <div><label>Estado</label><br><span id="ma-estado-badge" class="badge badge-warning"></span></div>
                         <div><label>Inicio Real</label><p id="ma-inicio-real" style="font-weight:bold;">---</p></div>
                         <div><label>Fin Real</label><p id="ma-fin-real" style="font-weight:bold;">---</p></div>
                     </div>
@@ -1301,12 +1307,12 @@
             let dataExport = dataMaestro.map(item => {
                 let rowObj = {};
                 columnasMaestro.forEach(col => {
-                    rowObj[col] = item[col] || "";
+                    let cName = typeof col === 'string' ? col : col.nombre;
+                    rowObj[cName] = item[cName] || "";
                 });
                 return rowObj;
             });
 
-            // Usamos la librería XLSX para crear y descargar el archivo
             let wb = XLSX.utils.book_new();
             let ws = XLSX.utils.json_to_sheet(dataExport);
             XLSX.utils.book_append_sheet(wb, ws, "Listado_Maestro");
@@ -1468,10 +1474,8 @@
             globalAuditorias = globalAllAuditorias.filter(a => {
                 let matchesYear = a.fecha && a.fecha.startsWith(yearFilter);
                 if(!matchesYear) return false;
-                
                 if(adminView) return true;
                 
-                // Solo ver si soy auditado o auditor
                 let miNombre = currentUser.nombre;
                 let soyInvolucrado = (a.auditado && a.auditado.includes(miNombre)) || (a.auditor && a.auditor.includes(miNombre));
                 return soyInvolucrado;
@@ -1486,6 +1490,18 @@
                 
                 let btnAccion = `<button class="btn btn-primary" style="padding:4px 8px; font-size:10px; margin-right:5px;" onclick="verModalAuditoria('${a.id}')"><span class="material-icons-round" style="font-size:14px; margin-right:4px;">visibility</span> Ver</button>`;
                 
+                // Botones directos iniciar/finalizar si tiene permisos
+                const isAuditor = a.auditor && a.auditor.includes(currentUser.nombre);
+                const canControl = adminView || isAuditor;
+                
+                if (canControl) {
+                    if (estadoLabel === 'Programada') {
+                        btnAccion += `<button class="btn btn-success" style="padding:4px 8px; font-size:10px; margin-right:5px;" onclick="iniciarAuditoriaDirecto('${a.id}')" title="Iniciar Auditoría"><span class="material-icons-round" style="font-size:14px;">play_arrow</span> Iniciar</button>`;
+                    } else if (estadoLabel === 'En Progreso') {
+                        btnAccion += `<button class="btn btn-warning" style="padding:4px 8px; font-size:10px; margin-right:5px;" onclick="finalizarAuditoriaDirecto('${a.id}')" title="Finalizar Auditoría"><span class="material-icons-round" style="font-size:14px;">stop</span> Finalizar</button>`;
+                    }
+                }
+
                 if(adminView) {
                     btnAccion += `<button class="btn-icon-danger" onclick="del('Auditorias','${a.id}')"><span class="material-icons-round">delete</span></button>`;
                 }
@@ -1495,6 +1511,43 @@
             if(adminView) verificarAlertasAuditoria(globalAuditorias);
         };
         
+        window.iniciarAuditoriaDirecto = async (id) => {
+            if(!confirm("¿Iniciar la auditoría ahora? Se registrará la hora actual.")) return;
+            window.showLoading();
+            const now = new Date().toISOString();
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", id), { 
+                estado: "En Progreso",
+                hora_real_inicio: now,
+                bitacora: arrayUnion({u: currentUser.nombre, m: `▶️ <b>AUDITORÍA INICIADA</b>`, t: new Date().toLocaleString()})
+            });
+            window.hideLoading();
+        };
+
+        window.finalizarAuditoriaDirecto = async (id) => {
+            if(!confirm("¿Finalizar la auditoría? Se registrará la hora de cierre y calculará la duración.")) return;
+            window.showLoading();
+            const now = new Date().toISOString();
+            
+            const docRef = doc(db, "artifacts", appId, "public", "data", "Auditorias", id);
+            const snap = await getDoc(docRef);
+            if(snap.exists()) {
+                let a = snap.data();
+                await updateDoc(docRef, { 
+                    estado: "Completada",
+                    hora_real_fin: now,
+                    bitacora: arrayUnion({u: currentUser.nombre, m: `⏹️ <b>AUDITORÍA COMPLETADA FINALIZADA</b>`, t: new Date().toLocaleString()})
+                });
+                
+                let emails = new Set([...(a.auditor_emails||[]), ...(a.auditado_emails||[])]);
+                if(globalAuditPlan && globalAuditPlan.correos) { globalAuditPlan.correos.forEach(e => emails.add(e)); }
+                emails.add(EMAIL_ADMIN_SGC);
+                let destStr = Array.from(emails).filter(e=>e && e.includes('@')).join(',');
+                if(destStr) { sendNotification({to: destStr, cc: ""}, "✅ Auditoría Completada: " + a.proceso, `La auditoría del proceso ${a.proceso} ha finalizado en el sistema SGC.\nPor favor revise el panel para el tiempo total e informes.`); }
+            }
+            window.hideLoading();
+            alert("Auditoría Finalizada");
+        };
+
         window.verModalAuditoria = async (id) => {
             selectedAuditId = id;
             const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", id));
@@ -1546,37 +1599,13 @@
         };
 
         window.comenzarAuditoria = async () => {
-            if(!confirm("¿Iniciar la auditoría ahora? Se registrará la hora actual.")) return;
-            window.showLoading();
-            const now = new Date().toISOString();
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { 
-                estado: "En Progreso",
-                hora_real_inicio: now,
-                bitacora: arrayUnion({u: currentUser.nombre, m: `▶️ <b>AUDITORÍA INICIADA</b>`, t: new Date().toLocaleString()})
-            });
-            window.hideLoading();
+            await iniciarAuditoriaDirecto(selectedAuditId);
             verModalAuditoria(selectedAuditId); // Recargar modal
         };
 
         window.finalizarAuditoria = async () => {
-            if(!confirm("¿Finalizar la auditoría? Se registrará la hora de cierre y calculará la duración.")) return;
-            window.showLoading();
-            const now = new Date().toISOString();
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { 
-                estado: "Completada",
-                hora_real_fin: now,
-                bitacora: arrayUnion({u: currentUser.nombre, m: `⏹️ <b>AUDITORÍA COMPLETADA FINALIZADA</b>`, t: new Date().toLocaleString()})
-            });
-            
-            let emails = new Set([...(selectedAuditData.auditor_emails||[]), ...(selectedAuditData.auditado_emails||[])]);
-            if(globalAuditPlan && globalAuditPlan.correos) { globalAuditPlan.correos.forEach(e => emails.add(e)); }
-            emails.add(EMAIL_ADMIN_SGC);
-            let destStr = Array.from(emails).filter(e=>e && e.includes('@')).join(',');
-            if(destStr) { sendNotification({to: destStr, cc: ""}, "✅ Auditoría Completada: " + selectedAuditData.proceso, `La auditoría del proceso ${selectedAuditData.proceso} ha finalizado en el sistema SGC.\nPor favor revise el panel para el tiempo total e informes.`); }
-
-            window.hideLoading();
-            alert("Auditoría Finalizada");
-            verModalAuditoria(selectedAuditId); // Recargar
+            await finalizarAuditoriaDirecto(selectedAuditId);
+            verModalAuditoria(selectedAuditId); // Recargar modal
         };
 
         window.enviarComentarioAuditoria = async () => {
@@ -1641,7 +1670,6 @@
         // FUNCIONES GENERALES Y CORE
         // ==========================================
 
-        // ALERTA DIARIA DE PENDIENTES
         async function checkDailyAlerts() {
             if(!currentUser || (!currentUser.permisos.p_gest_sgc && !currentUser.permisos.admin)) return;
             const ref = doc(db, "artifacts", appId, "public", "data", "Configuracion", "EstadoAlertas");
@@ -1678,7 +1706,6 @@
             let managerEmail = "";
             if(solicitudData.gerencia) {
                 try {
-                    // Ahora la gerencia en el usuario es un arreglo. Buscamos aquellos donde el array contiene la gerencia buscada.
                     const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("gerencias", "array-contains", solicitudData.gerencia), where("permisos.p_ger_apr", "==", true));
                     const snap = await getDocs(q); if(!snap.empty) managerEmail = snap.docs[0].data().email || "";
                 } catch(e) { console.error("Error buscando gerente", e); }
@@ -1713,7 +1740,11 @@
         };
 
         window.renderListasConfig = () => {
-            let hCol = ""; columnasMaestro.forEach((c, idx) => { hCol += `<div class="settings-item"><span>${c}</span><button class="btn-icon-danger" onclick="eliminarColumna(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; });
+            let hCol = ""; columnasMaestro.forEach((c, idx) => { 
+                let cName = typeof c === 'string' ? c : c.nombre;
+                let cType = typeof c === 'string' ? 'text' : c.tipo;
+                hCol += `<div class="settings-item"><span>${cName} <small style="color:#94a3b8; font-size:10px;">(${cType})</small></span><button class="btn-icon-danger" onclick="eliminarColumna(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; 
+            });
             if(document.getElementById('list-columnas')) document.getElementById('list-columnas').innerHTML = hCol;
             
             let hEst = ""; estatusMaestro.forEach((e, idx) => { hEst += `<div class="settings-item"><span>${e}</span><button class="btn-icon-danger" onclick="eliminarEstatus(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; });
@@ -1741,8 +1772,13 @@
         }
 
         window.agregarColumna = async () => {
-            let val = document.getElementById('col-nom').value.trim(); if(!val) return; if (columnasMaestro.includes(val)) return alert("Esa columna ya existe.");
-            columnasMaestro.push(val); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: columnasMaestro }, {merge: true}); document.getElementById('col-nom').value = "";
+            let val = document.getElementById('col-nom').value.trim(); 
+            let tipo = document.getElementById('col-tipo').value;
+            if(!val) return; 
+            if (columnasMaestro.some(c => (typeof c === 'string' ? c : c.nombre) === val)) return alert("Esa columna ya existe.");
+            columnasMaestro.push({nombre: val, tipo: tipo}); 
+            await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: columnasMaestro }, {merge: true}); 
+            document.getElementById('col-nom').value = "";
         }
 
         window.eliminarColumna = async (idx) => {
@@ -1762,16 +1798,28 @@
 
         window.renderTablaMaestro = () => {
             const thead = document.getElementById("thead-listado-maestro"); const tbody = document.getElementById("tbody-listado-maestro"); if(!thead || !tbody) return;
-            let headHTML = "<tr>"; columnasMaestro.forEach(col => { headHTML += `<th>${col}</th>`; }); if(currentUser && currentUser.permisos && (currentUser.permisos.p_gest_sgc || currentUser.permisos.admin)) { headHTML += `<th class="no-export">Acción</th>`; } headHTML += "</tr>"; thead.innerHTML = headHTML;
-            let dataSort = [...dataMaestro]; if(columnasMaestro.length > 0) { let firstCol = columnasMaestro[0]; dataSort.sort((a,b) => (a[firstCol]||"").toString().localeCompare((b[firstCol]||"").toString())); }
+            let headHTML = "<tr>"; 
+            columnasMaestro.forEach(col => { 
+                let cName = typeof col === 'string' ? col : col.nombre;
+                headHTML += `<th>${cName}</th>`; 
+            }); 
+            if(currentUser && currentUser.permisos && (currentUser.permisos.p_gest_sgc || currentUser.permisos.admin)) { headHTML += `<th class="no-export">Acción</th>`; } headHTML += "</tr>"; thead.innerHTML = headHTML;
+            let dataSort = [...dataMaestro]; 
+            if(columnasMaestro.length > 0) { 
+                let firstCol = typeof columnasMaestro[0] === 'string' ? columnasMaestro[0] : columnasMaestro[0].nombre; 
+                dataSort.sort((a,b) => (a[firstCol]||"").toString().localeCompare((b[firstCol]||"").toString())); 
+            }
             let tbodyHtml = "";
             dataSort.forEach(item => {
                 let rowHTML = "<tr>";
                 columnasMaestro.forEach(col => {
-                    let val = item[col] || "";
-                    if(val.toString().startsWith("http")) { let fName = item['Nombre del documento'] || "Documento_Maestro"; let dUrl = window.getDownloadUrl(val); rowHTML += `<td><a href="${dUrl}" target="_blank" class="file-link" download="${fName}">📁 Descargar Archivo</a></td>`; } 
-                    else if(col.toLowerCase().includes('estatus') || col.toLowerCase().includes('estado')) { let badge = val.toLowerCase().includes('vigente') || val.toLowerCase().includes('activo') ? 'badge-success' : (val.toLowerCase().includes('obsoleto') || val.toLowerCase().includes('inactivo') ? 'badge-danger' : 'badge-warning'); rowHTML += `<td><span class="badge ${badge}">${val}</span></td>`; } 
-                    else if(col.toLowerCase().includes('fecha')) { rowHTML += `<td>${window.formatearFechaAbreviada(val)}</td>`; } 
+                    let cName = typeof col === 'string' ? col : col.nombre;
+                    let cType = typeof col === 'string' ? 'text' : col.tipo;
+                    let val = item[cName] || "";
+                    
+                    if(cType === 'url' || val.toString().startsWith("http")) { let fName = item['Nombre del documento'] || "Documento_Maestro"; let dUrl = window.getDownloadUrl(val); rowHTML += `<td><a href="${dUrl}" target="_blank" class="file-link" download="${fName}">📁 Descargar Archivo</a></td>`; } 
+                    else if(cName.toLowerCase().includes('estatus') || cName.toLowerCase().includes('estado')) { let badge = val.toLowerCase().includes('vigente') || val.toLowerCase().includes('activo') ? 'badge-success' : (val.toLowerCase().includes('obsoleto') || val.toLowerCase().includes('inactivo') ? 'badge-danger' : 'badge-warning'); rowHTML += `<td><span class="badge ${badge}">${val}</span></td>`; } 
+                    else if(cType === 'date' || cName.toLowerCase().includes('fecha')) { rowHTML += `<td>${window.formatearFechaAbreviada(val)}</td>`; } 
                     else { rowHTML += `<td>${val}</td>`; }
                 });
                 if(currentUser && currentUser.permisos && (currentUser.permisos.p_gest_sgc || currentUser.permisos.admin)) {
@@ -1788,17 +1836,26 @@
             if(docId) { const item = dataMaestro.find(x => x.docId === docId); if(item) datosEdit = item; }
             let formHtml = "";
             columnasMaestro.forEach(col => {
-                let val = datosEdit[col] || ""; let html = `<div><label>${col}</label>`;
-                if(col.toLowerCase().includes('estatus') || col.toLowerCase().includes('estado')) { html += `<select id="in_dyn_${col}"><option value="">-- Seleccionar --</option>`; estatusMaestro.forEach(est => { html += `<option value="${est}" ${val===est?'selected':''}>${est}</option>`; }); html += `</select>`; } 
-                else if(col.toLowerCase().includes('fecha')) { html += `<input type="date" id="in_dyn_${col}" value="${val}">`; } 
-                else { html += `<input type="text" id="in_dyn_${col}" value="${val}" placeholder="Escribe aquí...">`; }
+                let cName = typeof col === 'string' ? col : col.nombre;
+                let cType = typeof col === 'string' ? 'text' : col.tipo;
+                let val = datosEdit[cName] || ""; let html = `<div><label>${cName}</label>`;
+                
+                if(cName.toLowerCase().includes('estatus') || cName.toLowerCase().includes('estado')) { html += `<select id="in_dyn_${cName}"><option value="">-- Seleccionar --</option>`; estatusMaestro.forEach(est => { html += `<option value="${est}" ${val===est?'selected':''}>${est}</option>`; }); html += `</select>`; } 
+                else if(cType === 'date' || cName.toLowerCase().includes('fecha')) { html += `<input type="date" id="in_dyn_${cName}" value="${val}">`; } 
+                else if(cType === 'number') { html += `<input type="number" id="in_dyn_${cName}" value="${val}" placeholder="0">`; } 
+                else { html += `<input type="text" id="in_dyn_${cName}" value="${val}" placeholder="Escribe aquí...">`; }
                 html += `</div>`; formHtml += html;
             });
             container.innerHTML = formHtml; document.getElementById('modal-form-listado').style.display = 'flex';
         };
 
         window.guardarRegistroMaestro = async () => {
-            let data = {}; columnasMaestro.forEach(col => { let inEl = document.getElementById(`in_dyn_${col}`); if(inEl) data[col] = inEl.value; });
+            let data = {}; 
+            columnasMaestro.forEach(col => { 
+                let cName = typeof col === 'string' ? col : col.nombre;
+                let inEl = document.getElementById(`in_dyn_${cName}`); 
+                if(inEl) data[cName] = inEl.value; 
+            });
             window.showLoading();
             if(editandoMaestroId) { await updateDoc(doc(db, "artifacts", appId, "public", "data", "ListadoMaestro", editandoMaestroId), data); } 
             else { data.registrado_por = currentUser.nombre; data.fecha_registro = new Date().toISOString(); await addDoc(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), data); }
@@ -1827,9 +1884,8 @@
             document.getElementById('u-rol').value = u.role || ''; 
             document.getElementById('u-email').value = u.email || '';
             
-            // Gerencias (Multiples)
             let gers = u.gerencias || [];
-            if(!u.gerencias && u.gerencia) gers = [u.gerencia]; // Retrocompatibilidad
+            if(!u.gerencias && u.gerencia) gers = [u.gerencia];
             document.querySelectorAll('#u-ger-list input[type="checkbox"]').forEach(cb => {
                 cb.checked = gers.includes(cb.value);
             });
@@ -1898,7 +1954,6 @@
             
             document.getElementById('m-ger').innerText = s.gerencia; document.getElementById('m-tipo').innerText = s.tipoDoc || "N/A"; 
             
-            // Prioridad badge
             let pr = s.prioridad || "Normal";
             let bPr = pr === 'Alta' ? 'badge-danger' : (pr === 'Básica' ? 'badge-info' : 'badge-dark');
             document.getElementById('m-prioridad').innerText = pr.toUpperCase();
@@ -1910,7 +1965,6 @@
             
             if(s.accion !== 'Creación') { document.getElementById('m-extra-panel').style.display = 'block'; document.getElementById('m-cod').innerText = s.cod_ref; document.getElementById('m-ver').innerText = s.ver_ref; document.getElementById('m-fecha-ult').innerText = window.formatearFechaAbreviada(s.fecha_ref); } else document.getElementById('m-extra-panel').style.display = 'none';
 
-            // Convertir involucrados a formato visual con nombre si es posible
             let invHTML = "No hay personas extras añadidas.";
             if(s.involucrados && s.involucrados.length > 0) {
                 invHTML = s.involucrados.map(email => {
@@ -1933,7 +1987,6 @@
             
             const activo = !isAprobadoFinalModal && !isCancelado;
             
-            // MODIFICACIÓN: Si está en idx === 2, SGC no puede gestionar. Solo el gerente de la gerencia.
             const puedeGestionarSGC = esAdminSGC && activo && s.idx !== 2; 
             const puedeGestionarGerente = esGer && s.idx === 2 && activo;
 
@@ -1943,14 +1996,12 @@
             document.getElementById('btn-reabrir').style.display = (esAdminSGC && !activo) ? 'inline-flex' : 'none';
             document.getElementById('m-add-involucrado-section').style.display = activo ? 'flex' : 'none';
             
-            // Ocultamos las acciones principales (avanzar/rechazar) de SGC en la fase de Gerencia
             document.getElementById('m-actions').style.display = (puedeGestionarSGC || puedeGestionarGerente) ? 'block' : 'none';
             document.getElementById('applicant-actions').style.display = (esDuenio && activo) ? 'block' : 'none';
             document.getElementById('m-input-area').style.display = 'none';
             document.getElementById('general-comment-area').style.display = !isCancelado ? 'block' : 'none';
-            document.getElementById('btn-anular').style.display = ((puedeGestionarSGC || esDuenio) && activo) ? 'inline-block' : 'none'; // SGC no anula en fase de gerencia
+            document.getElementById('btn-anular').style.display = ((puedeGestionarSGC || esDuenio) && activo) ? 'inline-block' : 'none'; 
 
-            // SLA Panel (Admin solo, o visible para todos si existe)
             const slaPanel = document.getElementById('m-admin-sla');
             const slaDateInput = document.getElementById('m-sla-date');
             const slaBtn = document.getElementById('btn-save-sla');
@@ -1988,7 +2039,7 @@
                             const codBusqueda = s.codigo_final || s.cod_ref;
                             if(codBusqueda) {
                                 const qMaestro = query(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), where("Código", "==", codBusqueda)); const snapM = await getDocs(qMaestro);
-                                if(!snapM.empty) { let idM = snapM.docs[0].id; let colFech = columnasMaestro.find(c => c.toLowerCase().includes('fecha última') || c.toLowerCase().includes('fecha ultima') || c.toLowerCase() === 'fecha'); if(colFech) { await updateDoc(doc(db, "artifacts", appId, "public", "data", "ListadoMaestro", idM), { [colFech]: nv }); } }
+                                if(!snapM.empty) { let idM = snapM.docs[0].id; let colFech = columnasMaestro.find(c => { let cN = typeof c === 'string' ? c : c.nombre; return cN.toLowerCase().includes('fecha última') || cN.toLowerCase().includes('fecha ultima') || cN.toLowerCase() === 'fecha'; }); if(colFech) { let cN = typeof colFech === 'string' ? colFech : colFech.nombre; await updateDoc(doc(db, "artifacts", appId, "public", "data", "ListadoMaestro", idM), { [cN]: nv }); } }
                             }
                             window.hideLoading(); document.getElementById('edit-fecha-final-container').style.display = 'none'; alert("Fecha actualizada."); window.verDetalle(selectedId);
                         };
@@ -2056,7 +2107,7 @@
             let fileName = f.files[0].name; let chatPayload = {u: "SISTEMA (SGC)", m: `🏁 <b>SOLICITUD APROBADA FINALMENTE.</b><br>Ver: ${ver}. Obs: ${com}`, t: new Date().toLocaleString(), archivo: fileUrl};
             await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Aprobado Final", codigo_final: codFinal, version_final: ver, fecha_final: fecha, comentario_final: com, documento_final: fileUrl, documento_final_nombre: fileName, fase_3_fin: now, chat: arrayUnion(chatPayload) });
             let dataMaestro = { estatus: "Vigente", registrado_por: "Sistema (Automático)", fecha_registro: new Date().toISOString() };
-            columnasMaestro.forEach(c => { let low = c.toLowerCase(); if(low.includes('código') || low === 'codigo') dataMaestro[c] = codFinal || selectedDocData.cod_ref || "POR_ASIGNAR"; else if(low.includes('gerencia')) dataMaestro[c] = selectedDocData.gerencia; else if(low.includes('departamento')) dataMaestro[c] = selectedDocData.departamento; else if(low.includes('tipo')) dataMaestro[c] = selectedDocData.tipoDoc; else if(low.includes('nombre')) dataMaestro[c] = selectedDocData.titulo; else if(low.includes('vers')) dataMaestro[c] = ver; else if(low.includes('ubicaci') || low.includes('archivo') || low.includes('documento')) dataMaestro[c] = fileUrl; else if(low.includes('fecha última') || low.includes('fecha ultima') || low === 'fecha') dataMaestro[c] = fecha; });
+            columnasMaestro.forEach(c => { let cName = typeof c === 'string' ? c : c.nombre; let low = cName.toLowerCase(); if(low.includes('código') || low === 'codigo') dataMaestro[cName] = codFinal || selectedDocData.cod_ref || "POR_ASIGNAR"; else if(low.includes('gerencia')) dataMaestro[cName] = selectedDocData.gerencia; else if(low.includes('departamento')) dataMaestro[cName] = selectedDocData.departamento; else if(low.includes('tipo')) dataMaestro[cName] = selectedDocData.tipoDoc; else if(low.includes('nombre')) dataMaestro[cName] = selectedDocData.titulo; else if(low.includes('vers')) dataMaestro[cName] = ver; else if(low.includes('ubicaci') || low.includes('archivo') || low.includes('documento')) dataMaestro[cName] = fileUrl; else if(low.includes('fecha última') || low.includes('fecha ultima') || low === 'fecha') dataMaestro[cName] = fecha; });
             await addDoc(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), dataMaestro);
             const dest = await getDatosEnvio(selectedDocData); sendNotification(dest, `Cierre Exitoso: ${selectedDocData.customId}`, `Documento versión ${ver} publicado.`); window.hideLoading(); window.closeModal();
         }
@@ -2274,36 +2325,12 @@
                     let gestionar = false;
                     const activo = !isCancelado && !isAprobadoFinal;
                     
-                    if (activo) {
-                        if (sol.idx === 2) {
-                            // REGLA: En la etapa 3 (idx=2), SGC NO ve el botón de gestionar. Solo el gerente lo ve.
-                            if (p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia)) {
-                                gestionar = true;
-                            } else if (p.p_gest_sgc || p.admin) {
-                                // Le ponemos false explícitamente, pero queremos que al menos lo puedan "Ver"
-                                // Para que SGC lo tenga en su bandeja de gestión (como visor de estado), dejaremos que se pinte la fila
-                                // pero le inyectaremos un botón "Ver" en lugar de "Gestionar" si no es el gerente.
-                            }
-                        } else {
-                            // Otras etapas, SGC lo gestiona sin problema
-                            if (p.p_gest_sgc || p.admin) gestionar = true;
-                        }
-                    }
+                    // Modificación: El gestor SGC o Admin puede gestionar todo lo que esté activo (Pendiente)
+                    if((p.p_gest_sgc || p.admin) && activo) gestionar = true;
+                    // El gerente solo gestiona si está en su etapa (2) y le pertenece la gerencia
+                    if(p.p_ger_apr && sol.idx === 2 && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia) && activo) gestionar = true;
 
-                    // Para que las solicitudes pendientes no desaparezcan de la bandeja de SGC cuando estén en Gerencia:
-                    let mostrarFilaGestionSGC = (p.p_gest_sgc || p.admin) && activo;
-                    let mostrarFilaGerente = p.p_ger_apr && sol.idx === 2 && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia) && activo;
-
-                    if(mostrarFilaGestionSGC || mostrarFilaGerente) { 
-                        let btnHtml = "";
-                        if(gestionar) {
-                            btnHtml = `<button class="btn btn-primary" onclick="verDetalle('${sol.docId}')">Gestionar</button>`;
-                        } else {
-                            btnHtml = `<button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button>`;
-                        }
-
-                        gestHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}<br><span class="badge ${bPr}" style="margin-top:4px;">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td>${btnHtml}</td></tr>`; 
-                    }
+                    if(gestionar) { gestHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}<br><span class="badge ${bPr}" style="margin-top:4px;">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-primary" onclick="verDetalle('${sol.docId}')">Gestionar</button></td></tr>`; }
                 });
                 
                 tbHist.innerHTML = histHtml; tbGest.innerHTML = gestHtml;
