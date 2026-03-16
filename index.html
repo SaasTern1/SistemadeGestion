@@ -1132,7 +1132,7 @@
         let globalAuditorias = []; 
         let selectedAuditId = null;
         let selectedAuditData = null;
-        let editandoAuditoriaId = null; // Nuevo tracker para edición
+        let editandoAuditoriaId = null; 
         
         const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
 
@@ -1178,7 +1178,10 @@
 
         window.formatearFechaAbreviada = (fechaISO) => {
             if (!fechaISO) return '';
-            const fecha = new Date(fechaISO);
+            let f = fechaISO;
+            // Prevenir desfase de zona horaria al instanciar fechas guardadas como YYYY-MM-DD
+            if(f.length === 10) f += 'T12:00:00'; 
+            const fecha = new Date(f);
             if (isNaN(fecha)) return fechaISO; 
             const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
             const dia = fecha.getDate();
@@ -1538,8 +1541,10 @@
             globalAuditorias = globalAllAuditorias.filter(a => {
                 let matchesYear = a.fecha && a.fecha.startsWith(yearFilter);
                 if(!matchesYear) return false;
+                
                 if(adminView) return true;
                 
+                // Solo ver si soy auditado o auditor
                 let miNombre = currentUser.nombre;
                 let soyInvolucrado = (a.auditado && a.auditado.includes(miNombre)) || (a.auditor && a.auditor.includes(miNombre));
                 return soyInvolucrado;
@@ -1717,8 +1722,13 @@
             if(!globalAuditPlan || !globalAuditPlan.correos || globalAuditPlan.correos.length === 0) return;
             const today = new Date(); today.setHours(0,0,0,0);
             auditoriasArray.forEach(a => {
-                if(a.estado === "Completada") return;
-                const auditDate = new Date(a.fecha); auditDate.setHours(0,0,0,0);
+                if(a.estado === "Completada" || !a.fecha) return;
+                
+                // Previene desfase de zona horaria local en el cálculo
+                let f = a.fecha;
+                if(f.length === 10) f += 'T12:00:00'; 
+                const auditDate = new Date(f); auditDate.setHours(0,0,0,0);
+                
                 const diffTime = auditDate - today; const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 let asunto = "";
                 if(diffDays === 30) asunto = "🚨 Recordatorio: 1 Mes para Auditoría";
@@ -1771,7 +1781,6 @@
             let managerEmail = "";
             if(solicitudData.gerencia) {
                 try {
-                    // Ahora la gerencia en el usuario es un arreglo. Buscamos aquellos donde el array contiene la gerencia buscada.
                     const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("gerencias", "array-contains", solicitudData.gerencia), where("permisos.p_ger_apr", "==", true));
                     const snap = await getDocs(q); if(!snap.empty) managerEmail = snap.docs[0].data().email || "";
                 } catch(e) { console.error("Error buscando gerente", e); }
@@ -1974,7 +1983,7 @@
 
         window.resetUserForm = () => {
             document.getElementById('user-form-title').innerText = "Registrar / Editar Usuario";
-            document.getElementById('u-nom').value = ""; document.getElementById('u-usr').value = ""; document.getElementById('u-usr').disabled = false; document.getElementById('u-pas').value = "123"; document.getElementById('u-ger-sel').value = ""; document.getElementById('u-rol').value = ""; document.getElementById('u-email').value = "";
+            document.getElementById('u-nom').value = ""; document.getElementById('u-usr').value = ""; document.getElementById('u-usr').disabled = false; document.getElementById('u-pas').value = "123"; document.getElementById('u-rol').value = ""; document.getElementById('u-email').value = "";
             document.querySelectorAll('#u-ger-list input[type="checkbox"]').forEach(cb => cb.checked = false);
 
             document.getElementById('p-solicitar').checked = false; document.getElementById('p-ver-propias').checked = true; document.getElementById('p-ver-ger').checked = false; document.getElementById('p-gest-sgc').checked = false; document.getElementById('p-ger-apr').checked = false; document.getElementById('p-users').checked = false; document.getElementById('p-struct').checked = false; document.getElementById('p-ver-listado').checked = false; document.getElementById('p-audit-ver').checked = false; document.getElementById('p-audit-admin').checked = false; document.getElementById('p-admin').checked = false;
