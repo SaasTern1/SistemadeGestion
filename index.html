@@ -207,6 +207,11 @@
             <button class="nav-link" id="nav-hist" onclick="cambiarVista('sec-hist', this)">
                 <span class="material-icons-round">history</span> Mis Solicitudes
             </button>
+            
+            <button class="nav-link" id="nav-all" onclick="cambiarVista('sec-all', this)" style="display:none;">
+                <span class="material-icons-round">all_inbox</span> Todas las Solicitudes
+            </button>
+
             <button class="nav-link" id="nav-dash" onclick="cambiarVista('sec-dash', this)">
                 <span class="material-icons-round">dashboard</span> Dashboard Analytics
             </button>
@@ -410,7 +415,7 @@
                     <option value="Aprobado Final">Solo Aprobados</option>
                     <option value="Cancelado">Rechazados / Anulados</option>
                 </select>
-                <button class="btn btn-success" onclick="descargarExcelFiltrado(false, false)" style="padding: 8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar Mis Solicitudes</button>
+                <button class="btn btn-success" onclick="descargarExcelFiltrado('hist', false)" style="padding: 8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar Mis Solicitudes</button>
             </div>
 
             <div class="card" style="padding:0; padding-top:15px; overflow:hidden;">
@@ -419,6 +424,37 @@
                 </div>
                 <div class="table-responsive">
                     <table id="tabla-mis-solicitudes"><thead><tr><th>ID</th><th>Solicitante</th><th>Documento</th><th>Prioridad</th><th>Estado</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-historial"></tbody></table>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-all" class="section">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;">
+                <div>
+                    <h1>Todas las Solicitudes</h1>
+                    <p style="color:#64748b; font-size:12px;">Vista global de todo el flujo documental del sistema.</p>
+                </div>
+            </div>
+
+            <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border);">
+                <label style="margin:0; font-size:12px; color:var(--primary);">Filtros para Exportar:</label>
+                <input type="date" id="all-f-desde" class="search-bar" style="margin:0; max-width:130px; padding:8px;">
+                <input type="date" id="all-f-hasta" class="search-bar" style="margin:0; max-width:130px; padding:8px;">
+                <select id="all-f-estado" class="search-bar" style="margin:0; max-width:150px; padding:8px;">
+                    <option value="">Todos los Estados</option>
+                    <option value="Pendiente">Solo Pendientes</option>
+                    <option value="Aprobado Final">Solo Aprobados</option>
+                    <option value="Cancelado">Rechazados / Anulados</option>
+                </select>
+                <button class="btn btn-success" onclick="descargarExcelFiltrado('all', false)" style="padding: 8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar Todas</button>
+            </div>
+
+            <div class="card" style="padding:0; padding-top:15px; overflow:hidden;">
+                <div style="padding: 0 15px; margin-bottom:15px;">
+                    <input type="text" id="search-all" class="search-bar" placeholder="🔍 Buscar por ID, Título, Solicitante o Estado..." onkeyup="filtrarTabla('search-all', 'tbody-all')">
+                </div>
+                <div class="table-responsive">
+                    <table id="tabla-todas-solicitudes"><thead><tr><th>ID</th><th>Solicitante</th><th>Documento</th><th>Prioridad</th><th>Estado</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-all"></tbody></table>
                 </div>
             </div>
         </section>
@@ -441,8 +477,8 @@
                     <option value="Aprobado Final">Solo Aprobados</option>
                     <option value="Cancelado">Rechazados / Anulados</option>
                 </select>
-                <button class="btn btn-success" onclick="descargarExcelFiltrado(true, false)" style="padding: 8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar Vista Normal</button>
-                <button id="btn-export-admin" class="btn btn-dark" onclick="descargarExcelFiltrado(true, true)" style="display:none; padding: 8px 15px; gap:5px;">
+                <button class="btn btn-success" onclick="descargarExcelFiltrado('gest', false)" style="padding: 8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar Vista Normal</button>
+                <button id="btn-export-admin" class="btn btn-dark" onclick="descargarExcelFiltrado('gest', true)" style="display:none; padding: 8px 15px; gap:5px;">
                     <span class="material-icons-round" style="font-size:16px;">insights</span> Excel Completo (Con Tiempos)
                 </button>
             </div>
@@ -700,6 +736,7 @@
                         <div class="access-item"><span>Solicitar (Crear)</span><label class="switch"><input type="checkbox" id="p-solicitar"><span class="slider"></span></label></div>
                         <div class="access-item"><span>Ver Mis Solicitudes</span><label class="switch"><input type="checkbox" id="p-ver-propias" checked><span class="slider"></span></label></div>
                         <div class="access-item"><span>Ver Solicitudes de Gerencia</span><label class="switch"><input type="checkbox" id="p-ver-ger"><span class="slider"></span></label></div>
+                        <div class="access-item" style="border:1px dashed var(--success);"><span>Ver TODAS las Solicitudes</span><label class="switch"><input type="checkbox" id="p-ver-todas"><span class="slider"></span></label></div>
                         
                         <div class="access-item" style="background:#fffbeb; border-color:#fde68a;"><span>Aprobar Paso 1 (Documentado)</span><label class="switch"><input type="checkbox" id="p-paso1"><span class="slider"></span></label></div>
                         <div class="access-item" style="background:#fffbeb; border-color:#fde68a;"><span>Aprobar Paso 2 (Verificado)</span><label class="switch"><input type="checkbox" id="p-paso2"><span class="slider"></span></label></div>
@@ -930,7 +967,8 @@
                         <button class="btn btn-info" onclick="gestionar('Consulta')">Consultar</button>
                         <button class="btn btn-warning" onclick="gestionar('Reunión')">Reunión</button>
                         <button class="btn btn-primary" id="btn-firma-next" onclick="firmarPaso()">Firmar Etapa</button>
-                        <button class="btn btn-danger" id="btn-anular-ger" onclick="rechazar()">Rechazar</button>
+                        <button class="btn btn-warning" id="btn-devolver-paso" onclick="devolverPaso()" style="display:none; background-color:#d97706;">Devolver a Paso Anterior</button>
+                        <button class="btn btn-danger" onclick="rechazar()">Rechazar</button>
                     </div>
                 </div>
 
@@ -1222,9 +1260,14 @@
 
             if(p.admin) { document.getElementById('admin-only').style.display = 'block'; } else { document.getElementById('admin-only').style.display = 'none'; }
 
+            // Lógica de visualización pestaña Todas las Solicitudes
+            document.getElementById('nav-all').style.display = (p.p_ver_todas || p.admin) ? 'flex' : 'none';
+
+            // Lógica de visualización pestaña auditoría
             const verAuditoria = p.p_audit_ver || p.p_audit_admin || esSGC;
             document.getElementById('nav-audit').style.display = verAuditoria ? 'flex' : 'none';
             
+            // Si es admin de auditoria o SGC admin, ver controles
             const adminAuditoria = p.p_audit_admin || esSGC;
             document.getElementById('btn-config-plan').style.display = adminAuditoria ? 'inline-flex' : 'none';
             document.getElementById('audit-admin-panel').style.display = adminAuditoria ? 'block' : 'none';
@@ -1255,17 +1298,24 @@
             document.getElementById('login-pass').value = "";
         };
 
-        window.descargarExcelFiltrado = (esGestor = false, isAdminTotal = false) => {
-            let prefijo = esGestor ? 'gest' : 'hist';
-            let desde = document.getElementById(`${prefijo}-f-desde`).value;
-            let hasta = document.getElementById(`${prefijo}-f-hasta`).value;
-            let estado = document.getElementById(`${prefijo}-f-estado`).value;
+        window.descargarExcelFiltrado = (origen = 'hist', isAdminTotal = false) => {
+            let desde = document.getElementById(`${origen}-f-desde`).value;
+            let hasta = document.getElementById(`${origen}-f-hasta`).value;
+            let estado = document.getElementById(`${origen}-f-estado`).value;
 
             let datosFiltrados = globalSolicitudes.filter(s => {
-                if (!esGestor && !isAdminTotal) {
+                if (origen !== 'all' && !isAdminTotal) {
                     let isMine = (s.uid === currentUser.usuario) || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()));
-                    if (!isMine) return false;
+                    if (origen === 'hist' && !isMine) return false;
+                    if (origen === 'gest') {
+                        // En gestionar, si no es mio pero tengo permisos de ver gerencia, o soy gestor/admin lo veo.
+                        // La lógica de pintado ya filtra, pero para exportar podemos simplificar dejando que exporte lo que su rol le permite.
+                        const p = currentUser.permisos;
+                        let ver = p.p_ver_all || (p.p_ver_ger && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia)) || isMine;
+                        if(!ver) return false;
+                    }
                 }
+                
                 if (desde && s.fecha < desde) return false;
                 if (hasta && s.fecha > hasta + "T23:59:59") return false;
                 if (estado) {
@@ -1969,6 +2019,7 @@
             document.getElementById('p-solicitar').checked = p.can_solicit || false; 
             document.getElementById('p-ver-propias').checked = p.p_ver_propias || false; 
             document.getElementById('p-ver-ger').checked = p.p_ver_ger || false; 
+            document.getElementById('p-ver-todas').checked = p.p_ver_todas || false; 
             document.getElementById('p-paso1').checked = p.p_paso1 || false; 
             document.getElementById('p-paso2').checked = p.p_paso2 || false; 
             document.getElementById('p-paso4').checked = p.p_paso4 || false; 
@@ -1989,7 +2040,7 @@
             document.getElementById('u-nom').value = ""; document.getElementById('u-usr').value = ""; document.getElementById('u-usr').disabled = false; document.getElementById('u-pas').value = "123"; document.getElementById('u-rol').value = ""; document.getElementById('u-email').value = "";
             document.querySelectorAll('#u-ger-list input[type="checkbox"]').forEach(cb => cb.checked = false);
 
-            document.getElementById('p-solicitar').checked = false; document.getElementById('p-ver-propias').checked = true; document.getElementById('p-ver-ger').checked = false; document.getElementById('p-paso1').checked = false; document.getElementById('p-paso2').checked = false; document.getElementById('p-paso4').checked = false; document.getElementById('p-gest-sgc').checked = false; document.getElementById('p-ger-apr').checked = false; document.getElementById('p-users').checked = false; document.getElementById('p-struct').checked = false; document.getElementById('p-ver-listado').checked = false; document.getElementById('p-audit-ver').checked = false; document.getElementById('p-audit-admin').checked = false; document.getElementById('p-admin').checked = false;
+            document.getElementById('p-solicitar').checked = false; document.getElementById('p-ver-propias').checked = true; document.getElementById('p-ver-ger').checked = false; document.getElementById('p-ver-todas').checked = false; document.getElementById('p-paso1').checked = false; document.getElementById('p-paso2').checked = false; document.getElementById('p-paso4').checked = false; document.getElementById('p-gest-sgc').checked = false; document.getElementById('p-ger-apr').checked = false; document.getElementById('p-users').checked = false; document.getElementById('p-struct').checked = false; document.getElementById('p-ver-listado').checked = false; document.getElementById('p-audit-ver').checked = false; document.getElementById('p-audit-admin').checked = false; document.getElementById('p-admin').checked = false;
             document.getElementById('btnSaveUser').innerText = "GUARDAR USUARIO"; document.getElementById('btnCancelEdit').style.display = 'none';
         };
 
@@ -2016,6 +2067,32 @@
             });
             window.hideLoading(); alert("Fecha límite actualizada.");
             verDetalle(selectedId);
+        };
+
+        window.devolverPaso = async () => {
+            if(!selectedDocData || selectedDocData.idx <= 0) return;
+            if(!confirm("¿Estás seguro de devolver esta solicitud a la etapa anterior?")) return;
+            let motivo = prompt("Motivo para devolver la solicitud:");
+            if(!motivo) return alert("El motivo es obligatorio.");
+            
+            window.showLoading();
+            const nIdx = selectedDocData.idx - 1;
+            const nEst = PASOS_NOMBRES[nIdx];
+            const faseActual = PASOS_NOMBRES[selectedDocData.idx];
+            const now = new Date().toISOString();
+            
+            let updates = { 
+                idx: nIdx, 
+                estado: nEst, 
+                [`fase_${selectedDocData.idx}_fin`]: now,
+                [`fase_${nIdx}_ini`]: now,
+                chat: arrayUnion({u: currentUser.nombre, m: `⏪ <b>DEVUELTO A ETAPA ANTERIOR</b><br>De: ${faseActual} -> A: ${nEst}<br><b>Motivo:</b> ${motivo}`, t: new Date().toLocaleString()}) 
+            };
+
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), updates);
+            const dest = await getDatosEnvio(selectedDocData); 
+            sendNotification(dest, `Retroceso de Etapa: ${selectedDocData.customId}`, `La solicitud ha sido devuelta a: ${nEst}.\nMotivo: ${motivo}`); 
+            window.hideLoading(); window.closeModal();
         };
 
         window.verDetalle = async (id) => {
@@ -2084,6 +2161,8 @@
             document.getElementById('m-input-area').style.display = 'none';
             document.getElementById('general-comment-area').style.display = !isCancelado ? 'block' : 'none';
             
+            const puedeDevolver = (puedeGestionarSGC || puedeGestionarGerente) && s.idx > 0 && activo;
+            document.getElementById('btn-devolver-paso').style.display = puedeDevolver ? 'inline-block' : 'none';
             document.getElementById('btn-anular').style.display = ((puedeGestionarSGC || esDuenio) && activo) ? 'inline-block' : 'none'; 
 
             const slaPanel = document.getElementById('m-admin-sla');
@@ -2135,21 +2214,6 @@
             const cb = document.getElementById('chat-box');
             cb.innerHTML = s.chat ? s.chat.map(c => `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}"><b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}${c.archivo ? `<br><a href="${window.getDownloadUrl(c.archivo)}" target="_blank" style="font-size:10px;color:blue" download="Documento_Adjunto">Ver Adjunto</a>` : ''}</div>`).join('') : '';
             document.getElementById('modal').style.display = 'flex';
-        };
-
-        window.reabrirSolicitud = async () => {
-            if(!confirm("⚠️ ¿Estás seguro de REABRIR esta solicitud?")) return;
-            let motivo = prompt("Describe el motivo de la reapertura:"); if(!motivo) return alert("Se requiere un motivo.");
-            window.showLoading();
-            const now = new Date().toISOString();
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { 
-                estado: "Pendiente Documentado", 
-                idx: 0, 
-                fase_0_ini: now, 
-                chat: arrayUnion({u: currentUser.nombre, m: `<b style="color:var(--danger);">⚠️ REAPERTURA DE SOLICITUD POR ADMINISTRACIÓN</b><br><b>Motivo:</b> ${motivo}`, t: new Date().toLocaleString()}) 
-            });
-            const dest = await getDatosEnvio(selectedDocData); sendNotification(dest, `Solicitud Reabierta: ${selectedDocData.customId}`, `Motivo: ${motivo}`);
-            window.hideLoading(); alert("Solicitud reabierta."); window.closeModal();
         };
 
         window.gestionar = (tipo) => { tempAction = tipo; document.getElementById('m-input-area').style.display = 'block'; if(tipo === 'Reunión') { document.getElementById('reunion-container').style.display = 'block'; document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Tema de la reunión...'); } else { document.getElementById('reunion-container').style.display = 'none'; document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Motivo / Consulta / Comentario...'); } };
@@ -2352,6 +2416,7 @@
             // CARGAR SOLICITUDES Y RENDERIZAR DASHBOARD/TABLAS
             onSnapshot(path("Solicitudes"), s => {
                 const tbHist = document.getElementById('tbody-historial'); const tbGest = document.getElementById('tbody-gestionar');
+                const tbAll = document.getElementById('tbody-all');
                 if(!tbHist || !tbGest) return;
                 
                 let solicitudesList = [];
@@ -2361,7 +2426,7 @@
 
                 let misTot = 0, misPend = 0, misOk = 0, misRech = 0;
                 let globTot = 0, globPend = 0, globOk = 0, globRech = 0;
-                let histHtml = ""; let gestHtml = "";
+                let histHtml = ""; let gestHtml = ""; let allHtml = "";
 
                 solicitudesList.forEach(sol => {
                     if(!currentUser) return;
@@ -2383,7 +2448,8 @@
                         else misPend++;
                     }
 
-                    let ver = p.p_ver_all || (p.p_ver_ger && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia)) || (p.p_ver_propias && isMine);
+                    let verMis = p.p_ver_all || (p.p_ver_ger && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia)) || (p.p_ver_propias && isMine);
+                    let verTodas = p.p_ver_todas || p.admin;
                     
                     let badgeClass = 'badge-info';
                     if(estadoStr.includes('APROBADO')) badgeClass = 'badge-success';
@@ -2396,7 +2462,8 @@
                     let faseActual = PASOS_NOMBRES[sol.idx] || ""; let estadoMostrar = sol.estado; let infoFase = "";
                     if (isAprobadoFinal) { estadoMostrar = "APROBADO FINAL"; } else if (!isCancelado && faseActual) { infoFase = `<br><span style="font-size:10px; color:#64748b; font-weight:700; display:inline-block; margin-top:5px;">📍 Etapa: ${faseActual}</span>`; }
 
-                    if(ver) { histHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${bPr}">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button></td></tr>`; }
+                    if(verMis) { histHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${bPr}">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button></td></tr>`; }
+                    if(verTodas) { allHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${bPr}">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button></td></tr>`; }
                     
                     let gestionar = false;
                     const activo = !isCancelado && !isAprobadoFinal;
@@ -2423,6 +2490,7 @@
                 });
                 
                 tbHist.innerHTML = histHtml; tbGest.innerHTML = gestHtml;
+                if(tbAll) tbAll.innerHTML = allHtml;
                 
                 if(document.getElementById('dash-mis-tot')) {
                     document.getElementById('dash-mis-tot').innerText = misTot;
@@ -2454,7 +2522,6 @@
         if(document.getElementById('sol-ger')){
             document.getElementById('sol-ger').addEventListener('change', (e) => {
                 const gSelected = e.target.value;
-                // Buscar usuarios que tengan permisos de gerente y la gerencia seleccionada esté en sus gerencias vinculadas
                 const gerentes = allUsers.filter(u => u.gerencias && u.gerencias.includes(gSelected) && u.permisos && u.permisos.p_ger_apr === true);
                 
                 if (gerentes && gerentes.length > 0) { 
@@ -2578,6 +2645,7 @@
                     can_solicit: document.getElementById('p-solicitar').checked, 
                     p_ver_propias: document.getElementById('p-ver-propias').checked, 
                     p_ver_ger: document.getElementById('p-ver-ger').checked, 
+                    p_ver_todas: document.getElementById('p-ver-todas').checked,
                     p_paso1: document.getElementById('p-paso1').checked,
                     p_paso2: document.getElementById('p-paso2').checked,
                     p_paso4: document.getElementById('p-paso4').checked,
@@ -2617,7 +2685,7 @@
                     if(!snapAdmin.exists()) {
                         await setDoc(adminRef, {
                             nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencias: ["SGC"], gerencia: "SGC", email: EMAIL_ADMIN_SGC,
-                            permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_users:true, p_struct:true, p_ver_listado:true, p_audit_admin:true, p_audit_ver:true, admin:true, p_paso1:true, p_paso2:true, p_paso4:true }
+                            permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_ver_todas:true, p_users:true, p_struct:true, p_ver_listado:true, p_audit_admin:true, p_audit_ver:true, admin:true, p_paso1:true, p_paso2:true, p_paso4:true }
                         });
                     }
                 }
