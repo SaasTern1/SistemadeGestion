@@ -1176,10 +1176,10 @@
             return url;
         };
 
+        // AYUDANTE PARA FORMATEAR FECHA Y PREVENIR DESFASE
         window.formatearFechaAbreviada = (fechaISO) => {
             if (!fechaISO) return '';
             let f = fechaISO;
-            // Prevenir desfase de zona horaria al instanciar fechas guardadas como YYYY-MM-DD
             if(f.length === 10) f += 'T12:00:00'; 
             const fecha = new Date(f);
             if (isNaN(fecha)) return fechaISO; 
@@ -1188,6 +1188,12 @@
             const mes = meses[fecha.getMonth()];
             const anio = fecha.getFullYear();
             return `${dia}-${mes}-${anio}`;
+        };
+
+        // GENERADOR DE FORMATO DE FECHA PARA GOOGLE CALENDAR LINK
+        window.getGCalFormat = (fechaStr, horaStr) => {
+            let d = new Date(`${fechaStr}T${horaStr}:00`);
+            return d.toISOString().replace(/-|:|\.\d+/g, '');
         };
 
         const yearSelect = document.getElementById('aud-year-select');
@@ -1505,12 +1511,10 @@
             window.showLoading();
 
             if(editandoAuditoriaId) {
-                // Modo Edición
                 data.modificado_por = currentUser.nombre;
                 data.ultima_modificacion = new Date().toISOString();
                 await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", editandoAuditoriaId), data);
             } else {
-                // Modo Creación
                 data.estado = "Programada"; 
                 data.creado_por = currentUser.nombre; 
                 data.timestamp = new Date().toISOString(); 
@@ -1523,7 +1527,18 @@
             correosNotificacion.add(EMAIL_ADMIN_SGC);
 
             let accionTxt = editandoAuditoriaId ? "modificado" : "programado";
-            const mensajeEmail = `Se ha ${accionTxt} una auditoría en el sistema:\n\n📅 Fecha: ${window.formatearFechaAbreviada(fecha)}\n⏰ Horario: ${hIni} - ${hFin}\n📍 Lugar: ${lugar}\n📋 Proceso/Área: ${proceso}\n📝 Requisitos: ${req}\n👤 Auditado(s): ${data.auditado}\n🕵️‍♂️ Auditor(es): ${data.auditor}\n💬 Observaciones: ${obs || 'Ninguna'}\n\nPor favor, verificar y confirmar la agenda en el sistema SGC.`;
+            
+            const iniGCal = window.getGCalFormat(fecha, hIni);
+            const finGCal = window.getGCalFormat(fecha, hFin);
+            const tituloGCal = encodeURIComponent(`Auditoría SGC: ${proceso}`);
+            const detallesGCal = encodeURIComponent(`Requisitos: ${req}\nAuditados: ${data.auditado}\nAuditores: ${data.auditor}\nObservaciones: ${obs}`);
+            const lugarGCal = encodeURIComponent(lugar);
+            
+            const gcalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${tituloGCal}&dates=${iniGCal}/${finGCal}&details=${detallesGCal}&location=${lugarGCal}`;
+            const botonCalendario = `<br><br><a href="${gcalLink}" target="_blank" style="background-color:#4285F4; color:white; padding:12px 20px; text-decoration:none; border-radius:8px; font-weight:bold; display:inline-block; font-family:sans-serif;">📅 Guardar en Google Calendar</a><br><br>`;
+
+            const mensajeEmail = `Se ha ${accionTxt} una auditoría en el sistema:\n\n<b>📅 Fecha:</b> ${window.formatearFechaAbreviada(fecha)}<br><b>⏰ Horario:</b> ${hIni} - ${hFin}<br><b>📍 Lugar:</b> ${lugar}<br><b>📋 Proceso/Área:</b> ${proceso}<br><b>📝 Requisitos:</b> ${req}<br><b>👤 Auditado(s):</b> ${data.auditado}<br><b>🕵️‍♂️ Auditor(es):</b> ${data.auditor}<br><b>💬 Observaciones:</b> ${obs || 'Ninguna'}\n${botonCalendario}\nPor favor, verificar y confirmar la agenda en el sistema SGC.`;
+            
             let destStr = Array.from(correosNotificacion).filter(e=>e && e.includes('@')).join(',');
             
             if(destStr) { sendNotification({to: destStr, cc: ""}, `Auditoría ${accionTxt.charAt(0).toUpperCase() + accionTxt.slice(1)}: ` + proceso, mensajeEmail); }
@@ -1537,14 +1552,12 @@
             const tb = document.getElementById('tbody-auditorias'); if(!tb) return;
             let adminView = currentUser.permisos.p_audit_admin || currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
             
-            // Filtrar por año y si no es admin, solo ver las propias
             globalAuditorias = globalAllAuditorias.filter(a => {
                 let matchesYear = a.fecha && a.fecha.startsWith(yearFilter);
                 if(!matchesYear) return false;
                 
                 if(adminView) return true;
                 
-                // Solo ver si soy auditado o auditor
                 let miNombre = currentUser.nombre;
                 let soyInvolucrado = (a.auditado && a.auditado.includes(miNombre)) || (a.auditor && a.auditor.includes(miNombre));
                 return soyInvolucrado;
@@ -1559,7 +1572,6 @@
                 
                 let btnAccion = `<button class="btn btn-primary" style="padding:4px 8px; font-size:10px; margin-right:5px;" onclick="verModalAuditoria('${a.id}')"><span class="material-icons-round" style="font-size:14px; margin-right:4px;">visibility</span> Ver</button>`;
                 
-                // Botones directos iniciar/finalizar si tiene permisos
                 const isAuditor = a.auditor && a.auditor.includes(currentUser.nombre);
                 const canControl = adminView || isAuditor;
                 
@@ -1639,7 +1651,6 @@
             document.getElementById('ma-estado-badge').className = `badge ${bdg}`;
             document.getElementById('ma-estado-badge').innerText = estStr.toUpperCase();
             
-            // Tiempos reales
             document.getElementById('ma-inicio-real').innerText = a.hora_real_inicio ? new Date(a.hora_real_inicio).toLocaleString() : '---';
             document.getElementById('ma-fin-real').innerText = a.hora_real_fin ? new Date(a.hora_real_fin).toLocaleString() : '---';
             
@@ -1653,7 +1664,6 @@
                 document.getElementById('ma-duracion').innerText = '---';
             }
 
-            // Permisos de Botones
             const isAdminAudit = currentUser.permisos.p_audit_admin || currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
             const isAuditor = a.auditor && a.auditor.includes(currentUser.nombre);
             const canControl = isAdminAudit || isAuditor;
@@ -1661,7 +1671,6 @@
             document.getElementById('btn-comenzar-auditoria').style.display = (canControl && estStr === 'Programada') ? 'inline-block' : 'none';
             document.getElementById('btn-finalizar-auditoria').style.display = (canControl && estStr === 'En Progreso') ? 'inline-block' : 'none';
             
-            // Cargar Bitacora
             const cb = document.getElementById('chat-box-audit');
             cb.innerHTML = a.bitacora ? a.bitacora.map(c => `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}"><b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}${c.archivo ? `<br><a href="${window.getDownloadUrl(c.archivo)}" target="_blank" style="font-size:10px;color:blue" download="Evidencia_Auditoria">Ver Evidencia</a>` : ''}</div>`).join('') : '';
 
@@ -1670,12 +1679,12 @@
 
         window.comenzarAuditoria = async () => {
             await iniciarAuditoriaDirecto(selectedAuditId);
-            verModalAuditoria(selectedAuditId); // Recargar modal
+            verModalAuditoria(selectedAuditId); 
         };
 
         window.finalizarAuditoria = async () => {
             await finalizarAuditoriaDirecto(selectedAuditId);
-            verModalAuditoria(selectedAuditId); // Recargar modal
+            verModalAuditoria(selectedAuditId); 
         };
 
         window.enviarComentarioAuditoria = async () => {
@@ -1687,7 +1696,7 @@
             await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { bitacora: arrayUnion(chatPayload) });
             
             box.innerHTML = ""; f.value = ""; window.hideLoading(); 
-            verModalAuditoria(selectedAuditId); // Recargar
+            verModalAuditoria(selectedAuditId); 
         }
 
         window.exportarExcelAuditoria = () => {
@@ -1724,7 +1733,6 @@
             auditoriasArray.forEach(a => {
                 if(a.estado === "Completada" || !a.fecha) return;
                 
-                // Previene desfase de zona horaria local en el cálculo
                 let f = a.fecha;
                 if(f.length === 10) f += 'T12:00:00'; 
                 const auditDate = new Date(f); auditDate.setHours(0,0,0,0);
