@@ -700,8 +700,13 @@
                         <div class="access-item"><span>Solicitar (Crear)</span><label class="switch"><input type="checkbox" id="p-solicitar"><span class="slider"></span></label></div>
                         <div class="access-item"><span>Ver Mis Solicitudes</span><label class="switch"><input type="checkbox" id="p-ver-propias" checked><span class="slider"></span></label></div>
                         <div class="access-item"><span>Ver Solicitudes de Gerencia</span><label class="switch"><input type="checkbox" id="p-ver-ger"><span class="slider"></span></label></div>
-                        <div class="access-item"><span>Gestor SGC (Evalúa pasos 1,2,3)</span><label class="switch"><input type="checkbox" id="p-gest-sgc"><span class="slider"></span></label></div>
-                        <div class="access-item"><span>Gerente (Aprueba final)</span><label class="switch"><input type="checkbox" id="p-ger-apr"><span class="slider"></span></label></div>
+                        
+                        <div class="access-item" style="background:#fffbeb; border-color:#fde68a;"><span>Aprobar Paso 1 (Documentado)</span><label class="switch"><input type="checkbox" id="p-paso1"><span class="slider"></span></label></div>
+                        <div class="access-item" style="background:#fffbeb; border-color:#fde68a;"><span>Aprobar Paso 2 (Verificado)</span><label class="switch"><input type="checkbox" id="p-paso2"><span class="slider"></span></label></div>
+                        <div class="access-item" style="background:#fffbeb; border-color:#fde68a;"><span>Aprobar Paso 4 (SGC Final)</span><label class="switch"><input type="checkbox" id="p-paso4"><span class="slider"></span></label></div>
+                        <div class="access-item" style="background:#fef3c7; border-color:#fbbf24;"><span>Gestor SGC (Evalúa 1, 2 y 4)</span><label class="switch"><input type="checkbox" id="p-gest-sgc"><span class="slider"></span></label></div>
+
+                        <div class="access-item"><span>Gerente (Aprueba Paso 3)</span><label class="switch"><input type="checkbox" id="p-ger-apr"><span class="slider"></span></label></div>
                         <div class="access-item"><span>Admin Usuarios</span><label class="switch"><input type="checkbox" id="p-users"><span class="slider"></span></label></div>
                         <div class="access-item"><span>Admin Estructura</span><label class="switch"><input type="checkbox" id="p-struct"><span class="slider"></span></label></div>
                         <div class="access-item"><span>Ver Listado Maestro</span><label class="switch"><input type="checkbox" id="p-ver-listado"><span class="slider"></span></label></div>
@@ -852,8 +857,8 @@
                 </div>
 
                 <div id="m-panel-update-sgc" style="display:none; margin-bottom:20px; background:#f8fafc; padding:20px; border-radius:12px; border: 1px dashed var(--info);">
-                    <h4 style="color:var(--info); margin-bottom:15px; display:flex; align-items:center; gap:8px;"><span class="material-icons-round">edit</span> Actualizar Datos de Solicitud (SGC)</h4>
-                    <p style="font-size:11px; color:#64748b; margin-bottom:15px;">Corrige o reemplaza el documento antes de enviarlo a Gerencia para evitar confusiones.</p>
+                    <h4 style="color:var(--info); margin-bottom:15px; display:flex; align-items:center; gap:8px;"><span class="material-icons-round">edit</span> Actualizar Datos de Solicitud</h4>
+                    <p style="font-size:11px; color:#64748b; margin-bottom:15px;">Corrige o reemplaza el documento antes de pasarlo a la siguiente etapa para evitar confusiones.</p>
                     <div class="grid-2">
                         <div><label>Título del Documento</label><input type="text" id="m-upd-tit" style="background:white; margin-bottom:10px;"></div>
                         <div><label>Código Referencia</label><input type="text" id="m-upd-cod" style="background:white; margin-bottom:10px;"></div>
@@ -864,7 +869,7 @@
                 </div>
 
                 <div id="m-panel-final-sgc" style="display:none; margin-bottom:20px; background:#eff6ff; padding:20px; border-radius:12px; border: 1px dashed var(--primary);">
-                    <h4 style="color:var(--primary); margin-bottom:15px; display:flex; align-items:center; gap:8px;"><span class="material-icons-round">publish</span> Cierre Técnico y Publicación (Admin SGC)</h4>
+                    <h4 style="color:var(--primary); margin-bottom:15px; display:flex; align-items:center; gap:8px;"><span class="material-icons-round">publish</span> Cierre Técnico y Publicación (SGC)</h4>
                     <div class="grid-3">
                         <div><label>Código Final Asignado</label><input type="text" id="m-final-cod" placeholder="Ej: FCI-GOP-F-032" style="background:white; margin-bottom:10px;"></div>
                         <div><label>Versión Final Asignada</label><input type="text" id="m-final-ver" placeholder="Ej: V-02" style="background:white; margin-bottom:10px;"></div>
@@ -925,7 +930,7 @@
                         <button class="btn btn-info" onclick="gestionar('Consulta')">Consultar</button>
                         <button class="btn btn-warning" onclick="gestionar('Reunión')">Reunión</button>
                         <button class="btn btn-primary" id="btn-firma-next" onclick="firmarPaso()">Firmar Etapa</button>
-                        <button class="btn btn-danger" onclick="rechazar()">Rechazar</button>
+                        <button class="btn btn-danger" id="btn-anular-ger" onclick="rechazar()">Rechazar</button>
                     </div>
                 </div>
 
@@ -1176,7 +1181,6 @@
             return url;
         };
 
-        // AYUDANTE PARA FORMATEAR FECHA Y PREVENIR DESFASE
         window.formatearFechaAbreviada = (fechaISO) => {
             if (!fechaISO) return '';
             let f = fechaISO;
@@ -1190,7 +1194,6 @@
             return `${dia}-${mes}-${anio}`;
         };
 
-        // GENERADOR DE FORMATO DE FECHA PARA GOOGLE CALENDAR LINK
         window.getGCalFormat = (fechaStr, horaStr) => {
             let d = new Date(`${fechaStr}T${horaStr}:00`);
             return d.toISOString().replace(/-|:|\.\d+/g, '');
@@ -1219,11 +1222,9 @@
 
             if(p.admin) { document.getElementById('admin-only').style.display = 'block'; } else { document.getElementById('admin-only').style.display = 'none'; }
 
-            // Lógica de visualización pestaña auditoría
             const verAuditoria = p.p_audit_ver || p.p_audit_admin || esSGC;
             document.getElementById('nav-audit').style.display = verAuditoria ? 'flex' : 'none';
             
-            // Si es admin de auditoria o SGC admin, ver controles
             const adminAuditoria = p.p_audit_admin || esSGC;
             document.getElementById('btn-config-plan').style.display = adminAuditoria ? 'inline-flex' : 'none';
             document.getElementById('audit-admin-panel').style.display = adminAuditoria ? 'block' : 'none';
@@ -1311,13 +1312,8 @@
             XLSX.writeFile(wb, `${nameF}.xlsx`);
         };
 
-        // ==========================================
-        // EXPORTACIÓN EXCEL LISTADO MAESTRO
-        // ==========================================
         window.exportarExcelListado = () => {
             if(dataMaestro.length === 0) return alert("No hay registros en el Listado Maestro para exportar.");
-            
-            // Mapeamos los datos para que el Excel solo tenga las columnas configuradas y en el orden correcto
             let dataExport = dataMaestro.map(item => {
                 let rowObj = {};
                 columnasMaestro.forEach(col => {
@@ -1326,16 +1322,12 @@
                 });
                 return rowObj;
             });
-
             let wb = XLSX.utils.book_new();
             let ws = XLSX.utils.json_to_sheet(dataExport);
             XLSX.utils.book_append_sheet(wb, ws, "Listado_Maestro");
             XLSX.writeFile(wb, "Listado_Maestro_SGC.xlsx");
         };
 
-        // ==========================================
-        // LÓGICA DE AUDITORÍA AVANZADA Y EDICIÓN
-        // ==========================================
         window.cambiarAnioAuditoria = (val) => {
             if(val === 'nuevo') {
                 let nYear = prompt("Ingrese el nuevo año a registrar (ej: 2028):");
@@ -1977,6 +1969,9 @@
             document.getElementById('p-solicitar').checked = p.can_solicit || false; 
             document.getElementById('p-ver-propias').checked = p.p_ver_propias || false; 
             document.getElementById('p-ver-ger').checked = p.p_ver_ger || false; 
+            document.getElementById('p-paso1').checked = p.p_paso1 || false; 
+            document.getElementById('p-paso2').checked = p.p_paso2 || false; 
+            document.getElementById('p-paso4').checked = p.p_paso4 || false; 
             document.getElementById('p-gest-sgc').checked = p.p_gest_sgc || false; 
             document.getElementById('p-ger-apr').checked = p.p_ger_apr || false; 
             document.getElementById('p-users').checked = p.p_users || false; 
@@ -1994,7 +1989,7 @@
             document.getElementById('u-nom').value = ""; document.getElementById('u-usr').value = ""; document.getElementById('u-usr').disabled = false; document.getElementById('u-pas').value = "123"; document.getElementById('u-rol').value = ""; document.getElementById('u-email').value = "";
             document.querySelectorAll('#u-ger-list input[type="checkbox"]').forEach(cb => cb.checked = false);
 
-            document.getElementById('p-solicitar').checked = false; document.getElementById('p-ver-propias').checked = true; document.getElementById('p-ver-ger').checked = false; document.getElementById('p-gest-sgc').checked = false; document.getElementById('p-ger-apr').checked = false; document.getElementById('p-users').checked = false; document.getElementById('p-struct').checked = false; document.getElementById('p-ver-listado').checked = false; document.getElementById('p-audit-ver').checked = false; document.getElementById('p-audit-admin').checked = false; document.getElementById('p-admin').checked = false;
+            document.getElementById('p-solicitar').checked = false; document.getElementById('p-ver-propias').checked = true; document.getElementById('p-ver-ger').checked = false; document.getElementById('p-paso1').checked = false; document.getElementById('p-paso2').checked = false; document.getElementById('p-paso4').checked = false; document.getElementById('p-gest-sgc').checked = false; document.getElementById('p-ger-apr').checked = false; document.getElementById('p-users').checked = false; document.getElementById('p-struct').checked = false; document.getElementById('p-ver-listado').checked = false; document.getElementById('p-audit-ver').checked = false; document.getElementById('p-audit-admin').checked = false; document.getElementById('p-admin').checked = false;
             document.getElementById('btnSaveUser').innerText = "GUARDAR USUARIO"; document.getElementById('btnCancelEdit').style.display = 'none';
         };
 
@@ -2064,13 +2059,18 @@
                 if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active');
             }
 
-            const esSGC = p.p_gest_sgc; 
             const esAdminSGC = p.admin || p.p_gest_sgc; 
             const esGer = p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia);
             
             const activo = !isAprobadoFinalModal && !isCancelado;
             
-            const puedeGestionarSGC = esAdminSGC && activo && s.idx !== 2; 
+            let puedeGestionarSGC = false;
+            if(activo) {
+                if (s.idx === 0 && (p.p_gest_sgc || p.p_paso1 || p.admin)) puedeGestionarSGC = true;
+                if (s.idx === 1 && (p.p_gest_sgc || p.p_paso2 || p.admin)) puedeGestionarSGC = true;
+                if (s.idx === 3 && (p.p_gest_sgc || p.p_paso4 || p.admin)) puedeGestionarSGC = true;
+            }
+            
             const puedeGestionarGerente = esGer && s.idx === 2 && activo;
 
             const esInvolucradoActivo = s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()); 
@@ -2083,6 +2083,7 @@
             document.getElementById('applicant-actions').style.display = (esDuenio && activo) ? 'block' : 'none';
             document.getElementById('m-input-area').style.display = 'none';
             document.getElementById('general-comment-area').style.display = !isCancelado ? 'block' : 'none';
+            
             document.getElementById('btn-anular').style.display = ((puedeGestionarSGC || esDuenio) && activo) ? 'inline-block' : 'none'; 
 
             const slaPanel = document.getElementById('m-admin-sla');
@@ -2101,7 +2102,7 @@
 
             document.getElementById('m-panel-final-sgc').style.display = 'none'; document.getElementById('m-panel-update-sgc').style.display = 'none'; document.getElementById('m-display-final').style.display = 'none'; document.getElementById('m-original-data').classList.remove('locked-data'); document.getElementById('m-orig-title').style.display = 'none';
 
-            if (esSGC && s.idx === 1 && activo) {
+            if ((esAdminSGC || p.p_paso2) && s.idx === 1 && activo) {
                 document.getElementById('m-panel-update-sgc').style.display = 'block'; document.getElementById('m-upd-tit').value = s.titulo || ''; document.getElementById('m-upd-cod').value = s.cod_ref || ''; document.getElementById('m-upd-ver').value = s.ver_ref || '';
             }
             
@@ -2127,7 +2128,7 @@
                             window.hideLoading(); document.getElementById('edit-fecha-final-container').style.display = 'none'; alert("Fecha actualizada."); window.verDetalle(selectedId);
                         };
                     } else { document.getElementById('btn-edit-fecha-final').style.display = 'none'; document.getElementById('edit-fecha-final-container').style.display = 'none'; }
-                } else if (esSGC) { document.getElementById('m-panel-final-sgc').style.display = 'block'; document.getElementById('m-final-cod').value = s.cod_ref || ""; }
+                } else if (esAdminSGC || p.p_paso4) { document.getElementById('m-panel-final-sgc').style.display = 'block'; document.getElementById('m-final-cod').value = s.cod_ref || ""; }
             }
 
             if(activo) document.getElementById('btn-firma-next').innerText = `Aprobar Etapa (${PASOS_NOMBRES[s.idx] || 'Final'})`;
@@ -2294,13 +2295,11 @@
                 
                 tb.innerHTML = usersHtml;
                 
-                // Actualizar Selects de Auditoría
                 if(document.getElementById('ah-lider')) document.getElementById('ah-lider').innerHTML = userOptionsHtmlSingle;
                 if(document.getElementById('ah-auditor-list')) document.getElementById('ah-auditor-list').innerHTML = checkboxHtml;
                 if(document.getElementById('aud-auditado-list')) document.getElementById('aud-auditado-list').innerHTML = checkboxHtml;
                 if(document.getElementById('aud-auditor-list')) document.getElementById('aud-auditor-list').innerHTML = checkboxHtml;
 
-                // Actualizar Selects de Involucrados
                 if(document.getElementById('sol-involucrado-sel')) document.getElementById('sol-involucrado-sel').innerHTML = involucradosOptions;
                 if(document.getElementById('m-new-involucrado-sel')) document.getElementById('m-new-involucrado-sel').innerHTML = involucradosOptions;
             });
@@ -2403,16 +2402,13 @@
                     const activo = !isCancelado && !isAprobadoFinal;
                     
                     if (activo) {
-                        if (sol.idx === 2) {
-                            if (p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia)) {
-                                gestionar = true;
-                            } 
-                        } else {
-                            if (p.p_gest_sgc || p.admin) gestionar = true;
-                        }
+                        if (sol.idx === 0 && (p.p_gest_sgc || p.p_paso1 || p.admin)) gestionar = true;
+                        else if (sol.idx === 1 && (p.p_gest_sgc || p.p_paso2 || p.admin)) gestionar = true;
+                        else if (sol.idx === 2 && p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia)) gestionar = true;
+                        else if (sol.idx === 3 && (p.p_gest_sgc || p.p_paso4 || p.admin)) gestionar = true;
                     }
 
-                    let mostrarFilaGestionSGC = (p.p_gest_sgc || p.admin) && activo;
+                    let mostrarFilaGestionSGC = (p.p_gest_sgc || p.admin || p.p_paso1 || p.p_paso2 || p.p_paso4) && activo;
                     let mostrarFilaGerente = p.p_ger_apr && sol.idx === 2 && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia) && activo;
 
                     if(mostrarFilaGestionSGC || mostrarFilaGerente) { 
@@ -2458,6 +2454,7 @@
         if(document.getElementById('sol-ger')){
             document.getElementById('sol-ger').addEventListener('change', (e) => {
                 const gSelected = e.target.value;
+                // Buscar usuarios que tengan permisos de gerente y la gerencia seleccionada esté en sus gerencias vinculadas
                 const gerentes = allUsers.filter(u => u.gerencias && u.gerencias.includes(gSelected) && u.permisos && u.permisos.p_ger_apr === true);
                 
                 if (gerentes && gerentes.length > 0) { 
@@ -2581,6 +2578,9 @@
                     can_solicit: document.getElementById('p-solicitar').checked, 
                     p_ver_propias: document.getElementById('p-ver-propias').checked, 
                     p_ver_ger: document.getElementById('p-ver-ger').checked, 
+                    p_paso1: document.getElementById('p-paso1').checked,
+                    p_paso2: document.getElementById('p-paso2').checked,
+                    p_paso4: document.getElementById('p-paso4').checked,
                     p_gest_sgc: document.getElementById('p-gest-sgc').checked, 
                     p_ger_apr: document.getElementById('p-ger-apr').checked, 
                     p_users: document.getElementById('p-users').checked, 
@@ -2617,7 +2617,7 @@
                     if(!snapAdmin.exists()) {
                         await setDoc(adminRef, {
                             nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencias: ["SGC"], gerencia: "SGC", email: EMAIL_ADMIN_SGC,
-                            permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_users:true, p_struct:true, p_ver_listado:true, p_audit_admin:true, p_audit_ver:true, admin:true }
+                            permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_users:true, p_struct:true, p_ver_listado:true, p_audit_admin:true, p_audit_ver:true, admin:true, p_paso1:true, p_paso2:true, p_paso4:true }
                         });
                     }
                 }
