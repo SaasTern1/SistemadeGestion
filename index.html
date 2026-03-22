@@ -167,7 +167,7 @@
         <h4 style="color:var(--primary)">Procesando...</h4>
     </div>
 
-    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMenu()"></div>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="window.toggleMenu()"></div>
 
     <div id="login-screen">
         <div class="login-box">
@@ -191,41 +191,41 @@
         
         <nav style="flex:1">
             <p style="font-size:10px; color:#64748b; font-weight:800; margin-left:12px; margin-bottom:5px; margin-top:5px;">MÓDULO DOCUMENTAL</p>
-            <button class="nav-link" id="nav-hist" onclick="cambiarVista('sec-hist', this)">
+            <button class="nav-link" id="nav-hist" onclick="window.cambiarVista('sec-hist', this)">
                 <span class="material-icons-round">history</span> Mis Solicitudes
             </button>
-            <button class="nav-link" id="nav-all" onclick="cambiarVista('sec-all', this)" style="display:none;">
+            <button class="nav-link" id="nav-all" onclick="window.cambiarVista('sec-all', this)" style="display:none;">
                 <span class="material-icons-round">all_inbox</span> Todas las Solicitudes
             </button>
-            <button class="nav-link" id="nav-dash" onclick="cambiarVista('sec-dash', this)">
+            <button class="nav-link" id="nav-dash" onclick="window.cambiarVista('sec-dash', this)">
                 <span class="material-icons-round">dashboard</span> Panel Analítico
             </button>
-            <button class="nav-link" id="nav-crear" onclick="cambiarVista('sec-crear', this)">
+            <button class="nav-link" id="nav-crear" onclick="window.cambiarVista('sec-crear', this)">
                 <span class="material-icons-round">add_box</span> Crear Solicitud
             </button>
-            <button class="nav-link" id="nav-gest" onclick="cambiarVista('sec-gest', this)">
+            <button class="nav-link" id="nav-gest" onclick="window.cambiarVista('sec-gest', this)">
                 <span class="material-icons-round">fact_check</span> Bandeja de Gestión
             </button>
-            <button class="nav-link" id="nav-listado" onclick="cambiarVista('sec-listado', this)" style="display:none;">
+            <button class="nav-link" id="nav-listado" onclick="window.cambiarVista('sec-listado', this)" style="display:none;">
                 <span class="material-icons-round">library_books</span> Listado Maestro
             </button>
 
             <div id="nav-audit-group" style="display:none;">
                 <p style="font-size:10px; color:#64748b; font-weight:800; margin-left:12px; margin-bottom:5px; margin-top:15px;">MÓDULO DE AUDITORÍA</p>
-                <button class="nav-link" id="nav-audit" onclick="cambiarVista('sec-audit', this)">
+                <button class="nav-link" id="nav-audit" onclick="window.cambiarVista('sec-audit', this)">
                     <span class="material-icons-round">calendar_month</span> Calendario & Ejecución
                 </button>
-                <button class="nav-link" id="nav-noconf" onclick="cambiarVista('sec-noconf', this)">
+                <button class="nav-link" id="nav-noconf" onclick="window.cambiarVista('sec-noconf', this)">
                     <span class="material-icons-round">warning</span> NC y Mejoras (F-023)
                 </button>
             </div>
             
             <div id="admin-only" style="display:none; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 15px; padding-top: 15px;">
                 <p style="font-size:10px; color:#64748b; font-weight:800; margin-left:12px; margin-bottom:5px;">ADMINISTRACIÓN</p>
-                <button class="nav-link" id="nav-users" onclick="cambiarVista('sec-usuarios', this)">
+                <button class="nav-link" id="nav-users" onclick="window.cambiarVista('sec-usuarios', this)">
                     <span class="material-icons-round">people</span> Usuarios y Permisos
                 </button>
-                <button class="nav-link" id="nav-struct" onclick="cambiarVista('sec-estructura', this)">
+                <button class="nav-link" id="nav-struct" onclick="window.cambiarVista('sec-estructura', this)">
                     <span class="material-icons-round">account_tree</span> Config. del Sistema
                 </button>
             </div>
@@ -234,7 +234,7 @@
         <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 16px;">
             <p id="curr-name" style="font-weight: 700; font-size: 13px;"></p>
             <p id="curr-ger" style="font-size: 10px; color: #94a3b8; margin-top:5px;"></p>
-            <button onclick="logout()" style="background:none; border:none; color:var(--danger); font-size:11px; font-weight:700; cursor:pointer; margin-top:10px; display:flex; align-items:center; gap:5px; padding:0;">
+            <button onclick="window.logout()" style="background:none; border:none; color:var(--danger); font-size:11px; font-weight:700; cursor:pointer; margin-top:10px; display:flex; align-items:center; gap:5px; padding:0;">
                 <span class="material-icons-round" style="font-size:16px;">logout</span> Salir
             </button>
         </div>
@@ -244,9 +244,9 @@
         
         <div class="mobile-header">
             <h2 style="font-size: 16px; color: var(--primary); margin:0; display:flex; align-items:center; gap:5px; font-weight:800;">
-                <span class="material-icons-round">verified_user</span> SGC PRO
+                <span class="material-icons-round">verified_user</span> SISTEMA DE GESTIÓN
             </h2>
-            <button class="menu-btn" onclick="toggleMenu()">
+            <button class="menu-btn" onclick="window.toggleMenu()">
                 <span class="material-icons-round">menu</span>
             </button>
         </div>
@@ -309,7 +309,7 @@
                 <div class="grid-3">
                     <div>
                         <label>Acción Requerida</label>
-                        <select id="sol-accion" onchange="toggleModPanel(this.value)">
+                        <select id="sol-accion" onchange="window.toggleModPanel(this.value)">
                             <option value="Creación">Creación</option>
                             <option value="Modificación">Modificación</option>
                             <option value="Inactivación">Inactivación</option>
@@ -361,7 +361,7 @@
                     <p style="font-size:10px; color:#64748b; margin-top:5px; margin-bottom:10px;">Selecciona usuarios para notificarles sobre este documento.</p>
                     <div style="display:flex; gap:10px; margin-bottom:10px;">
                         <select id="sol-involucrado-sel" style="margin:0; flex:1; background:white;"><option value="">-- Seleccionar Usuario --</option></select>
-                        <button type="button" class="btn btn-info" style="padding: 4px 15px;" onclick="addInvolucradoList()"><span class="material-icons-round" style="font-size:16px; margin-right:4px;">person_add</span> Añadir</button>
+                        <button type="button" class="btn btn-info" style="padding: 4px 15px;" onclick="window.addInvolucradoList()"><span class="material-icons-round" style="font-size:16px; margin-right:4px;">person_add</span> Añadir</button>
                     </div>
                     <div id="lista-involucrados-tags" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
                 </div>
@@ -393,12 +393,12 @@
                     <option value="Aprobado Final">Solo Aprobados</option>
                     <option value="Cancelado">Rechazados / Anulados</option>
                 </select>
-                <button class="btn btn-success" onclick="descargarExcelFiltrado('hist', false)" style="padding: 8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar</button>
+                <button class="btn btn-success" onclick="window.descargarExcelFiltrado('hist', false)" style="padding: 8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar</button>
             </div>
 
             <div class="card" style="padding:0; padding-top:15px; overflow:hidden;">
                 <div style="padding: 0 15px; margin-bottom:15px;">
-                    <input type="text" id="search-hist" class="search-bar" placeholder="🔍 Buscar por ID, Título o Estado..." onkeyup="filtrarTabla('search-hist', 'tbody-historial')">
+                    <input type="text" id="search-hist" class="search-bar" placeholder="🔍 Buscar por ID, Título o Estado..." onkeyup="window.filtrarTabla('search-hist', 'tbody-historial')">
                 </div>
                 <div class="table-responsive">
                     <table id="tabla-mis-solicitudes"><thead><tr><th>ID</th><th>Solicitante</th><th>Documento</th><th>Prioridad</th><th>Estado</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-historial"></tbody></table>
@@ -424,12 +424,12 @@
                     <option value="Aprobado Final">Solo Aprobados</option>
                     <option value="Cancelado">Rechazados / Anulados</option>
                 </select>
-                <button class="btn btn-success" onclick="descargarExcelFiltrado('all', false)" style="padding: 8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar Todas</button>
+                <button class="btn btn-success" onclick="window.descargarExcelFiltrado('all', false)" style="padding: 8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar Todas</button>
             </div>
 
             <div class="card" style="padding:0; padding-top:15px; overflow:hidden;">
                 <div style="padding: 0 15px; margin-bottom:15px;">
-                    <input type="text" id="search-all" class="search-bar" placeholder="🔍 Buscar por ID, Título, Solicitante o Estado..." onkeyup="filtrarTabla('search-all', 'tbody-all')">
+                    <input type="text" id="search-all" class="search-bar" placeholder="🔍 Buscar por ID, Título, Solicitante o Estado..." onkeyup="window.filtrarTabla('search-all', 'tbody-all')">
                 </div>
                 <div class="table-responsive">
                     <table id="tabla-todas-solicitudes"><thead><tr><th>ID</th><th>Solicitante</th><th>Documento</th><th>Prioridad</th><th>Estado</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-all"></tbody></table>
@@ -455,8 +455,8 @@
                     <option value="Aprobado Final">Solo Aprobados</option>
                     <option value="Cancelado">Rechazados / Anulados</option>
                 </select>
-                <button class="btn btn-success" onclick="descargarExcelFiltrado('gest', false)" style="padding: 8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar Normal</button>
-                <button id="btn-export-admin" class="btn btn-dark" onclick="descargarExcelFiltrado('gest', true)" style="display:none; padding: 8px 15px; gap:5px;">
+                <button class="btn btn-success" onclick="window.descargarExcelFiltrado('gest', false)" style="padding: 8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar Normal</button>
+                <button id="btn-export-admin" class="btn btn-dark" onclick="window.descargarExcelFiltrado('gest', true)" style="display:none; padding: 8px 15px; gap:5px;">
                     <span class="material-icons-round" style="font-size:16px;">insights</span> Excel Completo (Tiempos)
                 </button>
             </div>
@@ -464,12 +464,12 @@
             <div class="card" style="padding:0; border-radius: 16px; overflow:hidden;">
                 <div style="background: #f8fafc; padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
                     <div style="flex:1; min-width:250px;">
-                        <input type="text" id="search-gest" class="search-bar" style="max-width:100%; margin-bottom:0;" placeholder="🔍 Buscar en tabla..." onkeyup="filtrarTabla('search-gest', 'tbody-gestionar')">
+                        <input type="text" id="search-gest" class="search-bar" style="max-width:100%; margin-bottom:0;" placeholder="🔍 Buscar en tabla..." onkeyup="window.filtrarTabla('search-gest', 'tbody-gestionar')">
                     </div>
                     <div style="display:flex; gap:8px;">
-                        <span class="badge badge-dark" style="cursor:pointer; padding:6px 12px;" onclick="setFilterGest('')">Todos</span>
-                        <span class="badge badge-warning" style="cursor:pointer; padding:6px 12px;" onclick="setFilterGest('Pendiente')">Pendientes</span>
-                        <span class="badge badge-info" style="cursor:pointer; padding:6px 12px;" onclick="setFilterGest('Consulta')">En Consulta</span>
+                        <span class="badge badge-dark" style="cursor:pointer; padding:6px 12px;" onclick="window.setFilterGest('')">Todos</span>
+                        <span class="badge badge-warning" style="cursor:pointer; padding:6px 12px;" onclick="window.setFilterGest('Pendiente')">Pendientes</span>
+                        <span class="badge badge-info" style="cursor:pointer; padding:6px 12px;" onclick="window.setFilterGest('Consulta')">En Consulta</span>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -491,10 +491,10 @@
                 </div>
                 <div style="display:flex; gap:10px; align-items:center; background:white; padding:8px 15px; border-radius:12px; border:1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <label style="margin:0; font-size:12px;">Año:</label>
-                    <select id="aud-year-select" style="margin:0; width:130px; padding:8px; border:none; font-weight:bold; color:var(--primary); background:transparent; cursor:pointer;" onchange="cambiarAnioAuditoria(this.value)"></select>
+                    <select id="aud-year-select" style="margin:0; width:130px; padding:8px; border:none; font-weight:bold; color:var(--primary); background:transparent; cursor:pointer;" onchange="window.cambiarAnioAuditoria(this.value)"></select>
                     <div style="width:1px; height:20px; background:var(--border); margin:0 5px;"></div>
-                    <button class="btn btn-info" id="btn-config-plan" style="display:none; padding:8px 12px; font-size:11px;" onclick="toggleAuditHeaderForm()"><span class="material-icons-round" style="font-size:14px;">settings</span> Configurar Plan</button>
-                    <button class="btn btn-success" onclick="exportarExcelAuditoria()" style="padding:8px 12px; font-size:11px;"><span class="material-icons-round" style="font-size:14px;">download</span> Exportar Plan</button>
+                    <button class="btn btn-info" id="btn-config-plan" style="display:none; padding:8px 12px; font-size:11px;" onclick="window.toggleAuditHeaderForm()"><span class="material-icons-round" style="font-size:14px;">settings</span> Configurar Plan</button>
+                    <button class="btn btn-success" onclick="window.exportarExcelAuditoria()" style="padding:8px 12px; font-size:11px;"><span class="material-icons-round" style="font-size:14px;">download</span> Exportar Plan</button>
                 </div>
             </div>
 
@@ -543,8 +543,8 @@
                     <input type="text" id="ah-extra-emails" placeholder="ej: asesor@mail.com" style="margin-bottom:0;">
                 </div>
                 <div style="display:flex; gap:10px; margin-top:20px; padding-top:15px; border-top:1px solid var(--border);">
-                    <button class="btn btn-primary" onclick="saveAuditPlan()" style="flex:1;">GUARDAR ESTRUCTURA</button>
-                    <button class="btn btn-ghost" onclick="toggleAuditHeaderForm()" style="flex:1;">CANCELAR EDICIÓN</button>
+                    <button class="btn btn-primary" onclick="window.saveAuditPlan()" style="flex:1;">GUARDAR ESTRUCTURA</button>
+                    <button class="btn btn-ghost" onclick="window.toggleAuditHeaderForm()" style="flex:1;">CANCELAR EDICIÓN</button>
                 </div>
             </div>
 
@@ -567,8 +567,8 @@
                 <label>Observaciones / Enfoque</label>
                 <textarea id="aud-obs" rows="2"></textarea>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn btn-primary" id="btn-guardar-aud" onclick="guardarAuditoria()" style="flex:1;">AGREGAR AL CALENDARIO Y NOTIFICAR</button>
-                    <button class="btn btn-dark" id="btn-cancelar-aud" onclick="cancelarEdicionAuditoria()" style="flex:1; display:none;">CANCELAR EDICIÓN</button>
+                    <button class="btn btn-primary" id="btn-guardar-aud" onclick="window.guardarAuditoria()" style="flex:1;">AGREGAR AL CALENDARIO Y NOTIFICAR</button>
+                    <button class="btn btn-dark" id="btn-cancelar-aud" onclick="window.cancelarEdicionAuditoria()" style="flex:1; display:none;">CANCELAR EDICIÓN</button>
                 </div>
             </div>
 
@@ -588,13 +588,13 @@
                     <h1 style="display:flex; align-items:center; gap:8px;"><span class="material-icons-round" style="color:var(--danger); font-size:28px;">warning</span> Control de NC y Mejoras (F-023)</h1>
                     <p style="color:#64748b; font-size:12px;">Seguimiento global de hallazgos y acciones correctivas (SAC) resultantes de las auditorías.</p>
                 </div>
-                <button class="btn btn-success" onclick="exportarExcelNoConf()" style="padding:8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar F-023</button>
+                <button class="btn btn-success" onclick="window.exportarExcelNoConf()" style="padding:8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar F-023</button>
             </div>
 
             <div class="card" style="padding:0; padding-top:15px; margin-top:20px;">
                 <div style="padding: 0 15px; margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
-                    <input type="text" id="search-noconf" class="search-bar" placeholder="🔍 Buscar por Proceso, NC, o Estado..." onkeyup="filtrarTabla('search-noconf', 'tbody-noconf')" style="flex:1;">
-                    <select id="filter-noconf-estado" class="search-bar" style="width:200px;" onchange="setFilterGestNC(this.value)">
+                    <input type="text" id="search-noconf" class="search-bar" placeholder="🔍 Buscar por Proceso, NC, o Estado..." onkeyup="window.filtrarTabla('search-noconf', 'tbody-noconf')" style="flex:1;">
+                    <select id="filter-noconf-estado" class="search-bar" style="width:200px;" onchange="window.setFilterGestNC(this.value)">
                         <option value="">Todos los Estados</option>
                         <option value="Abierta">Abierta</option>
                         <option value="Respondida">Respondida (Espera Cierre)</option>
@@ -629,16 +629,16 @@
                     <p style="color:#64748b; font-size:12px;">Control centralizado de documentos aprobados</p>
                 </div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <button id="btn-export-list" class="btn btn-success" onclick="exportarExcelListado()" style="display:none;"><span class="material-icons-round" style="font-size:16px;">table_view</span> Exportar a Excel</button>
+                    <button id="btn-export-list" class="btn btn-success" onclick="window.exportarExcelListado()" style="display:none;"><span class="material-icons-round" style="font-size:16px;">table_view</span> Exportar a Excel</button>
                     <input type="file" id="import-excel-file" accept=".xlsx, .xls" style="display:none;">
                     <label for="import-excel-file" class="btn btn-warning" id="btn-import-maestro" style="display:none; cursor:pointer; margin:0;"><span class="material-icons-round" style="font-size:16px;">upload_file</span> Cargar Excel</label>
-                    <button class="btn btn-primary" id="btn-nuevo-maestro" onclick="abrirModalListadoMaestro()" style="display:none;"><span class="material-icons-round" style="font-size:16px;">add</span> Nuevo Registro</button>
+                    <button class="btn btn-primary" id="btn-nuevo-maestro" onclick="window.abrirModalListadoMaestro()" style="display:none;"><span class="material-icons-round" style="font-size:16px;">add</span> Nuevo Registro</button>
                 </div>
             </div>
 
             <div class="card" style="padding:0; padding-top:15px; margin-top:20px;">
                 <div style="padding: 0 15px;">
-                    <input type="text" id="search-maestro" class="search-bar" placeholder="🔍 Buscar en el listado maestro..." onkeyup="filtrarTabla('search-maestro', 'tbody-listado-maestro')">
+                    <input type="text" id="search-maestro" class="search-bar" placeholder="🔍 Buscar en el listado maestro..." onkeyup="window.filtrarTabla('search-maestro', 'tbody-listado-maestro')">
                 </div>
                 <div class="table-responsive">
                     <table id="tabla-listado-maestro" style="white-space:nowrap;">
@@ -710,7 +710,7 @@
                     </div>
                     
                     <button class="btn btn-primary" id="btnSaveUser" style="width:100%; margin-top:15px;">GUARDAR USUARIO</button>
-                    <button class="btn btn-ghost" id="btnCancelEdit" style="width:100%; margin-top:5px; display:none;" onclick="resetUserForm()">CANCELAR EDICIÓN</button>
+                    <button class="btn btn-ghost" id="btnCancelEdit" style="width:100%; margin-top:5px; display:none;" onclick="window.resetUserForm()">CANCELAR EDICIÓN</button>
                 </div>
                 <div class="card table-responsive" style="padding:0;">
                     <table id="table-users"><thead><tr><th>Usuario</th><th>Email</th><th>Rol/Gerencias</th><th>Acciones</th></tr></thead><tbody id="tbody-users"></tbody></table>
@@ -756,7 +756,7 @@
                     <p style="font-size:11px; color:#64748b; margin-bottom:10px;">Opciones para la creación de solicitudes.</p>
                     <div style="display:flex; gap:0; margin-bottom:15px;">
                         <input type="text" id="doc-tipo-nom" placeholder="Ej: Anexo" style="margin:0; border-radius: 8px 0 0 8px; border-right:none;">
-                        <button class="btn btn-success" onclick="agregarTipoDoc()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button>
+                        <button class="btn btn-success" onclick="window.agregarTipoDoc()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button>
                     </div>
                     <div id="list-tipos-doc" class="settings-list"></div>
                 </div>
@@ -769,7 +769,7 @@
                         <select id="col-tipo" style="margin:0; border-radius: 0; border-right:none; width:110px; padding: 12px;">
                             <option value="text">Texto</option><option value="date">Fecha</option><option value="number">Número</option><option value="url">Enlace/File</option>
                         </select>
-                        <button class="btn btn-success" onclick="agregarColumna()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button>
+                        <button class="btn btn-success" onclick="window.agregarColumna()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button>
                     </div>
                     <div id="list-columnas" class="settings-list"></div>
                 </div>
@@ -779,7 +779,7 @@
                     <p style="font-size:11px; color:#64748b; margin-bottom:10px;">Ciclo de vida (Ej: Vigente, Obsoleto).</p>
                     <div style="display:flex; gap:0; margin-bottom:15px;">
                         <input type="text" id="est-nom" placeholder="Ej: Archivo Muerto" style="margin:0; border-radius: 8px 0 0 8px; border-right:none;">
-                        <button class="btn btn-success" onclick="agregarEstatus()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button>
+                        <button class="btn btn-success" onclick="window.agregarEstatus()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button>
                     </div>
                     <div id="list-estatus" class="settings-list"></div>
                 </div>
@@ -797,9 +797,9 @@
                         <h2 id="m-tit" style="margin-top:5px; font-size:20px;"></h2>
                     </div>
                     <div style="display:flex; gap:10px;">
-                        <button class="btn btn-warning" id="btn-reabrir" onclick="reabrirSolicitud()" style="display:none; padding: 8px 15px; align-items:center;"><span class="material-icons-round" style="font-size:16px; margin-right:5px;">restore</span> Reabrir</button>
-                        <button class="btn btn-danger" id="btn-anular" onclick="anularSolicitud()" style="display:none; padding: 8px 15px;">Anular</button>
-                        <button class="btn btn-dark" onclick="closeModal()" style="padding: 8px 15px;">Cerrar</button>
+                        <button class="btn btn-warning" id="btn-reabrir" onclick="window.reabrirSolicitud()" style="display:none; padding: 8px 15px; align-items:center;"><span class="material-icons-round" style="font-size:16px; margin-right:5px;">restore</span> Reabrir</button>
+                        <button class="btn btn-danger" id="btn-anular" onclick="window.anularSolicitud()" style="display:none; padding: 8px 15px;">Anular</button>
+                        <button class="btn btn-dark" onclick="window.closeModal()" style="padding: 8px 15px;">Cerrar</button>
                     </div>
                 </div>
                 
@@ -815,7 +815,7 @@
                     <p style="font-size:11px; color:#92400e; margin-bottom:10px;">Establece o visualiza la fecha esperada para completar esta solicitud.</p>
                     <div style="display:flex; gap:10px; align-items:center;">
                         <input type="date" id="m-sla-date" style="margin:0; max-width:200px; background:white;">
-                        <button class="btn btn-warning" id="btn-save-sla" onclick="guardarSLA()" style="padding:8px 15px;">Guardar Límite</button>
+                        <button class="btn btn-warning" id="btn-save-sla" onclick="window.guardarSLA()" style="padding:8px 15px;">Guardar Límite</button>
                     </div>
                 </div>
 
@@ -852,7 +852,7 @@
                         <div><label>Versión</label><input type="text" id="m-upd-ver" style="background:white; margin-bottom:10px;"></div>
                         <div><label>Reemplazar Adjunto (Opcional)</label><input type="file" id="m-upd-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png" style="background:white; margin-bottom:10px;"></div>
                     </div>
-                    <button class="btn btn-info" onclick="actualizarDatosSGC()" style="width:100%; margin-top:10px;">GUARDAR ACTUALIZACIÓN</button>
+                    <button class="btn btn-info" onclick="window.actualizarDatosSGC()" style="width:100%; margin-top:10px;">GUARDAR ACTUALIZACIÓN</button>
                 </div>
 
                 <div id="m-panel-final-sgc" style="display:none; margin-bottom:20px; background:#eff6ff; padding:20px; border-radius:12px; border: 1px dashed var(--primary);">
@@ -868,7 +868,7 @@
                     </div>
                     <label>Comentarios del Cierre</label>
                     <input type="text" id="m-final-comentario" placeholder="Observaciones finales de la publicación..." style="background:white;">
-                    <button class="btn btn-primary" onclick="guardarCierreFinal()" style="width:100%; margin-top:10px;">GUARDAR Y PUBLICAR VERSIÓN FINAL</button>
+                    <button class="btn btn-primary" onclick="window.guardarCierreFinal()" style="width:100%; margin-top:10px;">GUARDAR Y PUBLICAR VERSIÓN FINAL</button>
                 </div>
 
                 <div id="m-original-data">
@@ -906,7 +906,7 @@
                             <select id="m-new-involucrado-sel" style="margin:0; padding:8px; font-size:12px; flex:1; background:white;">
                                 <option value="">-- Seleccionar Usuario --</option>
                             </select>
-                            <button class="btn btn-info" onclick="guardarNuevoInvolucrado()" style="padding:8px 12px; font-size:11px;">Añadir</button>
+                            <button class="btn btn-info" onclick="window.guardarNuevoInvolucrado()" style="padding:8px 12px; font-size:11px;">Añadir</button>
                         </div>
                     </div>
                 </div>
@@ -914,17 +914,17 @@
                 <div id="m-actions" style="margin-top:30px; display:none; border-top:1px solid #eee; padding-top:20px;">
                     <p style="font-weight:800; font-size:11px; color:#64748b; margin-bottom:10px;">ACCIONES DE GESTIÓN (Avanzar/Rechazar):</p>
                     <div id="action-buttons" style="display:flex; gap:10px; flex-wrap:wrap;">
-                        <button class="btn btn-info" onclick="gestionar('Consulta')">Consultar</button>
-                        <button class="btn btn-warning" onclick="gestionar('Reunión')">Reunión</button>
-                        <button class="btn btn-primary" id="btn-firma-next" onclick="firmarPaso()">Firmar Etapa</button>
-                        <button class="btn btn-warning" id="btn-devolver-paso" onclick="devolverPaso()" style="display:none; background-color:#d97706;">Devolver a Paso Anterior</button>
-                        <button class="btn btn-danger" onclick="rechazar()">Rechazar</button>
+                        <button class="btn btn-info" onclick="window.gestionar('Consulta')">Consultar</button>
+                        <button class="btn btn-warning" onclick="window.gestionar('Reunión')">Reunión</button>
+                        <button class="btn btn-primary" id="btn-firma-next" onclick="window.firmarPaso()">Firmar Etapa</button>
+                        <button class="btn btn-warning" id="btn-devolver-paso" onclick="window.devolverPaso()" style="display:none; background-color:#d97706;">Devolver a Paso Anterior</button>
+                        <button class="btn btn-danger" onclick="window.rechazar()">Rechazar</button>
                     </div>
                 </div>
 
                 <div id="applicant-actions" style="margin-top:20px; display:none;">
                     <p style="font-weight:800; font-size:11px; color:#64748b; margin-bottom:10px;">ACCIONES DEL SOLICITANTE:</p>
-                    <button class="btn btn-info" style="background:var(--accent);" onclick="responderSolicitante()"> Responder / Enviar Corrección</button>
+                    <button class="btn btn-info" style="background:var(--accent);" onclick="window.responderSolicitante()"> Responder / Enviar Corrección</button>
                 </div>
 
                 <div id="m-input-area" style="display:none; margin-top:15px;">
@@ -969,7 +969,7 @@
                             <label style="font-size:10px;">Adjuntar Referencia (Opcional)</label>
                             <input type="file" id="m-file-comentario" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg" style="margin-bottom:0; padding:8px;">
                         </div>
-                        <button class="btn btn-success" onclick="enviarComentarioLibre()" style="height:40px; margin-top:14px;">ENVIAR COMENTARIO</button>
+                        <button class="btn btn-success" onclick="window.enviarComentarioLibre()" style="height:40px; margin-top:14px;">ENVIAR COMENTARIO</button>
                     </div>
                 </div>
 
@@ -991,15 +991,15 @@
                     <span id="ma-proceso" style="font-weight:800; color:var(--sidebar); font-size:16px;"></span>
                 </div>
                 <div>
-                    <button class="btn btn-dark" onclick="cerrarModalAuditoria()"><span class="material-icons-round">close</span> Cerrar</button>
+                    <button class="btn btn-dark" onclick="window.cerrarModalAuditoria()"><span class="material-icons-round">close</span> Cerrar</button>
                 </div>
             </div>
 
             <div class="tab-container">
-                <button class="tab-btn active" id="btn-tab-info" onclick="switchAuditTab('info')">Tiempos y Detalles</button>
-                <button class="tab-btn" id="btn-tab-f020" onclick="switchAuditTab('f020')">Lista Verificación (F-020)</button>
-                <button class="tab-btn" id="btn-tab-f003" onclick="switchAuditTab('f003')">Reporte (F-003)</button>
-                <button class="tab-btn" id="btn-tab-sac" onclick="switchAuditTab('sac')">Acciones (SAC F-002)</button>
+                <button class="tab-btn active" id="btn-tab-info" onclick="window.switchAuditTab('info')">Tiempos y Detalles</button>
+                <button class="tab-btn" id="btn-tab-f020" onclick="window.switchAuditTab('f020')">Lista Verificación (F-020)</button>
+                <button class="tab-btn" id="btn-tab-f003" onclick="window.switchAuditTab('f003')">Reporte (F-003)</button>
+                <button class="tab-btn" id="btn-tab-sac" onclick="window.switchAuditTab('sac')">Acciones (SAC F-002)</button>
             </div>
 
             <div style="flex:1; overflow-y:auto; padding:30px; background:white;">
@@ -1025,8 +1025,8 @@
                         </div>
                         <div><label>Duración Total</label><p id="ma-duracion" style="color:var(--success); font-weight:800; font-size:16px;">---</p></div>
                         <div id="ma-controles-tiempo" style="display:flex; gap:10px; margin-top:20px;">
-                            <button id="btn-comenzar-auditoria" class="btn btn-primary" onclick="comenzarAuditoria()" style="flex:1; display:none;">▶️ COMENZAR AUDITORÍA</button>
-                            <button id="btn-finalizar-auditoria" class="btn btn-success" onclick="finalizarAuditoria()" style="flex:1; display:none;">⏹️ FINALIZAR AUDITORÍA</button>
+                            <button id="btn-comenzar-auditoria" class="btn btn-primary" onclick="window.comenzarAuditoria()" style="flex:1; display:none;">▶️ COMENZAR AUDITORÍA</button>
+                            <button id="btn-finalizar-auditoria" class="btn btn-success" onclick="window.finalizarAuditoria()" style="flex:1; display:none;">⏹️ FINALIZAR AUDITORÍA</button>
                         </div>
                     </div>
 
@@ -1040,7 +1040,7 @@
                         </div>
                         <div style="display:flex; gap:10px; align-items:center;">
                             <input type="file" id="ma-file-comentario" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg" style="flex:1; margin:0;">
-                            <button class="btn btn-info" onclick="enviarComentarioAuditoria()">Guardar en Bitácora</button>
+                            <button class="btn btn-info" onclick="window.enviarComentarioAuditoria()">Guardar en Bitácora</button>
                         </div>
                     </div>
                 </div>
@@ -1048,7 +1048,7 @@
                 <div id="tab-f020" class="tab-content">
                     <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
                         <h3 style="color:var(--primary);">FCI-GG-F-020: Lista de Verificación</h3>
-                        <button class="btn btn-info" id="btn-add-f020" onclick="agregarFilaF020()" style="display:none;"><span class="material-icons-round" style="font-size:16px;">add</span> Añadir Ítem</button>
+                        <button class="btn btn-info" id="btn-add-f020" onclick="window.agregarFilaF020()" style="display:none;"><span class="material-icons-round" style="font-size:16px;">add</span> Añadir Ítem</button>
                     </div>
                     <div class="table-responsive" style="border:1px solid var(--border); border-radius:8px; overflow:hidden;">
                         <table style="width:100%; min-width:800px;">
@@ -1067,7 +1067,7 @@
                         </table>
                     </div>
                     <div style="text-align:right; margin-top:15px;">
-                        <button class="btn btn-success" id="btn-save-f020" onclick="guardarF020()" style="display:none;">Guardar Lista de Verificación</button>
+                        <button class="btn btn-success" id="btn-save-f020" onclick="window.guardarF020()" style="display:none;">Guardar Lista de Verificación</button>
                     </div>
                 </div>
 
@@ -1091,7 +1091,7 @@
                     </div>
                     
                     <div style="text-align:right;">
-                        <button class="btn btn-primary" id="btn-save-f003" onclick="guardarF003()" style="display:none;">Guardar Reporte</button>
+                        <button class="btn btn-primary" id="btn-save-f003" onclick="window.guardarF003()" style="display:none;">Guardar Reporte</button>
                     </div>
                 </div>
 
@@ -1160,7 +1160,7 @@
                 </div>
 
                 <div style="display:flex; gap:10px;">
-                    <button class="btn btn-primary" id="btn-save-sac" onclick="guardarSAC()" style="flex:1;">Guardar SAC y Notificar</button>
+                    <button class="btn btn-primary" id="btn-save-sac" onclick="window.guardarSAC()" style="flex:1;">Guardar SAC y Notificar</button>
                     <button class="btn btn-dark" onclick="document.getElementById('modal-sac').style.display='none'" style="flex:1;">Cancelar</button>
                 </div>
             </div>
@@ -1178,11 +1178,11 @@
                <label style="color:var(--primary); font-size:11px;">Herramienta Rápida: Subir archivo y generar URL</label>
                <div style="display:flex; gap:10px; align-items:center; margin-top:5px;">
                    <input type="file" id="lm-generic-file" style="margin:0; background:white; flex:1;">
-                   <button class="btn btn-info" onclick="subirArchivoGenericoLM()">Subir y Llenar Campo</button>
+                   <button class="btn btn-info" onclick="window.subirArchivoGenericoLM()">Subir y Llenar Campo</button>
                </div>
            </div>
            <div style="display:flex; gap:10px; margin-top:20px;">
-               <button class="btn btn-primary" onclick="guardarRegistroMaestro()" style="flex:1;">Guardar Documento</button>
+               <button class="btn btn-primary" onclick="window.guardarRegistroMaestro()" style="flex:1;">Guardar Documento</button>
                <button class="btn btn-dark" onclick="document.getElementById('modal-form-listado').style.display='none'" style="flex:1;">Cancelar</button>
            </div>
         </div>
@@ -1484,11 +1484,15 @@
                 let bColor = s.tipo_hallazgo === 'NC Mayor' ? 'color:var(--danger)' : 'color:var(--warning)';
                 html += `
                     <tr>
-                        <td><b>${s.sac_num}</b></td><td>${s.proceso}</td><td><b style="${bColor}">${s.tipo_hallazgo}</b></td>
-                        <td>${nomDueno}</td><td><div style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${s.detalle_nc}">${s.detalle_nc}</div></td>
-                        <td>${formatearFechaAbreviada(s.fecha_apertura)}</td><td><span class="badge ${bs}">${est}</span></td>
+                        <td><b>${s.sac_num}</b></td>
+                        <td>${s.proceso}</td>
+                        <td><b style="${bColor}">${s.tipo_hallazgo}</b></td>
+                        <td>${nomDueno}</td>
+                        <td><div style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${s.detalle_nc}">${s.detalle_nc}</div></td>
+                        <td>${formatearFechaAbreviada(s.fecha_apertura)}</td>
+                        <td><span class="badge ${bs}">${est}</span></td>
                         <td>${s.fecha_cierre ? formatearFechaAbreviada(s.fecha_cierre) : '-'}</td>
-                        <td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="verSACGlobal('${s.sac_id}', '${s.audit_id}')">Revisar</button></td>
+                        <td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verSACGlobal('${s.sac_id}', '${s.audit_id}')">Revisar</button></td>
                     </tr>
                 `;
             });
@@ -1508,13 +1512,21 @@
             let dataExport = globalAllSacs.map(s => {
                 let uDueno = allUsers.find(u => u.usuario === s.dueno_uid);
                 return {
-                    "N° SAC": s.sac_num, "Proceso / Auditoría": s.proceso, "Tipo de Hallazgo": s.tipo_hallazgo, "Responsable": uDueno ? uDueno.nombre : s.dueno_uid,
-                    "Detalle No Conformidad": s.detalle_nc, "Fecha Apertura": s.fecha_apertura ? new Date(s.fecha_apertura).toLocaleString() : '',
-                    "Causa Raíz": s.causa_raiz || '', "Acción Correctiva Implementada": s.accion_implementar || '', "Estado": s.estado,
-                    "Fecha Cierre": s.fecha_cierre ? new Date(s.fecha_cierre).toLocaleString() : '', "Cerrado Por": s.cerrado_por || ''
+                    "N° SAC": s.sac_num,
+                    "Proceso / Auditoría": s.proceso,
+                    "Tipo de Hallazgo": s.tipo_hallazgo,
+                    "Responsable": uDueno ? uDueno.nombre : s.dueno_uid,
+                    "Detalle No Conformidad": s.detalle_nc,
+                    "Fecha Apertura": s.fecha_apertura ? new Date(s.fecha_apertura).toLocaleString() : '',
+                    "Causa Raíz": s.causa_raiz || '',
+                    "Acción Correctiva Implementada": s.accion_implementar || '',
+                    "Estado": s.estado,
+                    "Fecha Cierre": s.fecha_cierre ? new Date(s.fecha_cierre).toLocaleString() : '',
+                    "Cerrado Por": s.cerrado_por || ''
                 };
             });
-            let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dataExport); XLSX.utils.book_append_sheet(wb, ws, "F-023_Control_NC"); XLSX.writeFile(wb, "Reporte_F-023_Control_NC.xlsx");
+            let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dataExport);
+            XLSX.utils.book_append_sheet(wb, ws, "F-023_Control_NC"); XLSX.writeFile(wb, "Reporte_F-023_Control_NC.xlsx");
         }
 
         function switchAuditTab(tabId) {
@@ -1537,11 +1549,11 @@
                 if(sac) {
                     estado = sac.estado; let bs = estado === 'Abierta' ? 'badge-danger' : (estado === 'Respondida' ? 'badge-warning' : 'badge-success');
                     badge = `<span class="badge ${bs}">${estado.toUpperCase()}</span><br><small style="font-size:9px;">${sac.sac_num}</small>`;
-                    btn = `<button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="verSAC('${sac.sac_id}')">VER SAC</button>`;
+                    btn = `<button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verSAC('${sac.sac_id}')">VER SAC</button>`;
                 } else {
                     badge = `<span class="badge badge-dark">NO CREADA</span>`;
                     if(currentUser.permisos.p_audit_auditor || currentUser.permisos.admin || currentUser.permisos.p_gest_sgc || (selectedAuditData.auditor && selectedAuditData.auditor.includes(currentUser.nombre))) {
-                        btn = `<button class="btn btn-info" style="padding:4px 8px; font-size:10px;" onclick="abrirCrearSAC('${h.id}')">CREAR SAC</button>`;
+                        btn = `<button class="btn btn-info" style="padding:4px 8px; font-size:10px;" onclick="window.abrirCrearSAC('${h.id}')">CREAR SAC</button>`;
                     }
                 }
                 html += `<tr><td><b>Ref. ${idx+1}</b><br><small style="color:#64748b">${h.pregunta.substring(0, 30)}...</small></td><td style="white-space:pre-wrap; font-size:11px;">${h.comentarios}</td><td><span class="badge ${bH}">${h.hallazgo}</span></td><td>${badge}</td><td>${btn}</td></tr>`;
@@ -1592,7 +1604,7 @@
                 await addDoc(collection(db, "artifacts", appId, "public", "data", "AccionesCorrectivas"), data);
                 
                 let uDueno = allUsers.find(u => u.usuario === dSel);
-                if(uDueno && uDueno.email) { sendNotification({to: uDueno.email}, `Nueva SAC Asignada: ${num_sac}`, `Se le ha asignado una Acción Correctiva / Mejora en el sistema SGC.\nProceso: ${data.proceso}\nPor favor ingrese al sistema para establecer la Causa Raíz y el Plan de Acción.`); }
+                if(uDueno && uDueno.email) { window.sendNotification({to: uDueno.email}, `Nueva SAC Asignada: ${num_sac}`, `Se le ha asignado una Acción Correctiva / Mejora en el sistema SGC.\nProceso: ${data.proceso}\nPor favor ingrese al sistema para establecer la Causa Raíz y el Plan de Acción.`); }
                 alert(`SAC ${num_sac} creada y notificada.`);
             } else {
                 let sac = globalAllSacs.find(s => s.sac_id === currentEditingSacId); data = {};
@@ -1614,7 +1626,7 @@
                 if(Object.keys(data).length > 0) { await updateDoc(doc(db, "artifacts", appId, "public", "data", "AccionesCorrectivas", currentEditingSacId), data); alert("SAC Actualizada."); } else { alert("No hubo cambios."); }
             }
             document.getElementById('modal-sac').style.display = 'none'; hideLoading();
-            if(selectedAuditId) verModalAuditoria(selectedAuditId);
+            if(selectedAuditId) window.verModalAuditoria(selectedAuditId);
         }
 
         function renderF020() {
@@ -1623,7 +1635,7 @@
             currentAuditF020.forEach((item, index) => {
                 let dis = canEdit ? '' : 'disabled';
                 let opts = `<option value="Conformidad" ${item.hallazgo === 'Conformidad' ? 'selected':''}>Conformidad</option><option value="NC Menor" ${item.hallazgo === 'NC Menor' ? 'selected':''}>NC Menor</option><option value="NC Mayor" ${item.hallazgo === 'NC Mayor' ? 'selected':''}>NC Mayor</option><option value="OM" ${item.hallazgo === 'OM' ? 'selected':''}>Oportunidad Mejora</option><option value="Fortaleza" ${item.hallazgo === 'Fortaleza' ? 'selected':''}>Fortaleza</option><option value="N/A" ${item.hallazgo === 'N/A' || !item.hallazgo ? 'selected':''}>N/A</option>`;
-                html += `<tr data-id="${item.id}"><td>${index + 1}</td><td><textarea class="table-input" rows="2" ${dis}>${item.pregunta || ''}</textarea></td><td><input type="text" class="table-input" value="${item.requisito || ''}" ${dis}></td><td><textarea class="table-input" rows="2" ${dis}>${item.comentarios || ''}</textarea></td><td><input type="text" class="table-input" value="${item.auditado || ''}" ${dis}></td><td><select class="table-select hallazgo-sel" ${dis}>${opts}</select></td><td class="f020-action-col">${canEdit ? `<button class="btn-icon-danger" onclick="eliminarF020('${item.id}')"><span class="material-icons-round">delete</span></button>` : ''}</td></tr>`;
+                html += `<tr data-id="${item.id}"><td>${index + 1}</td><td><textarea class="table-input" rows="2" ${dis}>${item.pregunta || ''}</textarea></td><td><input type="text" class="table-input" value="${item.requisito || ''}" ${dis}></td><td><textarea class="table-input" rows="2" ${dis}>${item.comentarios || ''}</textarea></td><td><input type="text" class="table-input" value="${item.auditado || ''}" ${dis}></td><td><select class="table-select hallazgo-sel" ${dis}>${opts}</select></td><td class="f020-action-col">${canEdit ? `<button class="btn-icon-danger" onclick="window.eliminarF020('${item.id}')"><span class="material-icons-round">delete</span></button>` : ''}</td></tr>`;
             });
             tbody.innerHTML = html; document.querySelectorAll('.f020-action-col').forEach(el => el.style.display = canEdit ? '' : 'none');
         }
@@ -1635,7 +1647,7 @@
             const trs = document.querySelectorAll('#tbody-f020 tr'); let dataArr = [];
             trs.forEach(tr => { let inputs = tr.querySelectorAll('.table-input, .table-select'); dataArr.push({ id: tr.dataset.id, pregunta: inputs[0].value, requisito: inputs[1].value, comentarios: inputs[2].value, auditado: inputs[3].value, hallazgo: inputs[4].value }); });
             showLoading(); await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { lista_verificacion: dataArr, bitacora: arrayUnion({u: currentUser.nombre, m: `📝 <b>Actualizó Lista de Verificación (F-020)</b>`, t: new Date().toLocaleString()}) });
-            hideLoading(); alert("F-020 Guardado correctamente."); verModalAuditoria(selectedAuditId); 
+            hideLoading(); alert("F-020 Guardado correctamente."); window.verModalAuditoria(selectedAuditId); 
         }
 
         function actualizarMetricasF003() {
@@ -1653,18 +1665,35 @@
         // ==========================================
         // ALIMENTACIÓN DE DATOS (ONSNAPSHOTS) Y EXPOSICIÓN GLOBAL
         // ==========================================
+        
+        // --- AQUÍ ESTÁ EL ARREGLO DE RAÍZ (HOISTING) ---
+        // Exportamos TODAS las funciones declaradas arriba hacia `window` 
+        // para que el HTML (`onclick="window.funcion()"`) las pueda ejecutar sin fallos.
+        
+        Object.assign(window, {
+            showLoading, hideLoading, cambiarVista, toggleMenu, toggleModPanel, closeModal, cerrarModalAuditoria,
+            del, getDownloadUrl, formatearFechaAbreviada, getGCalFormat, sendNotification, getDatosEnvio, uploadToCloudinary, getNextFCI, checkDailyAlerts, verificarAlertasAuditoria,
+            completarLoginUI, logout, descargarExcelFiltrado, exportarExcelListado,
+            renderF023Global, setFilterGestNC, verSACGlobal, exportarExcelNoConf,
+            switchAuditTab, renderAuditSACs, abrirCrearSAC, verSAC, guardarSAC, renderF020, agregarFilaF020, eliminarF020, guardarF020, actualizarMetricasF003, guardarF003
+        });
+
+        // ------------------------------------------
+
         function cargarDatos() {
             const path = (c) => collection(db, "artifacts", appId, "public", "data", c);
 
+            // AUDITORIAS Y SAC
             onSnapshot(path("Auditorias"), s => {
-                globalAllAuditorias = []; s.forEach(d => { let a = d.data(); a.id = d.id; globalAllAuditorias.push(a); });
-                if(document.getElementById('aud-year-select')) renderTablaAuditorias(document.getElementById('aud-year-select').value);
-                if(selectedAuditId) { let auditAct = globalAllAuditorias.find(x => x.id === selectedAuditId); if(auditAct) { selectedAuditData = auditAct; currentAuditF020 = auditAct.lista_verificacion || []; renderAuditSACs(); actualizarMetricasF003(); } }
+                globalAllAuditorias = [];
+                s.forEach(d => { let a = d.data(); a.id = d.id; globalAllAuditorias.push(a); });
+                if(document.getElementById('aud-year-select')) window.renderTablaAuditorias(document.getElementById('aud-year-select').value);
+                if(selectedAuditId) { let auditAct = globalAllAuditorias.find(x => x.id === selectedAuditId); if(auditAct) { selectedAuditData = auditAct; currentAuditF020 = auditAct.lista_verificacion || []; window.renderAuditSACs(); window.actualizarMetricasF003(); } }
             });
 
             onSnapshot(path("AccionesCorrectivas"), s => {
-                globalAllSacs = []; s.forEach(d => { let a = d.data(); a.sac_id = d.id; globalAllSacs.push(a); }); renderF023Global();
-                if(document.getElementById('modal-auditoria').style.display === 'flex') renderAuditSACs();
+                globalAllSacs = []; s.forEach(d => { let a = d.data(); a.sac_id = d.id; globalAllSacs.push(a); }); window.renderF023Global();
+                if(document.getElementById('modal-auditoria').style.display === 'flex') window.renderAuditSACs();
             });
 
             onSnapshot(path("Usuarios"), s => {
@@ -1676,7 +1705,7 @@
                     userOptionsHtmlSingle += `<option value="${u.nombre}" data-email="${u.email || ''}">${u.nombre} (${grShow})</option>`;
                     checkboxHtml += `<label><input type="checkbox" value="${u.nombre}" data-email="${u.email || ''}"> ${u.nombre} <span style="font-size:10px;color:#94a3b8">(${grShow})</span></label>`;
                     if(u.email) { involucradosOptions += `<option value="${u.email.toLowerCase()}">${u.nombre} (${u.email})</option>`; }
-                    usersHtml += `<tr><td><b>${u.nombre}</b><br><span style="font-size:10px;color:#64748b">${u.usuario}</span></td><td>${u.email || '-'}</td><td>${grShow}<br><span class="badge badge-info">${u.role || 'N/A'}</span></td><td><button class="btn btn-info" style="padding:5px 10px; font-size:10px;" onclick="cargarUsuarioParaEditar('${u.usuario}')">EDITAR</button> <button class="btn btn-danger" style="padding:5px 10px; font-size:10px;" onclick="del('Usuarios','${u.docId}')">X</button></td></tr>`;
+                    usersHtml += `<tr><td><b>${u.nombre}</b><br><span style="font-size:10px;color:#64748b">${u.usuario}</span></td><td>${u.email || '-'}</td><td>${grShow}<br><span class="badge badge-info">${u.role || 'N/A'}</span></td><td><button class="btn btn-info" style="padding:5px 10px; font-size:10px;" onclick="window.cargarUsuarioParaEditar('${u.usuario}')">EDITAR</button> <button class="btn btn-danger" style="padding:5px 10px; font-size:10px;" onclick="window.del('Usuarios','${u.docId}')">X</button></td></tr>`;
                 });
                 tb.innerHTML = usersHtml;
                 if(document.getElementById('ah-lider')) document.getElementById('ah-lider').innerHTML = userOptionsHtmlSingle;
@@ -1691,7 +1720,7 @@
                 let h = "<option value=''>-- Seleccionar Gerencia --</option>", l = "", checkGerHtml = "";
                 s.forEach(d => {
                     const g = d.data(); h += `<option value="${g.nombre}">${g.nombre}</option>`;
-                    l += `<div class="settings-item"><span>${g.nombre}</span><button class="btn-icon-danger" onclick="del('Gerencias','${d.id}')"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`;
+                    l += `<div class="settings-item"><span>${g.nombre}</span><button class="btn-icon-danger" onclick="window.del('Gerencias','${d.id}')"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`;
                     checkGerHtml += `<label><input type="checkbox" value="${g.nombre}"> ${g.nombre}</label>`;
                 });
                 if(document.getElementById('sol-ger')) document.getElementById('sol-ger').innerHTML = h;
@@ -1706,25 +1735,26 @@
                 let l = ""; allDepartamentos = [];
                 s.forEach(d => {
                     const dep = d.data(); dep.docId = d.id; allDepartamentos.push(dep);
-                    l += `<div class="settings-item"><span>${dep.nombre} <small style="color:#94a3b8; margin-left:5px;">(${dep.gerencia || 'Sin Gerencia'})</small></span><button class="btn-icon-danger" onclick="del('Departamentos','${d.id}')"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`;
+                    l += `<div class="settings-item"><span>${dep.nombre} <small style="color:#94a3b8; margin-left:5px;">(${dep.gerencia || 'Sin Gerencia'})</small></span><button class="btn-icon-danger" onclick="window.del('Departamentos','${d.id}')"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`;
                 });
                 if(document.getElementById('list-dep')) document.getElementById('list-dep').innerHTML = l;
                 if(document.getElementById('sol-ger')) document.getElementById('sol-ger').dispatchEvent(new Event('change'));
             });
 
-            onSnapshot(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), d => {
+            const docConfigMaestro = doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings");
+            onSnapshot(docConfigMaestro, d => {
                 if(d.exists()) {
                     columnasMaestro = d.data().columnas || []; estatusMaestro = d.data().estatus || []; tiposDocumento = d.data().tiposDoc || [];
                 } else {
                     columnasMaestro = ['Código', 'Gerencia', 'Departamento', 'Tipo de documento', 'Nombre del documento', 'Fecha de Creación', 'Fecha última versión', 'Versión', 'Ubicación del Documento', 'Estatus', 'Código Anterior'];
                     estatusMaestro = ['Vigente', 'Obsoleto', 'En Revisión'];
                     tiposDocumento = ['Guía', 'Manual', 'Instructivo', 'Procedimiento', 'Formato'];
-                    setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: columnasMaestro, estatus: estatusMaestro, tiposDoc: tiposDocumento }, {merge: true});
+                    setDoc(docConfigMaestro, { columnas: columnasMaestro, estatus: estatusMaestro, tiposDoc: tiposDocumento }, {merge: true});
                 }
-                renderListasConfig(); renderTablaMaestro();
+                window.renderListasConfig(); window.renderTablaMaestro();
             });
 
-            onSnapshot(path("ListadoMaestro"), s => { dataMaestro = []; s.forEach(d => { let data = d.data(); data.docId = d.id; dataMaestro.push(data); }); renderTablaMaestro(); });
+            onSnapshot(path("ListadoMaestro"), s => { dataMaestro = []; s.forEach(d => { let data = d.data(); data.docId = d.id; dataMaestro.push(data); }); window.renderTablaMaestro(); });
 
             onSnapshot(path("Solicitudes"), s => {
                 const tbHist = document.getElementById('tbody-historial'); const tbGest = document.getElementById('tbody-gestionar'); const tbAll = document.getElementById('tbody-all');
@@ -1764,8 +1794,8 @@
                     let faseActual = PASOS_NOMBRES[sol.idx] || ""; let estadoMostrar = sol.estado; let infoFase = "";
                     if (isAprobadoFinal) { estadoMostrar = "APROBADO FINAL"; } else if (!isCancelado && faseActual) { infoFase = `<br><span style="font-size:10px; color:#64748b; font-weight:700; display:inline-block; margin-top:5px;">📍 Etapa: ${faseActual}</span>`; }
 
-                    if(verMis) { histHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${bPr}">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button></td></tr>`; }
-                    if(verTodas) { allHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${bPr}">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button></td></tr>`; }
+                    if(verMis) { histHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${bPr}">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-ghost" onclick="window.verDetalle('${sol.docId}')">Ver</button></td></tr>`; }
+                    if(verTodas) { allHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}</td><td><span class="badge ${bPr}">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td><button class="btn btn-ghost" onclick="window.verDetalle('${sol.docId}')">Ver</button></td></tr>`; }
                     
                     let gestionar = false;
                     const activo = !isCancelado && !isAprobadoFinal;
@@ -1781,7 +1811,7 @@
                     let mostrarFilaGerente = p.p_ger_apr && sol.idx === 2 && currentUser.gerencias && currentUser.gerencias.includes(sol.gerencia) && activo;
 
                     if(mostrarFilaGestionSGC || mostrarFilaGerente) { 
-                        let btnHtml = gestionar ? `<button class="btn btn-primary" onclick="verDetalle('${sol.docId}')">Gestionar</button>` : `<button class="btn btn-ghost" onclick="verDetalle('${sol.docId}')">Ver</button>`;
+                        let btnHtml = gestionar ? `<button class="btn btn-primary" onclick="window.verDetalle('${sol.docId}')">Gestionar</button>` : `<button class="btn btn-ghost" onclick="window.verDetalle('${sol.docId}')">Ver</button>`;
                         gestHtml += `<tr><td>${sol.customId}</td><td>${sol.solicitante}</td><td>${sol.titulo}<br><span class="badge ${bPr}" style="margin-top:4px;">${pr.toUpperCase()}</span></td><td><span class="badge ${badgeClass}">${estadoMostrar}</span>${infoFase}</td><td>${btnHtml}</td></tr>`; 
                     }
                 });
@@ -1794,265 +1824,128 @@
                         document.getElementById('dash-admin-section').style.display = 'block'; document.getElementById('dash-glob-tot').innerText = globTot; document.getElementById('dash-glob-pend').innerText = globPend; document.getElementById('dash-glob-ok').innerText = globOk; document.getElementById('dash-glob-rech').innerText = globRech;
                     } else { document.getElementById('dash-admin-section').style.display = 'none'; }
                 }
-                setTimeout(() => { checkDailyAlerts(); }, 3000);
+                setTimeout(() => { window.checkDailyAlerts(); }, 3000);
             });
         }
 
-        async function guardarAuditoria() {
-            const fecha = document.getElementById('aud-fecha').value; const hIni = document.getElementById('aud-h-ini').value; const hFin = document.getElementById('aud-h-fin').value; const proceso = document.getElementById('aud-proceso').value; const lugar = document.getElementById('aud-lugar').value; const req = document.getElementById('aud-req').value; const obs = document.getElementById('aud-obs').value;
-            if(!fecha || !proceso) return alert("Fecha y Proceso son obligatorios.");
+        // ==========================================
+        // EVENTOS DOM GLOBALES
+        // ==========================================
 
-            const auditadoNombres = []; const auditadoEmails = [];
-            document.querySelectorAll('#aud-auditado-list input:checked').forEach(cb => { auditadoNombres.push(cb.value); if(cb.dataset.email) auditadoEmails.push(cb.dataset.email); });
-            const auditorNombres = []; const auditorEmails = [];
-            document.querySelectorAll('#aud-auditor-list input:checked').forEach(cb => { auditorNombres.push(cb.value); if(cb.dataset.email) auditorEmails.push(cb.dataset.email); });
-
-            let data = { fecha: fecha, hora_inicio: hIni, hora_fin: hFin, lugar: lugar, proceso: proceso, requisitos: req, auditado: auditadoNombres.join(', '), auditado_emails: auditadoEmails, auditor: auditorNombres.join(', '), auditor_emails: auditorEmails, observacion: obs };
-
-            showLoading();
-
-            if(editandoAuditoriaId) {
-                data.modificado_por = currentUser.nombre; data.ultima_modificacion = new Date().toISOString();
-                await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", editandoAuditoriaId), data);
-            } else {
-                data.estado = "Programada"; data.creado_por = currentUser.nombre; data.timestamp = new Date().toISOString(); data.bitacora = []; data.lista_verificacion = []; data.reporte_auditoria = { conclusiones: '', notas: '' };
-                await addDoc(collection(db, "artifacts", appId, "public", "data", "Auditorias"), data);
+        window.cambiarAnioAuditoria = (val) => {
+            if(val === 'nuevo') {
+                let nYear = prompt("Ingrese el nuevo año a registrar (ej: 2028):");
+                if(nYear && !isNaN(nYear)) {
+                    let opt = document.createElement('option');
+                    opt.value = nYear; opt.text = nYear; opt.selected = true;
+                    document.getElementById('aud-year-select').add(opt, document.getElementById('aud-year-select').options[1]);
+                    val = nYear;
+                } else {
+                    document.getElementById('aud-year-select').value = new Date().getFullYear().toString(); return;
+                }
             }
+            window.loadAuditPlan(val); window.renderTablaAuditorias(val);
+        };
 
-            let correosPlan = globalAuditPlan && globalAuditPlan.correos ? globalAuditPlan.correos : [];
-            let correosNotificacion = new Set([...correosPlan, ...auditadoEmails, ...auditorEmails]);
-            correosNotificacion.add(EMAIL_ADMIN_SGC);
+        window.toggleAuditHeaderForm = () => {
+            const form = document.getElementById('audit-header-edit'); const view = document.getElementById('audit-header-view'); const isEditing = form.style.display === 'block';
+            if(isEditing) { form.style.display = 'none'; view.style.display = 'block'; } 
+            else {
+                const y = document.getElementById('aud-year-select').value; document.getElementById('edit-year-label').innerText = y;
+                document.querySelectorAll('#ah-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+                if(globalAuditPlan) {
+                    document.getElementById('ah-obj').value = globalAuditPlan.objetivo || ''; document.getElementById('ah-alcance').value = globalAuditPlan.alcance || ''; document.getElementById('ah-tecnica').value = globalAuditPlan.tecnica || ''; document.getElementById('ah-criterios').value = globalAuditPlan.criterios || ''; document.getElementById('ah-ref').value = globalAuditPlan.referencia || ''; document.getElementById('ah-fecha').value = globalAuditPlan.fecha_elab || ''; document.getElementById('ah-tec').value = globalAuditPlan.recursos_tec || ''; document.getElementById('ah-rrhh').value = globalAuditPlan.recursos_hh || ''; document.getElementById('ah-extra-emails').value = (globalAuditPlan.extra_correos || []).join(', ');
+                    let liderSel = document.getElementById('ah-lider'); for(let i=0; i<liderSel.options.length; i++){ if(liderSel.options[i].value === globalAuditPlan.lider) liderSel.selectedIndex = i; }
+                    let auditoresGuardados = globalAuditPlan.auditor_nombres || []; document.querySelectorAll('#ah-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresGuardados.includes(cb.value); });
+                } else {
+                    document.getElementById('ah-obj').value = ''; document.getElementById('ah-alcance').value = ''; document.getElementById('ah-tecnica').value = ''; document.getElementById('ah-criterios').value = ''; document.getElementById('ah-ref').value = ''; document.getElementById('ah-fecha').value = ''; document.getElementById('ah-tec').value = ''; document.getElementById('ah-rrhh').value = ''; document.getElementById('ah-extra-emails').value = ''; document.getElementById('ah-lider').selectedIndex = 0; 
+                }
+                form.style.display = 'block'; view.style.display = 'none';
+            }
+        };
 
-            let accionTxt = editandoAuditoriaId ? "modificado" : "programado";
-            const iniGCal = getGCalFormat(fecha, hIni); const finGCal = getGCalFormat(fecha, hFin);
-            const tituloGCal = encodeURIComponent(`Auditoría SGC: ${proceso}`); const detallesGCal = encodeURIComponent(`Requisitos: ${req}\nAuditados: ${data.auditado}\nAuditores: ${data.auditor}\nObservaciones: ${obs}`); const lugarGCal = encodeURIComponent(lugar);
-            
-            const gcalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${tituloGCal}&dates=${iniGCal}/${finGCal}&details=${detallesGCal}&location=${lugarGCal}`;
-            const botonCalendario = `<br><br><a href="${gcalLink}" target="_blank" style="background-color:#4285F4; color:white; padding:12px 20px; text-decoration:none; border-radius:8px; font-weight:bold; display:inline-block; font-family:sans-serif;">📅 Guardar en Google Calendar</a><br><br>`;
+        window.saveAuditPlan = async () => {
+            const year = document.getElementById('aud-year-select').value; const docId = `Plan_${year}`;
+            let motivo = "Creación inicial"; if(globalAuditPlan) { motivo = prompt("Motivo de la modificación del Plan Anual:"); if(!motivo) return alert("El motivo es obligatorio para editar."); }
+            const liderSel = document.getElementById('ah-lider'); const liderName = liderSel.options[liderSel.selectedIndex]?.value || ""; const liderEmail = liderSel.options[liderSel.selectedIndex]?.getAttribute('data-email') || "";
+            const audNombres = []; const audEmails = []; document.querySelectorAll('#ah-auditor-list input:checked').forEach(cb => { audNombres.push(cb.value); if(cb.dataset.email) audEmails.push(cb.dataset.email); });
+            const extraEmails = document.getElementById('ah-extra-emails').value.split(',').map(e => e.trim().toLowerCase()).filter(e=>e.includes('@'));
+            let todosLosCorreos = new Set([...audEmails, ...extraEmails]); if(liderEmail) todosLosCorreos.add(liderEmail);
+            const data = { year: year, objetivo: document.getElementById('ah-obj').value, alcance: document.getElementById('ah-alcance').value, tecnica: document.getElementById('ah-tecnica').value, criterios: document.getElementById('ah-criterios').value, referencia: document.getElementById('ah-ref').value, fecha_elab: document.getElementById('ah-fecha').value, lider: liderName, auditor: audNombres.join(', '), auditor_nombres: audNombres, recursos_tec: document.getElementById('ah-tec').value, recursos_hh: document.getElementById('ah-rrhh').value, extra_correos: extraEmails, correos: Array.from(todosLosCorreos), modificado_por: currentUser.nombre, ultima_modif: new Date().toISOString() };
+            window.showLoading();
+            if(globalAuditPlan) { await updateDoc(doc(db, "artifacts", appId, "public", "data", "AuditPlans", docId), { ...data, historial: arrayUnion({ fecha: new Date().toISOString(), usuario: currentUser.nombre, motivo: motivo }) }); } 
+            else { await setDoc(doc(db, "artifacts", appId, "public", "data", "AuditPlans", docId), { ...data, historial: [{ fecha: new Date().toISOString(), usuario: currentUser.nombre, motivo: motivo }] }); }
+            window.hideLoading(); alert("Plan Anual actualizado."); document.getElementById('audit-header-edit').style.display='none'; document.getElementById('audit-header-view').style.display='block';
+        };
 
-            const mensajeEmail = `Se ha ${accionTxt} una auditoría en el sistema:\n\n<b>📅 Fecha:</b> ${formatearFechaAbreviada(fecha)}<br><b>⏰ Horario:</b> ${hIni} - ${hFin}<br><b>📍 Lugar:</b> ${lugar}<br><b>📋 Proceso/Área:</b> ${proceso}<br><b>📝 Requisitos:</b> ${req}<br><b>👤 Auditado(s):</b> ${data.auditado}<br><b>🕵️‍♂️ Auditor(es):</b> ${data.auditor}<br><b>💬 Observaciones:</b> ${obs || 'Ninguna'}\n${botonCalendario}\nPor favor, verificar y confirmar la agenda en el sistema SGC.`;
-            
-            let destStr = Array.from(correosNotificacion).filter(e=>e && e.includes('@')).join(',');
-            if(destStr) { sendNotification({to: destStr, cc: ""}, `Auditoría ${accionTxt.charAt(0).toUpperCase() + accionTxt.slice(1)}: ` + proceso, mensajeEmail); }
-            
-            cancelarEdicionAuditoria(); hideLoading(); alert(`Auditoría ${accionTxt} y notificada correctamente.`);
-        }
+        window.loadAuditPlan = (year) => {
+            const docId = `Plan_${year}`; document.getElementById('view-year-label').innerText = year;
+            onSnapshot(doc(db, "artifacts", appId, "public", "data", "AuditPlans", docId), s => {
+                const viewObj = document.getElementById('audit-header-view');
+                if(s.exists()) {
+                    globalAuditPlan = s.data(); viewObj.style.display = 'block'; 
+                    document.getElementById('view-ah-obj').innerText = globalAuditPlan.objetivo || '-'; document.getElementById('view-ah-alcance').innerText = globalAuditPlan.alcance || '-'; document.getElementById('view-ah-tecnica').innerText = globalAuditPlan.tecnica || '-'; document.getElementById('view-ah-criterios').innerText = globalAuditPlan.criterios || '-'; document.getElementById('view-ah-ref').innerText = globalAuditPlan.referencia || '-'; document.getElementById('view-ah-fecha').innerText = window.formatearFechaAbreviada(globalAuditPlan.fecha_elab) || '-'; document.getElementById('view-ah-lider').innerText = globalAuditPlan.lider || '-'; document.getElementById('view-ah-auditor').innerText = globalAuditPlan.auditor || '-'; document.getElementById('view-ah-tec').innerText = globalAuditPlan.recursos_tec || '-'; document.getElementById('view-ah-rrhh').innerText = globalAuditPlan.recursos_hh || '-'; document.getElementById('view-ah-emails').innerText = (globalAuditPlan.correos || []).join(', ') || 'No hay correos registrados.';
+                    let modInfo = `Por: ${globalAuditPlan.modificado_por || '-'} el ${window.formatearFechaAbreviada(globalAuditPlan.ultima_modif)}`;
+                    if(globalAuditPlan.historial && globalAuditPlan.historial.length > 0) { let ultimoMotivo = globalAuditPlan.historial[globalAuditPlan.historial.length-1].motivo; modInfo += ` (Motivo: ${ultimoMotivo})`; } document.getElementById('view-ah-mod-info').innerText = modInfo;
+                } else { globalAuditPlan = null; viewObj.style.display = 'none'; }
+            });
+        };
 
-        function cargarAuditoriaParaEditar(id) {
+        window.cargarAuditoriaParaEditar = async (id) => {
             const audit = globalAllAuditorias.find(x => x.id === id); if(!audit) return;
             editandoAuditoriaId = id;
-            document.getElementById('titulo-form-auditoria').innerText = "Editar Auditoría Programada";
-            document.getElementById('aud-fecha').value = audit.fecha || ''; document.getElementById('aud-h-ini').value = audit.hora_inicio || ''; document.getElementById('aud-h-fin').value = audit.hora_fin || ''; document.getElementById('aud-lugar').value = audit.lugar || ''; document.getElementById('aud-proceso').value = audit.proceso || ''; document.getElementById('aud-req').value = audit.requisitos || ''; document.getElementById('aud-obs').value = audit.observacion || '';
-
-            let auditadosArr = audit.auditado ? audit.auditado.split(', ') : [];
-            document.querySelectorAll('#aud-auditado-list input[type="checkbox"]').forEach(cb => { cb.checked = auditadosArr.includes(cb.value); });
-            let auditoresArr = audit.auditor ? audit.auditor.split(', ') : [];
-            document.querySelectorAll('#aud-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresArr.includes(cb.value); });
-
+            document.getElementById('titulo-form-auditoria').innerText = "Editar Auditoría Programada"; document.getElementById('aud-fecha').value = audit.fecha || ''; document.getElementById('aud-h-ini').value = audit.hora_inicio || ''; document.getElementById('aud-h-fin').value = audit.hora_fin || ''; document.getElementById('aud-lugar').value = audit.lugar || ''; document.getElementById('aud-proceso').value = audit.proceso || ''; document.getElementById('aud-req').value = audit.requisitos || ''; document.getElementById('aud-obs').value = audit.observacion || '';
+            let auditadosArr = audit.auditado ? audit.auditado.split(', ') : []; document.querySelectorAll('#aud-auditado-list input[type="checkbox"]').forEach(cb => { cb.checked = auditadosArr.includes(cb.value); });
+            let auditoresArr = audit.auditor ? audit.auditor.split(', ') : []; document.querySelectorAll('#aud-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresArr.includes(cb.value); });
             document.getElementById('btn-guardar-aud').innerText = "ACTUALIZAR AUDITORÍA Y NOTIFICAR"; document.getElementById('btn-cancelar-aud').style.display = "block"; window.scrollTo({ top: 0, behavior: 'smooth' }); document.getElementById('audit-admin-panel').style.display = 'block';
-        }
+        };
 
-        function cancelarEdicionAuditoria() {
-            editandoAuditoriaId = null; document.getElementById('titulo-form-auditoria').innerText = "Programar Nueva Auditoría";
-            document.getElementById('aud-fecha').value = ''; document.getElementById('aud-h-ini').value = ''; document.getElementById('aud-h-fin').value = ''; document.getElementById('aud-lugar').value = ''; document.getElementById('aud-proceso').value = ''; document.getElementById('aud-req').value = ''; document.getElementById('aud-obs').value = '';
-            document.querySelectorAll('#aud-auditado-list input[type="checkbox"]').forEach(cb => cb.checked = false); document.querySelectorAll('#aud-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
-            document.getElementById('btn-guardar-aud').innerText = "AGREGAR AL CALENDARIO Y NOTIFICAR"; document.getElementById('btn-cancelar-aud').style.display = "none";
-        }
+        window.cancelarEdicionAuditoria = () => {
+            editandoAuditoriaId = null; document.getElementById('titulo-form-auditoria').innerText = "Programar Nueva Auditoría"; document.getElementById('aud-fecha').value = ''; document.getElementById('aud-h-ini').value = ''; document.getElementById('aud-h-fin').value = ''; document.getElementById('aud-lugar').value = ''; document.getElementById('aud-proceso').value = ''; document.getElementById('aud-req').value = ''; document.getElementById('aud-obs').value = ''; document.querySelectorAll('#aud-auditado-list input[type="checkbox"]').forEach(cb => cb.checked = false); document.querySelectorAll('#aud-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false); document.getElementById('btn-guardar-aud').innerText = "AGREGAR AL CALENDARIO Y NOTIFICAR"; document.getElementById('btn-cancelar-aud').style.display = "none";
+        };
 
-        async function guardarCierreFinal() {
-            const codFinal = document.getElementById('m-final-cod').value; const ver = document.getElementById('m-final-ver').value; const fecha = document.getElementById('m-final-fecha').value; const com = document.getElementById('m-final-comentario').value; const f = document.getElementById('m-final-file');
-            if(!ver || !fecha || !f.files[0]) return alert("Versión Final, Fecha y Documento son obligatorios.");
-            showLoading(); let fileUrl = await uploadToCloudinary(f.files[0]); if (!fileUrl) { hideLoading(); return alert("Error al subir."); }
-            const now = new Date().toISOString();
-            let fileName = f.files[0].name; let chatPayload = {u: "SISTEMA (SGC)", m: `🏁 <b>SOLICITUD APROBADA FINALMENTE.</b><br>Ver: ${ver}. Obs: ${com}`, t: new Date().toLocaleString(), archivo: fileUrl};
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Aprobado Final", codigo_final: codFinal, version_final: ver, fecha_final: fecha, comentario_final: com, documento_final: fileUrl, documento_final_nombre: fileName, fase_3_fin: now, chat: arrayUnion(chatPayload) });
-            let dataMaestro = { estatus: "Vigente", registrado_por: "Sistema (Automático)", fecha_registro: new Date().toISOString() };
-            columnasMaestro.forEach(c => { let cName = typeof c === 'string' ? c : c.nombre; let low = cName.toLowerCase(); if(low.includes('código') || low === 'codigo') dataMaestro[cName] = codFinal || selectedDocData.cod_ref || "POR_ASIGNAR"; else if(low.includes('gerencia')) dataMaestro[cName] = selectedDocData.gerencia; else if(low.includes('departamento')) dataMaestro[cName] = selectedDocData.departamento; else if(low.includes('tipo')) dataMaestro[cName] = selectedDocData.tipoDoc; else if(low.includes('nombre')) dataMaestro[cName] = selectedDocData.titulo; else if(low.includes('vers')) dataMaestro[cName] = ver; else if(low.includes('ubicaci') || low.includes('archivo') || low.includes('documento')) dataMaestro[cName] = fileUrl; else if(low.includes('fecha última') || low.includes('fecha ultima') || low === 'fecha') dataMaestro[cName] = fecha; });
-            await addDoc(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), dataMaestro);
-            const dest = await getDatosEnvio(selectedDocData); sendNotification(dest, `Cierre Exitoso: ${selectedDocData.customId}`, `Documento versión ${ver} publicado.`); hideLoading(); closeModal();
-        }
-
-        async function verDetalle(id) {
-            selectedId = id; document.getElementById('m-extra-input').innerHTML = ""; document.getElementById('m-comentario-libre').innerHTML = "";
-            const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", id));
-            selectedDocData = docSnap.data(); const s = selectedDocData; const p = currentUser.permisos;
+        window.guardarAuditoria = async () => {
+            const fecha = document.getElementById('aud-fecha').value; const hIni = document.getElementById('aud-h-ini').value; const hFin = document.getElementById('aud-h-fin').value; const proceso = document.getElementById('aud-proceso').value; const lugar = document.getElementById('aud-lugar').value; const req = document.getElementById('aud-req').value; const obs = document.getElementById('aud-obs').value;
+            if(!fecha || !proceso) return alert("Fecha y Proceso son obligatorios.");
+            const auditadoNombres = []; const auditadoEmails = []; document.querySelectorAll('#aud-auditado-list input:checked').forEach(cb => { auditadoNombres.push(cb.value); if(cb.dataset.email) auditadoEmails.push(cb.dataset.email); });
+            const auditorNombres = []; const auditorEmails = []; document.querySelectorAll('#aud-auditor-list input:checked').forEach(cb => { auditorNombres.push(cb.value); if(cb.dataset.email) auditorEmails.push(cb.dataset.email); });
+            let data = { fecha: fecha, hora_inicio: hIni, hora_fin: hFin, lugar: lugar, proceso: proceso, requisitos: req, auditado: auditadoNombres.join(', '), auditado_emails: auditadoEmails, auditor: auditorNombres.join(', '), auditor_emails: auditorEmails, observacion: obs };
+            window.showLoading();
+            if(editandoAuditoriaId) { data.modificado_por = currentUser.nombre; data.ultima_modificacion = new Date().toISOString(); await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", editandoAuditoriaId), data); } 
+            else { data.estado = "Programada"; data.creado_por = currentUser.nombre; data.timestamp = new Date().toISOString(); data.bitacora = []; data.lista_verificacion = []; data.reporte_auditoria = { conclusiones: '', notas: '' }; await addDoc(collection(db, "artifacts", appId, "public", "data", "Auditorias"), data); }
             
-            document.getElementById('m-id').innerText = s.customId; document.getElementById('m-tit').innerText = s.titulo; document.getElementById('m-sol').innerText = s.solicitante;
-            let estadoStr = (s.estado || "").toUpperCase(); let isAprobadoFinalModal = estadoStr.includes('APROBADO FINAL'); let isCancelado = estadoStr === 'ANULADO' || estadoStr === 'RECHAZADO';
-            
-            let badgeClass = 'badge-info'; if(estadoStr.includes('APROBADO')) badgeClass = 'badge-success'; if(isCancelado) badgeClass = 'badge-danger'; if(estadoStr.includes('PENDIENTE')) badgeClass = 'badge-warning';
-            document.getElementById('m-est').innerText = isAprobadoFinalModal ? 'APROBADO FINAL' : s.estado; document.getElementById('m-est').className = `badge ${badgeClass}`;
-            let fActual = PASOS_NOMBRES[s.idx]; if (!isAprobadoFinalModal && !isCancelado && fActual) { document.getElementById('m-est').innerHTML += ` <span style="font-size:10px; color:#64748b; font-weight:700; margin-left:8px; background:transparent; border:none; display:inline-block; vertical-align:middle;">(📍 Etapa: ${fActual})</span>`; }
-            
-            document.getElementById('m-ger').innerText = s.gerencia; document.getElementById('m-tipo').innerText = s.tipoDoc || "N/A"; 
-            
-            let pr = s.prioridad || "Normal"; let bPr = pr === 'Alta' ? 'badge-danger' : (pr === 'Básica' ? 'badge-info' : 'badge-dark');
-            document.getElementById('m-prioridad').innerText = pr.toUpperCase(); document.getElementById('m-prioridad').className = `badge ${bPr}`;
-            
-            document.getElementById('m-accion').innerText = s.accion; document.getElementById('m-jus').innerText = s.motivo || s.justificacion || "Sin justificación";
-            let adjOrigName = s.adjunto_nombre || "Descargar Archivo"; if(adjOrigName.startsWith('http')) { try { adjOrigName = decodeURIComponent(adjOrigName.split('/').pop().split('?')[0]); } catch(e){} }
-            let dlUrl = s.adjunto ? getDownloadUrl(s.adjunto) : "#"; document.getElementById('m-file-link').innerHTML = s.adjunto ? `<a href="${dlUrl}" target="_blank" class="file-link" download="${adjOrigName}">📎 ${adjOrigName}</a>` : "Sin archivo";
-            
-            if(s.accion !== 'Creación') { document.getElementById('m-extra-panel').style.display = 'block'; document.getElementById('m-cod').innerText = s.cod_ref; document.getElementById('m-ver').innerText = s.ver_ref; document.getElementById('m-fecha-ult').innerText = formatearFechaAbreviada(s.fecha_ref); } else document.getElementById('m-extra-panel').style.display = 'none';
+            let correosPlan = globalAuditPlan && globalAuditPlan.correos ? globalAuditPlan.correos : []; let correosNotificacion = new Set([...correosPlan, ...auditadoEmails, ...auditorEmails]); correosNotificacion.add(EMAIL_ADMIN_SGC);
+            let accionTxt = editandoAuditoriaId ? "modificado" : "programado";
+            const iniGCal = window.getGCalFormat(fecha, hIni); const finGCal = window.getGCalFormat(fecha, hFin); const tituloGCal = encodeURIComponent(`Auditoría SGC: ${proceso}`); const detallesGCal = encodeURIComponent(`Requisitos: ${req}\nAuditados: ${data.auditado}\nAuditores: ${data.auditor}\nObservaciones: ${obs}`); const lugarGCal = encodeURIComponent(lugar);
+            const gcalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${tituloGCal}&dates=${iniGCal}/${finGCal}&details=${detallesGCal}&location=${lugarGCal}`;
+            const botonCalendario = `<br><br><a href="${gcalLink}" target="_blank" style="background-color:#4285F4; color:white; padding:12px 20px; text-decoration:none; border-radius:8px; font-weight:bold; display:inline-block; font-family:sans-serif;">📅 Guardar en Google Calendar</a><br><br>`;
+            const mensajeEmail = `Se ha ${accionTxt} una auditoría en el sistema:\n\n<b>📅 Fecha:</b> ${window.formatearFechaAbreviada(fecha)}<br><b>⏰ Horario:</b> ${hIni} - ${hFin}<br><b>📍 Lugar:</b> ${lugar}<br><b>📋 Proceso/Área:</b> ${proceso}<br><b>📝 Requisitos:</b> ${req}<br><b>👤 Auditado(s):</b> ${data.auditado}<br><b>🕵️‍♂️ Auditor(es):</b> ${data.auditor}<br><b>💬 Observaciones:</b> ${obs || 'Ninguna'}\n${botonCalendario}\nPor favor, verificar y confirmar la agenda en el sistema SGC.`;
+            let destStr = Array.from(correosNotificacion).filter(e=>e && e.includes('@')).join(',');
+            if(destStr) { window.sendNotification({to: destStr, cc: ""}, `Auditoría ${accionTxt.charAt(0).toUpperCase() + accionTxt.slice(1)}: ` + proceso, mensajeEmail); }
+            window.cancelarEdicionAuditoria(); window.hideLoading(); alert(`Auditoría ${accionTxt} y notificada correctamente.`);
+        };
 
-            let invHTML = "No hay personas extras añadidas.";
-            if(s.involucrados && s.involucrados.length > 0) {
-                invHTML = s.involucrados.map(email => { let userFound = allUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase()); return userFound ? `${userFound.nombre} (${email})` : email; }).join('<br>');
-            }
-            document.getElementById('m-involucrados-list').innerHTML = invHTML;
+        window.exportarExcelAuditoria = () => {
+            if(globalAuditorias.length === 0) return alert("No hay auditorías registradas en este filtro.");
+            let dataExport = globalAuditorias.map(a => {
+                let msTotal = "";
+                if(a.hora_real_inicio && a.hora_real_fin) { let m = Math.floor((new Date(a.hora_real_fin) - new Date(a.hora_real_inicio)) / 60000); msTotal = `${Math.floor(m/60)}h ${m%60}m`; }
+                return { "Fecha Programada": a.fecha ? window.formatearFechaAbreviada(a.fecha) : '', "Horario Estimado": `${a.hora_inicio || ''} - ${a.hora_fin || ''}`, "Proceso / Área": a.proceso || '', "Auditado(s)": a.auditado || '', "Auditor(es)": a.auditor || '', "Lugar": a.lugar || '', "Estado": a.estado || '', "Inicio Real": a.hora_real_inicio ? new Date(a.hora_real_inicio).toLocaleString() : '', "Fin Real": a.hora_real_fin ? new Date(a.hora_real_fin).toLocaleString() : '', "Duración Total": msTotal };
+            });
+            let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dataExport); XLSX.utils.book_append_sheet(wb, ws, "Auditorias"); let y = document.getElementById('aud-year-select').value; XLSX.writeFile(wb, `Reporte_Auditorias_${y}.xlsx`);
+        };
 
-            for(let i=1; i<=4; i++) {
-                const st = document.getElementById('s'+i); st.className = 'step'; 
-                if(isCancelado) continue;
-                if(i <= s.idx) st.classList.add('completed'); 
-                if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active');
-            }
-
-            const esAdminSGC = p.admin || p.p_gest_sgc; 
-            const esGer = p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia);
-            const activo = !isAprobadoFinalModal && !isCancelado;
-            
-            let puedeGestionarSGC = false;
-            if(activo) {
-                if (s.idx === 0 && (p.p_gest_sgc || p.p_paso1 || p.admin)) puedeGestionarSGC = true;
-                if (s.idx === 1 && (p.p_gest_sgc || p.p_paso2 || p.admin)) puedeGestionarSGC = true;
-                if (s.idx === 3 && (p.p_gest_sgc || p.p_paso4 || p.admin)) puedeGestionarSGC = true;
-            }
-            const puedeGestionarGerente = esGer && s.idx === 2 && activo;
-            const esInvolucradoActivo = s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()); 
-            const esDuenio = s.uid === currentUser.usuario || esInvolucradoActivo; 
-
-            document.getElementById('btn-reabrir').style.display = (esAdminSGC && !activo) ? 'inline-flex' : 'none';
-            document.getElementById('m-add-involucrado-section').style.display = activo ? 'flex' : 'none';
-            document.getElementById('m-actions').style.display = (puedeGestionarSGC || puedeGestionarGerente) ? 'block' : 'none';
-            document.getElementById('applicant-actions').style.display = (esDuenio && activo) ? 'block' : 'none';
-            document.getElementById('m-input-area').style.display = 'none';
-            document.getElementById('general-comment-area').style.display = !isCancelado ? 'block' : 'none';
-            
-            const puedeDevolver = (puedeGestionarSGC || puedeGestionarGerente) && s.idx > 0 && activo;
-            document.getElementById('btn-devolver-paso').style.display = puedeDevolver ? 'inline-block' : 'none';
-            document.getElementById('btn-anular').style.display = ((puedeGestionarSGC || esDuenio) && activo) ? 'inline-block' : 'none'; 
-
-            const slaPanel = document.getElementById('m-admin-sla'); const slaDateInput = document.getElementById('m-sla-date'); const slaBtn = document.getElementById('btn-save-sla');
-            if(s.fecha_esperada_cierre) {
-                slaPanel.style.display = 'block'; slaDateInput.value = s.fecha_esperada_cierre;
-                if(!esAdminSGC) { slaDateInput.disabled = true; slaBtn.style.display = 'none'; } else { slaDateInput.disabled = false; slaBtn.style.display = 'inline-block'; }
-            } else if (esAdminSGC && activo) {
-                slaPanel.style.display = 'block'; slaDateInput.value = ''; slaDateInput.disabled = false; slaBtn.style.display = 'inline-block';
-            } else { slaPanel.style.display = 'none'; }
-
-            document.getElementById('m-panel-final-sgc').style.display = 'none'; document.getElementById('m-panel-update-sgc').style.display = 'none'; document.getElementById('m-display-final').style.display = 'none'; document.getElementById('m-original-data').classList.remove('locked-data'); document.getElementById('m-orig-title').style.display = 'none';
-
-            if ((esAdminSGC || p.p_paso2) && s.idx === 1 && activo) {
-                document.getElementById('m-panel-update-sgc').style.display = 'block'; document.getElementById('m-upd-tit').value = s.titulo || ''; document.getElementById('m-upd-cod').value = s.cod_ref || ''; document.getElementById('m-upd-ver').value = s.ver_ref || '';
-            }
-            
-            if (isAprobadoFinalModal) {
-                if (s.version_final) {
-                    document.getElementById('m-original-data').classList.add('locked-data'); document.getElementById('m-orig-title').style.display = 'flex'; document.getElementById('m-display-final').style.display = 'block';
-                    document.getElementById('m-disp-cod').innerText = s.codigo_final || s.cod_ref || "N/A"; document.getElementById('m-disp-ver').innerText = s.version_final; document.getElementById('m-disp-fecha').innerText = s.fecha_final ? formatearFechaAbreviada(s.fecha_final) : "N/A"; document.getElementById('m-disp-com').innerText = s.comentario_final || "Sin comentarios adicionales.";
-                    let finName = s.documento_final_nombre || "Documento Oficial Final"; if(finName.startsWith('http')) { try { finName = decodeURIComponent(finName.split('/').pop().split('?')[0]); } catch(e){} }
-                    let finUrl = s.documento_final ? getDownloadUrl(s.documento_final) : "#"; document.getElementById('m-disp-file').innerHTML = s.documento_final ? `<a href="${finUrl}" target="_blank" class="file-link" style="font-size:14px;" download="${finName}">📄 ${finName}</a>` : "N/A";
-
-                    if(p.admin) {
-                        document.getElementById('btn-edit-fecha-final').style.display = 'inline-block';
-                        document.getElementById('btn-edit-fecha-final').onclick = () => { document.getElementById('m-disp-fecha').style.display = 'none'; document.getElementById('btn-edit-fecha-final').style.display = 'none'; document.getElementById('edit-fecha-final-container').style.display = 'block'; if(s.fecha_final) { let df = s.fecha_final; if(df.includes('T')) df = df.split('T')[0]; document.getElementById('in-edit-fecha-final').value = df; } };
-                        document.getElementById('btn-cancel-fecha-final').onclick = () => { document.getElementById('m-disp-fecha').style.display = 'block'; document.getElementById('btn-edit-fecha-final').style.display = 'inline-block'; document.getElementById('edit-fecha-final-container').style.display = 'none'; };
-                        document.getElementById('btn-save-fecha-final').onclick = async () => {
-                            const nv = document.getElementById('in-edit-fecha-final').value; if(!nv) return; showLoading();
-                            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { fecha_final: nv });
-                            const codBusqueda = s.codigo_final || s.cod_ref;
-                            if(codBusqueda) {
-                                const qMaestro = query(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), where("Código", "==", codBusqueda)); const snapM = await getDocs(qMaestro);
-                                if(!snapM.empty) { let idM = snapM.docs[0].id; let colFech = columnasMaestro.find(c => { let cN = typeof c === 'string' ? c : c.nombre; return cN.toLowerCase().includes('fecha última') || cN.toLowerCase().includes('fecha ultima') || cN.toLowerCase() === 'fecha'; }); if(colFech) { let cN = typeof colFech === 'string' ? colFech : colFech.nombre; await updateDoc(doc(db, "artifacts", appId, "public", "data", "ListadoMaestro", idM), { [cN]: nv }); } }
-                            }
-                            hideLoading(); document.getElementById('edit-fecha-final-container').style.display = 'none'; alert("Fecha actualizada."); verDetalle(selectedId);
-                        };
-                    } else { document.getElementById('btn-edit-fecha-final').style.display = 'none'; document.getElementById('edit-fecha-final-container').style.display = 'none'; }
-                } else if (esAdminSGC || p.p_paso4) { document.getElementById('m-panel-final-sgc').style.display = 'block'; document.getElementById('m-final-cod').value = s.cod_ref || ""; }
-            }
-
-            if(activo) document.getElementById('btn-firma-next').innerText = `Aprobar Etapa (${PASOS_NOMBRES[s.idx] || 'Final'})`;
-            const cb = document.getElementById('chat-box');
-            cb.innerHTML = s.chat ? s.chat.map(c => `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}"><b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}${c.archivo ? `<br><a href="${getDownloadUrl(c.archivo)}" target="_blank" style="font-size:10px;color:blue" download="Documento_Adjunto">Ver Adjunto</a>` : ''}</div>`).join('') : '';
-            document.getElementById('modal').style.display = 'flex';
-        }
-
-        async function iniciarAuditoriaDirecto(id) {
-            if(!confirm("¿Iniciar la auditoría ahora? Se registrará la hora actual.")) return;
-            showLoading();
-            const now = new Date().toISOString();
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", id), { estado: "En Progreso", hora_real_inicio: now, bitacora: arrayUnion({u: currentUser.nombre, m: `▶️ <b>AUDITORÍA INICIADA</b>`, t: new Date().toLocaleString()}) });
-            hideLoading();
-        }
-
-        async function finalizarAuditoriaDirecto(id) {
-            if(!confirm("¿Finalizar la auditoría? Se registrará la hora de cierre y calculará la duración.")) return;
-            showLoading();
-            const now = new Date().toISOString();
-            const docRef = doc(db, "artifacts", appId, "public", "data", "Auditorias", id);
-            const snap = await getDoc(docRef);
-            if(snap.exists()) {
-                let a = snap.data();
-                await updateDoc(docRef, { estado: "Completada", hora_real_fin: now, bitacora: arrayUnion({u: currentUser.nombre, m: `⏹️ <b>AUDITORÍA COMPLETADA FINALIZADA</b>`, t: new Date().toLocaleString()}) });
-                let emails = new Set([...(a.auditor_emails||[]), ...(a.auditado_emails||[])]);
-                if(globalAuditPlan && globalAuditPlan.correos) { globalAuditPlan.correos.forEach(e => emails.add(e)); } emails.add(EMAIL_ADMIN_SGC);
-                let destStr = Array.from(emails).filter(e=>e && e.includes('@')).join(',');
-                if(destStr) { sendNotification({to: destStr, cc: ""}, "✅ Auditoría Completada: " + a.proceso, `La auditoría del proceso ${a.proceso} ha finalizado en el sistema SGC.\nPor favor revise el panel para el tiempo total e informes.`); }
-            }
-            hideLoading(); alert("Auditoría Finalizada");
-        }
-
-        async function verModalAuditoria(id) {
-            selectedAuditId = id; const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", id)); if(!docSnap.exists()) return;
-            selectedAuditData = docSnap.data(); const a = selectedAuditData;
-            document.getElementById('ma-proceso').innerText = a.proceso || 'Sin Proceso'; document.getElementById('ma-fecha').innerText = formatearFechaAbreviada(a.fecha) || 'Sin Fecha'; document.getElementById('ma-hora').innerText = `${a.hora_inicio || '--:--'} a ${a.hora_fin || '--:--'}`; document.getElementById('ma-lugar').innerText = a.lugar || 'N/A'; document.getElementById('ma-auditado').innerText = a.auditado || 'N/A'; document.getElementById('ma-auditor').innerText = a.auditor || 'N/A'; document.getElementById('ma-req').innerText = a.requisitos || 'Ninguno especificado.'; document.getElementById('ma-obs').innerText = a.observacion || 'Sin observaciones.';
-            let estStr = a.estado || 'Programada'; let bdg = estStr === 'Completada' ? 'badge-success' : (estStr === 'En Progreso' ? 'badge-info' : 'badge-warning');
-            document.getElementById('ma-estado-badge').className = `badge ${bdg}`; document.getElementById('ma-estado-badge').innerText = estStr.toUpperCase();
-            document.getElementById('ma-inicio-real').innerText = a.hora_real_inicio ? new Date(a.hora_real_inicio).toLocaleString() : '---'; document.getElementById('ma-fin-real').innerText = a.hora_real_fin ? new Date(a.hora_real_fin).toLocaleString() : '---';
-            if(a.hora_real_inicio && a.hora_real_fin) { let ms = new Date(a.hora_real_fin) - new Date(a.hora_real_inicio); let mins = Math.floor(ms / 60000); let hrs = Math.floor(mins / 60); let remMins = mins % 60; document.getElementById('ma-duracion').innerText = `${hrs} horas, ${remMins} minutos`; } else { document.getElementById('ma-duracion').innerText = '---'; }
-            const isAdminAudit = currentUser.permisos.p_audit_admin || currentUser.permisos.admin || currentUser.permisos.p_gest_sgc; const isAuditor = a.auditor && a.auditor.includes(currentUser.nombre); const canControl = isAdminAudit || isAuditor;
-            document.getElementById('btn-comenzar-auditoria').style.display = (canControl && estStr === 'Programada') ? 'inline-block' : 'none'; document.getElementById('btn-finalizar-auditoria').style.display = (canControl && estStr === 'En Progreso') ? 'inline-block' : 'none';
-            const cb = document.getElementById('chat-box-audit'); cb.innerHTML = a.bitacora ? a.bitacora.map(c => `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}"><b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}${c.archivo ? `<br><a href="${getDownloadUrl(c.archivo)}" target="_blank" style="font-size:10px;color:blue" download="Evidencia_Auditoria">Ver Evidencia</a>` : ''}</div>`).join('') : '';
-
-            currentAuditF020 = a.lista_verificacion || []; renderF020();
-            if(a.reporte_auditoria) { document.getElementById('f003-conclusiones').value = a.reporte_auditoria.conclusiones || ""; document.getElementById('f003-notas').value = a.reporte_auditoria.notas || ""; } else { document.getElementById('f003-conclusiones').value = ""; document.getElementById('f003-notas').value = ""; }
-            actualizarMetricasF003(); renderAuditSACs();
-            const canEditForms = canControl && estStr !== 'Completada';
-            document.getElementById('btn-add-f020').style.display = canEditForms ? 'inline-block' : 'none'; document.getElementById('btn-save-f020').style.display = canEditForms ? 'inline-block' : 'none'; document.getElementById('btn-save-f003').style.display = canControl ? 'inline-block' : 'none'; 
-            switchAuditTab('info'); document.getElementById('modal-auditoria').style.display = 'flex';
-        }
-
-        async function comenzarAuditoria() { await iniciarAuditoriaDirecto(selectedAuditId); verModalAuditoria(selectedAuditId); }
-        async function finalizarAuditoria() { await finalizarAuditoriaDirecto(selectedAuditId); verModalAuditoria(selectedAuditId); }
-        
-        async function enviarComentarioAuditoria() {
-            const box = document.getElementById('ma-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = document.getElementById('ma-file-comentario');
-            if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta evidencia.");
-            showLoading(); let fileUrl = null;
-            if (f.files[0]) { fileUrl = await uploadToCloudinary(f.files[0]); if (!fileUrl) { hideLoading(); return alert("Error de red."); } }
-            let chatPayload = {u: currentUser.nombre, m: `💬 <b>Anotación/Hallazgo:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; if (fileUrl) chatPayload.archivo = fileUrl; 
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { bitacora: arrayUnion(chatPayload) });
-            box.innerHTML = ""; f.value = ""; hideLoading(); verModalAuditoria(selectedAuditId); 
-        }
-
-        // ==========================================
-        // REGISTRO SEGURO EN WINDOW PARA HTML
-        // ==========================================
+        // EXPOSICIÓN FINAL A WINDOW PARA TODO EL HTML
         Object.assign(window, {
             showLoading, hideLoading, cambiarVista, toggleMenu, toggleModPanel, closeModal, cerrarModalAuditoria,
             del, getDownloadUrl, formatearFechaAbreviada, getGCalFormat, sendNotification, getDatosEnvio, uploadToCloudinary, getNextFCI, checkDailyAlerts, verificarAlertasAuditoria,
-            actualizarSelectTiposDoc, renderListasConfig, agregarTipoDoc, eliminarTipoDoc, agregarColumna, eliminarColumna, agregarEstatus, eliminarEstatus,
-            renderTablaMaestro, abrirModalListadoMaestro, guardarRegistroMaestro, subirArchivoGenericoLM,
-            cargarUsuarioParaEditar, resetUserForm, actualizarDatosSGC, guardarSLA, devolverPaso, verDetalle, gestionar, responderSolicitante, firmarPaso, enviarComentarioLibre, guardarCierreFinal, anularSolicitud, addInvolucradoList, guardarNuevoInvolucrado,
-            filtrarTabla, setFilterGest, rechazar, descargarExcelFiltrado, exportarExcelListado,
-            cambiarAnioAuditoria, toggleAuditHeaderForm, saveAuditPlan, loadAuditPlan, cargarAuditoriaParaEditar, cancelarEdicionAuditoria, guardarAuditoria, renderTablaAuditorias, iniciarAuditoriaDirecto, finalizarAuditoriaDirecto, verModalAuditoria, comenzarAuditoria, finalizarAuditoria, enviarComentarioAuditoria, exportarExcelAuditoria,
-            switchAuditTab, renderAuditSACs, abrirCrearSAC, verSAC, guardarSAC, renderF023Global, setFilterGestNC, verSACGlobal, exportarExcelNoConf, renderF020, agregarFilaF020, eliminarF020, guardarF020, actualizarMetricasF003, guardarF003,
-            completarLoginUI, logout
+            completarLoginUI, logout, descargarExcelFiltrado, exportarExcelListado,
+            renderF023Global, setFilterGestNC, verSACGlobal, exportarExcelNoConf,
+            switchAuditTab, renderAuditSACs, abrirCrearSAC, verSAC, guardarSAC, renderF020, agregarFilaF020, eliminarF020, guardarF020, actualizarMetricasF003, guardarF003
         });
 
         // ==========================================
-        // LÓGICA DE LOGIN Y SESIÓN
+        // LÓGICA DE LOGIN Y SESIÓN INICIAL
         // ==========================================
         document.getElementById('login-pass').addEventListener('keypress', function(e) { if (e.key === 'Enter') { document.getElementById('btnLogin').click(); } });
 
@@ -2060,7 +1953,7 @@
             const u = document.getElementById('login-user').value.toLowerCase().trim();
             const p = document.getElementById('login-pass').value.trim();
             if (!u || !p) { alert("Por favor, ingresa tu usuario y contraseña."); return; }
-            showLoading();
+            window.showLoading();
             try {
                 if(u === 'admin' && p === '1130') {
                     const adminRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", "admin");
@@ -2075,9 +1968,9 @@
                 const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", u), where("pass", "==", p));
                 const querySnapshot = await getDocs(q);
                 if(!querySnapshot.empty) {
-                    localStorage.setItem('sgc_session_user', u); currentUser = querySnapshot.docs[0].data(); completarLoginUI();
+                    localStorage.setItem('sgc_session_user', u); currentUser = querySnapshot.docs[0].data(); window.completarLoginUI();
                 } else { alert("Credenciales incorrectas. Verifica tu usuario o contraseña."); }
-            } catch (error) { console.error("Error:", error); alert("Hubo un problema al conectar con la base de datos."); } finally { hideLoading(); }
+            } catch (error) { console.error("Error:", error); alert("Hubo un problema al conectar con la base de datos."); } finally { window.hideLoading(); }
         };
 
         const btnSaveGer = document.getElementById('btnSaveGer');
@@ -2089,14 +1982,14 @@
         async function restaurarSesion() {
             const savedUser = localStorage.getItem('sgc_session_user');
             if(savedUser) {
-                showLoading();
+                window.showLoading();
                 try {
                     const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", savedUser));
                     const snap = await getDocs(q);
-                    if(!snap.empty) { currentUser = snap.docs[0].data(); completarLoginUI(); } 
+                    if(!snap.empty) { currentUser = snap.docs[0].data(); window.completarLoginUI(); } 
                     else { localStorage.removeItem('sgc_session_user'); }
                 } catch(e) { console.error("Error restaurando sesión:", e); }
-                hideLoading();
+                window.hideLoading();
             }
         }
         restaurarSesion();
