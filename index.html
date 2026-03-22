@@ -1219,14 +1219,13 @@
         const UPLOAD_PRESET = "fci_documentos";
         const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
 
-        // Variables Globales sin window
         let currentUser = null, selectedId = null, selectedDocData = null, tempAction = "";
         let allUsers = [], allDepartamentos = [], tiposDocumento = [], columnasMaestro = [], estatusMaestro = [], dataMaestro = [], editandoMaestroId = null;
         let globalSolicitudes = [], globalAuditPlan = null, globalAllAuditorias = [], globalAuditorias = [];
         let selectedAuditId = null, selectedAuditData = null, editandoAuditoriaId = null;
         let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, currentEditingF020Ref = null;
 
-        // ASIGNACIÓN AL OBJETO WINDOW (Carga Inmediata)
+        // ASIGNACIÓN AL OBJETO WINDOW (Carga Inmediata y segura)
         window.showLoading = () => document.getElementById('loading-overlay').style.display = 'flex';
         window.hideLoading = () => document.getElementById('loading-overlay').style.display = 'none';
 
@@ -1258,6 +1257,7 @@
             }
         };
 
+        // Ahora forzamos que abra en nueva pestaña en vez de forzar descarga "fl_attachment"
         window.getDownloadUrl = (url) => {
             if(!url) return "#";
             return url; 
@@ -1611,8 +1611,9 @@
             document.getElementById('m-ger').innerText = s.gerencia; document.getElementById('m-tipo').innerText = s.tipoDoc || "N/A"; 
             let pr = s.prioridad || "Normal"; let bPr = pr === 'Alta' ? 'badge-danger' : (pr === 'Básica' ? 'badge-info' : 'badge-dark'); document.getElementById('m-prioridad').innerText = pr.toUpperCase(); document.getElementById('m-prioridad').className = `badge ${bPr}`;
             document.getElementById('m-accion').innerText = s.accion; document.getElementById('m-jus').innerText = s.motivo || s.justificacion || "Sin justificación";
-            let adjOrigName = s.adjunto_nombre || "Descargar Archivo"; if(adjOrigName.startsWith('http')) { try { adjOrigName = decodeURIComponent(adjOrigName.split('/').pop().split('?')[0]); } catch(e){} }
-            let dlUrl = s.adjunto ? window.getDownloadUrl(s.adjunto) : "#"; document.getElementById('m-file-link').innerHTML = s.adjunto ? `<a href="${dlUrl}" target="_blank" class="file-link">📎 ${adjOrigName}</a>` : "Sin archivo";
+            let adjOrigName = s.adjunto_nombre || "Ver Archivo"; if(adjOrigName.startsWith('http')) { try { adjOrigName = decodeURIComponent(adjOrigName.split('/').pop().split('?')[0]); } catch(e){} }
+            let dlUrl = s.adjunto ? window.getDownloadUrl(s.adjunto) : "#"; 
+            document.getElementById('m-file-link').innerHTML = s.adjunto ? `<a href="${dlUrl}" target="_blank" class="file-link">📎 ${adjOrigName}</a>` : "Sin archivo";
             
             if(s.accion !== 'Creación') { document.getElementById('m-extra-panel').style.display = 'block'; document.getElementById('m-cod').innerText = s.cod_ref; document.getElementById('m-ver').innerText = s.ver_ref; document.getElementById('m-fecha-ult').innerText = window.formatearFechaAbreviada(s.fecha_ref); } else document.getElementById('m-extra-panel').style.display = 'none';
 
@@ -1681,34 +1682,17 @@
         window.reabrirSolicitud = async () => {
             if(!confirm("⚠️ ¿Estás seguro de REABRIR esta solicitud?")) return;
             let motivo = prompt("Describe el motivo de la reapertura:"); if(!motivo) return alert("Se requiere un motivo.");
-            window.showLoading();
-            const now = new Date().toISOString();
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { 
-                estado: "Pendiente Documentado", 
-                idx: 0, 
-                fase_0_ini: now, 
-                chat: arrayUnion({u: currentUser.nombre, m: `<b style="color:var(--danger);">⚠️ REAPERTURA DE SOLICITUD POR ADMINISTRACIÓN</b><br><b>Motivo:</b> ${motivo}`, t: new Date().toLocaleString()}) 
-            });
-            const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Solicitud Reabierta: ${selectedDocData.customId}`, `Motivo: ${motivo}`);
-            window.hideLoading(); alert("Solicitud reabierta."); window.closeModal();
+            window.showLoading(); const now = new Date().toISOString();
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Pendiente Documentado", idx: 0, fase_0_ini: now, chat: arrayUnion({u: currentUser.nombre, m: `<b style="color:var(--danger);">⚠️ REAPERTURA DE SOLICITUD POR ADMINISTRACIÓN</b><br><b>Motivo:</b> ${motivo}`, t: new Date().toLocaleString()}) });
+            const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Solicitud Reabierta: ${selectedDocData.customId}`, `Motivo: ${motivo}`); window.hideLoading(); alert("Solicitud reabierta."); window.closeModal();
         };
 
         window.gestionar = (tipo) => { tempAction = tipo; document.getElementById('m-input-area').style.display = 'block'; if(tipo === 'Reunión') { document.getElementById('reunion-container').style.display = 'block'; document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Tema de la reunión...'); } else { document.getElementById('reunion-container').style.display = 'none'; document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Motivo / Consulta / Comentario...'); } };
-
         window.responderSolicitante = () => { tempAction = "Respuesta"; document.getElementById('m-input-area').style.display = 'block'; document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Detalla tu corrección...'); document.getElementById('reunion-container').style.display = 'none'; };
 
         window.firmarPaso = async () => {
-            const s = selectedDocData; const nIdx = s.idx + 1; const nEst = nIdx < 4 ? PASOS_NOMBRES[nIdx] : "Aprobado Final"; const faseAprobada = PASOS_NOMBRES[s.idx]; 
-            const now = new Date().toISOString();
-            
-            let updates = { 
-                idx: nIdx, 
-                estado: nEst, 
-                [`fase_${s.idx}_fin`]: now,
-                [`fase_${nIdx}_ini`]: now,
-                chat: arrayUnion({u: currentUser.nombre, m: `✅ FASE COMPLETADA: ${faseAprobada}`, t: new Date().toLocaleString()}) 
-            };
-
+            const s = selectedDocData; const nIdx = s.idx + 1; const nEst = nIdx < 4 ? PASOS_NOMBRES[nIdx] : "Aprobado Final"; const faseAprobada = PASOS_NOMBRES[s.idx]; const now = new Date().toISOString();
+            let updates = { idx: nIdx, estado: nEst, [`fase_${s.idx}_fin`]: now, [`fase_${nIdx}_ini`]: now, chat: arrayUnion({u: currentUser.nombre, m: `✅ FASE COMPLETADA: ${faseAprobada}`, t: new Date().toLocaleString()}) };
             await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), updates);
             const dest = await window.getDatosEnvio(s); window.sendNotification(dest, `Avance: ${s.customId}`, `La solicitud avanzó a: ${nEst}.`); window.closeModal();
         };
@@ -1728,8 +1712,7 @@
             const codFinal = document.getElementById('m-final-cod').value; const ver = document.getElementById('m-final-ver').value; const fecha = document.getElementById('m-final-fecha').value; const com = document.getElementById('m-final-comentario').value; const f = document.getElementById('m-final-file');
             if(!ver || !fecha || !f.files[0]) return alert("Versión Final, Fecha y Documento son obligatorios.");
             window.showLoading(); let fileUrl = await window.uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error al subir."); }
-            const now = new Date().toISOString();
-            let fileName = f.files[0].name; let chatPayload = {u: "SISTEMA (SGC)", m: `🏁 <b>SOLICITUD APROBADA FINALMENTE.</b><br>Ver: ${ver}. Obs: ${com}`, t: new Date().toLocaleString(), archivo: fileUrl};
+            const now = new Date().toISOString(); let fileName = f.files[0].name; let chatPayload = {u: "SISTEMA (SGC)", m: `🏁 <b>SOLICITUD APROBADA FINALMENTE.</b><br>Ver: ${ver}. Obs: ${com}`, t: new Date().toLocaleString(), archivo: fileUrl};
             await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Aprobado Final", codigo_final: codFinal, version_final: ver, fecha_final: fecha, comentario_final: com, documento_final: fileUrl, documento_final_nombre: fileName, fase_3_fin: now, chat: arrayUnion(chatPayload) });
             let dataMaestro = { estatus: "Vigente", registrado_por: "Sistema (Automático)", fecha_registro: new Date().toISOString() };
             columnasMaestro.forEach(c => { let cName = typeof c === 'string' ? c : c.nombre; let low = cName.toLowerCase(); if(low.includes('código') || low === 'codigo') dataMaestro[cName] = codFinal || selectedDocData.cod_ref || "POR_ASIGNAR"; else if(low.includes('gerencia')) dataMaestro[cName] = selectedDocData.gerencia; else if(low.includes('departamento')) dataMaestro[cName] = selectedDocData.departamento; else if(low.includes('tipo')) dataMaestro[cName] = selectedDocData.tipoDoc; else if(low.includes('nombre')) dataMaestro[cName] = selectedDocData.titulo; else if(low.includes('vers')) dataMaestro[cName] = ver; else if(low.includes('ubicaci') || low.includes('archivo') || low.includes('documento')) dataMaestro[cName] = fileUrl; else if(low.includes('fecha última') || low.includes('fecha ultima') || low === 'fecha') dataMaestro[cName] = fecha; });
@@ -1738,53 +1721,24 @@
         };
 
         window.anularSolicitud = async () => {
-            if(!confirm("⚠️ ¿Estás seguro de anular esta solicitud?")) return;
-            let motivo = prompt("Motivo de anulación:"); if(!motivo) return; window.showLoading();
+            if(!confirm("⚠️ ¿Estás seguro de anular esta solicitud?")) return; let motivo = prompt("Motivo de anulación:"); if(!motivo) return; window.showLoading();
             await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Anulado", chat: arrayUnion({u: currentUser.nombre, m: `🚫 <b>SOLICITUD ANULADA</b><br>Motivo: ${motivo}`, t: new Date().toLocaleString()}) });
             const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Cancelación: ${selectedDocData.customId}`, `ANULADA por ${currentUser.nombre}.`); window.hideLoading(); window.closeModal();
         };
 
         window.addInvolucradoList = () => {
-            const sel = document.getElementById('sol-involucrado-sel');
-            const email = sel.value;
-            const name = sel.options[sel.selectedIndex].text;
-            
+            const sel = document.getElementById('sol-involucrado-sel'); const email = sel.value; const name = sel.options[sel.selectedIndex].text;
             if(!email) return alert("Seleccione un usuario válido.");
-            
-            const existingTags = Array.from(document.querySelectorAll('.involucrado-item'));
-            if(existingTags.some(el => el.dataset.email === email)) {
-                return alert("El usuario ya está en la lista.");
-            }
-
-            const div = document.createElement('div');
-            div.className = 'involucrado-item badge badge-info';
-            div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '5px'; div.style.fontSize = '12px'; div.style.padding = '6px 12px';
-            div.dataset.email = email;
-            div.innerHTML = `${name} <span class="material-icons-round" style="font-size:14px; cursor:pointer; color:var(--danger);" onclick="this.parentElement.remove()">close</span>`;
-            
-            document.getElementById('lista-involucrados-tags').appendChild(div);
-            sel.value = "";
+            const existingTags = Array.from(document.querySelectorAll('.involucrado-item')); if(existingTags.some(el => el.dataset.email === email)) { return alert("El usuario ya está en la lista."); }
+            const div = document.createElement('div'); div.className = 'involucrado-item badge badge-info'; div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '5px'; div.style.fontSize = '12px'; div.style.padding = '6px 12px'; div.dataset.email = email; div.innerHTML = `${name} <span class="material-icons-round" style="font-size:14px; cursor:pointer; color:var(--danger);" onclick="this.parentElement.remove()">close</span>`;
+            document.getElementById('lista-involucrados-tags').appendChild(div); sel.value = "";
         };
 
         window.guardarNuevoInvolucrado = async () => {
-            const sel = document.getElementById('m-new-involucrado-sel');
-            const newEmail = sel.value;
-            const newName = sel.options[sel.selectedIndex].text;
-            
-            if(!newEmail || !newEmail.includes('@')) return alert('Selecciona un usuario válido.'); 
-            window.showLoading();
-            
-            let currentInv = selectedDocData.involucrados || []; 
-            if(currentInv.includes(newEmail)) { 
-                window.hideLoading(); return alert('El usuario ya está en la lista de involucrados.'); 
-            } 
-            
-            currentInv.push(newEmail);
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { 
-                involucrados: currentInv, 
-                chat: arrayUnion({u: currentUser.nombre, m: `👥 Añadió a ${newName} a la lista de involucrados.`, t: new Date().toLocaleString()}) 
-            });
-            
+            const sel = document.getElementById('m-new-involucrado-sel'); const newEmail = sel.value; const newName = sel.options[sel.selectedIndex].text;
+            if(!newEmail || !newEmail.includes('@')) return alert('Selecciona un usuario válido.'); window.showLoading();
+            let currentInv = selectedDocData.involucrados || []; if(currentInv.includes(newEmail)) { window.hideLoading(); return alert('El usuario ya está en la lista de involucrados.'); } 
+            currentInv.push(newEmail); await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { involucrados: currentInv, chat: arrayUnion({u: currentUser.nombre, m: `👥 Añadió a ${newName} a la lista de involucrados.`, t: new Date().toLocaleString()}) });
             sel.value = ''; window.hideLoading(); window.verDetalle(selectedId);
         };
 
@@ -1801,7 +1755,7 @@
         window.rechazar = () => { tempAction = 'Rechazado'; document.getElementById('m-input-area').style.display='block'; document.getElementById('reunion-container').style.display = 'none'; };
 
         // ==========================================
-        // AUDITORÍA
+        // AUDITORÍA (F-005, F-020, F-003, F-002)
         // ==========================================
         window.switchAuditTab = (tabId) => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -1973,7 +1927,7 @@
         };
 
         // ==========================================
-        // CARGAR DATOS GENERALES
+        // INICIALIZACIÓN DE FIREBASE Y CARGA PRINCIPAL
         // ==========================================
         function cargarDatos() {
             const path = (c) => collection(db, "artifacts", appId, "public", "data", c);
@@ -2073,32 +2027,6 @@
                 setTimeout(() => { window.checkDailyAlerts(); }, 3000);
             });
         }
-
-        // ==========================================
-        // AUTO EJECUCIÓN (INICIO)
-        // ==========================================
-        window.iniciarSesion = async () => {
-            const u = document.getElementById('login-user').value.toLowerCase().trim();
-            const p = document.getElementById('login-pass').value.trim();
-            if (!u || !p) { alert("Por favor, ingresa tu usuario y contraseña."); return; }
-            window.showLoading();
-            try {
-                if(u === 'admin' && p === '1130') {
-                    const adminRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", "admin"); const snapAdmin = await getDoc(adminRef);
-                    if(!snapAdmin.exists()) {
-                        await setDoc(adminRef, {
-                            nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencias: ["SGC"], gerencia: "SGC", email: EMAIL_ADMIN_SGC,
-                            permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_ver_todas:true, p_users:true, p_struct:true, p_ver_listado:true, p_audit_admin:true, p_audit_ver:true, admin:true, p_paso1:true, p_paso2:true, p_paso4:true }
-                        });
-                    }
-                }
-                const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", u), where("pass", "==", p));
-                const querySnapshot = await getDocs(q);
-                if(!querySnapshot.empty) {
-                    localStorage.setItem('sgc_session_user', u); currentUser = querySnapshot.docs[0].data(); window.completarLoginUI();
-                } else { alert("Credenciales incorrectas. Verifica tu usuario o contraseña."); }
-            } catch (error) { console.error("Error:", error); alert("Hubo un problema al conectar con la base de datos."); } finally { window.hideLoading(); }
-        };
 
         async function arrancar() {
             const savedUser = localStorage.getItem('sgc_session_user');
