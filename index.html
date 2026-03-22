@@ -1225,11 +1225,14 @@
         let selectedAuditId = null, selectedAuditData = null, editandoAuditoriaId = null;
         let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, currentEditingF020Ref = null;
 
-        // ASIGNACIÓN AL OBJETO WINDOW (Carga Inmediata y segura)
-        window.showLoading = () => document.getElementById('loading-overlay').style.display = 'flex';
-        window.hideLoading = () => document.getElementById('loading-overlay').style.display = 'none';
+        // ==========================================
+        // FUNCIONES GLOBALES ASIGNADAS A WINDOW
+        // ==========================================
 
-        window.cambiarVista = (id, btn) => {
+        window.showLoading = function() { document.getElementById('loading-overlay').style.display = 'flex'; };
+        window.hideLoading = function() { document.getElementById('loading-overlay').style.display = 'none'; };
+
+        window.cambiarVista = function(id, btn) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -1240,16 +1243,16 @@
             }
         };
 
-        window.toggleMenu = () => {
+        window.toggleMenu = function() {
             document.getElementById('sidebar').classList.toggle('open');
             document.getElementById('sidebar-overlay').classList.toggle('active');
         };
 
-        window.toggleModPanel = v => document.getElementById('panel-mod').style.display = v === 'Creación' ? 'none' : 'grid';
-        window.closeModal = () => document.getElementById('modal').style.display = 'none';
-        window.cerrarModalAuditoria = () => document.getElementById('modal-auditoria').style.display = 'none';
+        window.toggleModPanel = function(v) { document.getElementById('panel-mod').style.display = v === 'Creación' ? 'none' : 'grid'; };
+        window.closeModal = function() { document.getElementById('modal').style.display = 'none'; };
+        window.cerrarModalAuditoria = function() { document.getElementById('modal-auditoria').style.display = 'none'; };
 
-        window.del = async (c, id) => { 
+        window.del = async function(c, id) { 
             if(confirm("¿Eliminar este registro?")) {
                 window.showLoading();
                 await deleteDoc(doc(db, "artifacts", appId, "public", "data", c, id)); 
@@ -1257,13 +1260,12 @@
             }
         };
 
-        // Ahora forzamos que abra en nueva pestaña en vez de forzar descarga "fl_attachment"
-        window.getDownloadUrl = (url) => {
+        window.getDownloadUrl = function(url) {
             if(!url) return "#";
             return url; 
         };
 
-        window.formatearFechaAbreviada = (fechaISO) => {
+        window.formatearFechaAbreviada = function(fechaISO) {
             if (!fechaISO) return '';
             let f = fechaISO;
             if(f.length === 10) f += 'T12:00:00'; 
@@ -1273,18 +1275,18 @@
             return `${fecha.getDate()}-${meses[fecha.getMonth()]}-${fecha.getFullYear()}`;
         };
 
-        window.getGCalFormat = (fechaStr, horaStr) => {
+        window.getGCalFormat = function(fechaStr, horaStr) {
             let d = new Date(`${fechaStr}T${horaStr}:00`);
             return d.toISOString().replace(/-|:|\.\d+/g, '');
         };
 
-        window.sendNotification = (destinatarios, subject, message) => {
+        window.sendNotification = function(destinatarios, subject, message) {
             if (!destinatarios.to && !destinatarios.cc) return;
             const templateParams = { to_email: destinatarios.to, cc_email: destinatarios.cc || "", subject: subject, message: message };
             emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, templateParams).catch((error) => console.error('Error enviando notificación', error));
         };
 
-        window.getDatosEnvio = async (solicitudData) => {
+        window.getDatosEnvio = async function(solicitudData) {
             let managerEmail = "";
             if(solicitudData.gerencia) {
                 try {
@@ -1297,7 +1299,7 @@
             return { to: Array.from(toEmails).join(','), cc: managerEmail };
         };
 
-        window.uploadToCloudinary = async (file) => {
+        window.uploadToCloudinary = async function(file) {
             const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET);
             try {
                 const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
@@ -1305,7 +1307,7 @@
             } catch (error) { console.error("Error Upload Cloudinary:", error); return null; }
         };
 
-        window.getNextFCI = async () => {
+        window.getNextFCI = async function() {
             const ref = doc(db, "artifacts", appId, "public", "data", "Contadores", "solicitudes");
             let id = "";
             await runTransaction(db, async (t) => {
@@ -1315,7 +1317,7 @@
             return id;
         };
 
-        window.checkDailyAlerts = async () => {
+        window.checkDailyAlerts = async function() {
             if(!currentUser || (!currentUser.permisos.p_gest_sgc && !currentUser.permisos.admin)) return;
             const ref = doc(db, "artifacts", appId, "public", "data", "Configuracion", "EstadoAlertas");
             const snap = await getDoc(ref);
@@ -1340,7 +1342,7 @@
             }
         };
 
-        window.verificarAlertasAuditoria = (auditoriasArray) => {
+        window.verificarAlertasAuditoria = function(auditoriasArray) {
             if(!globalAuditPlan || !globalAuditPlan.correos || globalAuditPlan.correos.length === 0) return;
             const today = new Date(); today.setHours(0,0,0,0);
             auditoriasArray.forEach(a => {
@@ -1362,13 +1364,13 @@
             });
         };
 
-        window.actualizarSelectTiposDoc = () => {
+        window.actualizarSelectTiposDoc = function() {
             let html = '<option value="">-- Seleccione --</option>';
             tiposDocumento.forEach(t => html += `<option value="${t}">${t}</option>`);
             if(document.getElementById('sol-tipo-doc')) document.getElementById('sol-tipo-doc').innerHTML = html;
         };
 
-        window.renderListasConfig = () => {
+        window.renderListasConfig = function() {
             let hCol = ""; columnasMaestro.forEach((c, idx) => { 
                 let cName = typeof c === 'string' ? c : c.nombre;
                 let cType = typeof c === 'string' ? 'text' : c.tipo;
@@ -1385,7 +1387,7 @@
             window.actualizarSelectTiposDoc();
         };
 
-        window.agregarTipoDoc = async () => {
+        window.agregarTipoDoc = async function() {
             let val = document.getElementById('doc-tipo-nom').value.trim(); 
             if(!val) return; 
             if(tiposDocumento.includes(val)) return alert("Ese tipo de documento ya existe.");
@@ -1394,13 +1396,13 @@
             document.getElementById('doc-tipo-nom').value = "";
         };
 
-        window.eliminarTipoDoc = async (idx) => {
+        window.eliminarTipoDoc = async function(idx) {
             if(!confirm("¿Eliminar este tipo de documento?")) return; 
             tiposDocumento.splice(idx, 1);
             await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { tiposDoc: tiposDocumento }, {merge: true});
         };
 
-        window.agregarColumna = async () => {
+        window.agregarColumna = async function() {
             let val = document.getElementById('col-nom').value.trim(); 
             let tipo = document.getElementById('col-tipo').value;
             if(!val) return; 
@@ -1410,22 +1412,22 @@
             document.getElementById('col-nom').value = "";
         };
 
-        window.eliminarColumna = async (idx) => {
+        window.eliminarColumna = async function(idx) {
             if(!confirm("¿Eliminar columna?")) return; columnasMaestro.splice(idx, 1);
             await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: columnasMaestro }, {merge: true});
         };
 
-        window.agregarEstatus = async () => {
+        window.agregarEstatus = async function() {
             let val = document.getElementById('est-nom').value.trim(); if(!val) return; if (estatusMaestro.includes(val)) return alert("Ese estatus ya existe.");
             estatusMaestro.push(val); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { estatus: estatusMaestro }, {merge: true}); document.getElementById('est-nom').value = "";
         };
 
-        window.eliminarEstatus = async (idx) => {
+        window.eliminarEstatus = async function(idx) {
             if(!confirm("¿Eliminar este estatus?")) return; estatusMaestro.splice(idx, 1);
             await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { estatus: estatusMaestro }, {merge: true});
         };
 
-        window.renderTablaMaestro = () => {
+        window.renderTablaMaestro = function() {
             const thead = document.getElementById("thead-listado-maestro"); const tbody = document.getElementById("tbody-listado-maestro"); if(!thead || !tbody) return;
             let headHTML = "<tr>"; 
             columnasMaestro.forEach(col => { 
@@ -1459,7 +1461,7 @@
             tbody.innerHTML = tbodyHtml;
         };
 
-        window.abrirModalListadoMaestro = (docId = null) => {
+        window.abrirModalListadoMaestro = function(docId = null) {
             editandoMaestroId = docId; document.getElementById('lm-modal-title').innerText = docId ? "Editar Documento Maestro" : "Nuevo Documento Maestro";
             const container = document.getElementById('dinamic-form-maestro'); let datosEdit = {};
             if(docId) { const item = dataMaestro.find(x => x.docId === docId); if(item) datosEdit = item; }
@@ -1478,7 +1480,7 @@
             container.innerHTML = formHtml; document.getElementById('modal-form-listado').style.display = 'flex';
         };
 
-        window.guardarRegistroMaestro = async () => {
+        window.guardarRegistroMaestro = async function() {
             let data = {}; 
             columnasMaestro.forEach(col => { 
                 let cName = typeof col === 'string' ? col : col.nombre;
@@ -1491,7 +1493,7 @@
             window.hideLoading(); document.getElementById('modal-form-listado').style.display = 'none';
         };
 
-        window.subirArchivoGenericoLM = async () => {
+        window.subirArchivoGenericoLM = async function() {
             const f = document.getElementById('lm-generic-file').files[0]; if(!f) return alert("Selecciona un archivo primero.");
             window.showLoading(); let url = await window.uploadToCloudinary(f);
             if(!url) { window.hideLoading(); return alert("Hubo un error al subir el archivo."); }
@@ -1503,7 +1505,7 @@
             document.getElementById('lm-generic-file').value = "";
         };
 
-        window.cargarUsuarioParaEditar = (usuarioId) => {
+        window.cargarUsuarioParaEditar = function(usuarioId) {
             const u = allUsers.find(x => x.usuario === usuarioId); if(!u) return;
             document.getElementById('user-form-title').innerText = "Editando Usuario: " + u.usuario;
             document.getElementById('u-nom').value = u.nombre || ''; 
@@ -1541,7 +1543,7 @@
             document.getElementById('btnSaveUser').innerText = "ACTUALIZAR USUARIO"; document.getElementById('btnCancelEdit').style.display = 'inline-flex'; window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        window.resetUserForm = () => {
+        window.resetUserForm = function() {
             document.getElementById('user-form-title').innerText = "Registrar / Editar Usuario";
             document.getElementById('u-nom').value = ""; document.getElementById('u-usr').value = ""; document.getElementById('u-usr').disabled = false; document.getElementById('u-pas').value = "123"; document.getElementById('u-rol').value = ""; document.getElementById('u-email').value = "";
             document.querySelectorAll('#u-ger-list input[type="checkbox"]').forEach(cb => cb.checked = false);
@@ -1550,56 +1552,35 @@
             document.getElementById('btnSaveUser').innerText = "GUARDAR USUARIO"; document.getElementById('btnCancelEdit').style.display = 'none';
         };
 
-        window.guardarUsuario = async () => {
-            const nom = document.getElementById('u-nom').value.trim(); const usr = document.getElementById('u-usr').value.toLowerCase().trim(); const pas = document.getElementById('u-pas').value.trim(); const rol = document.getElementById('u-rol').value.trim(); const email = document.getElementById('u-email').value.trim().toLowerCase();
-            const gerenciasSel = []; document.querySelectorAll('#u-ger-list input:checked').forEach(cb => { gerenciasSel.push(cb.value); });
-            if(!nom || !usr || !pas || gerenciasSel.length === 0) return alert("Nombre, Usuario, Contraseña y al menos 1 Gerencia son obligatorios.");
-            
-            const permisos = { 
-                can_solicit: document.getElementById('p-solicitar').checked, p_ver_propias: document.getElementById('p-ver-propias').checked, p_ver_ger: document.getElementById('p-ver-ger').checked, p_ver_todas: document.getElementById('p-ver-todas').checked, p_paso1: document.getElementById('p-paso1').checked, p_paso2: document.getElementById('p-paso2').checked, p_paso4: document.getElementById('p-paso4').checked, p_gest_sgc: document.getElementById('p-gest-sgc').checked, p_ger_apr: document.getElementById('p-ger-apr').checked, p_users: document.getElementById('p-users').checked, p_struct: document.getElementById('p-struct').checked, p_ver_listado: document.getElementById('p-ver-listado').checked, p_audit_ver: document.getElementById('p-audit-ver').checked, p_audit_admin: document.getElementById('p-audit-admin').checked, p_audit_auditor: document.getElementById('p-audit-auditor').checked, p_audit_dueno: document.getElementById('p-audit-dueno').checked, admin: document.getElementById('p-admin').checked 
-            };
+        window.actualizarDatosSGC = async function() {
+            const tit = document.getElementById('m-upd-tit').value; const cod = document.getElementById('m-upd-cod').value; const ver = document.getElementById('m-upd-ver').value; const f = document.getElementById('m-upd-file');
+            if(!tit) return alert("El título es obligatorio.");
             window.showLoading();
-            const docRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", usr); const snap = await getDoc(docRef);
-            if(snap.exists() && document.getElementById('user-form-title').innerText.includes("Registrar")) { window.hideLoading(); return alert("Ese ID de usuario ya existe. Elija otro o edítelo desde la tabla."); }
-            await setDoc(docRef, { nombre: nom, usuario: usr, pass: pas, gerencias: gerenciasSel, gerencia: gerenciasSel[0], role: rol, email: email, permisos: permisos });
-            window.resetUserForm(); window.hideLoading(); alert("Usuario guardado exitosamente.");
-        };
-
-        window.actualizarGerenteSelect = (gSelected) => {
-            const gerentes = allUsers.filter(u => u.gerencias && u.gerencias.includes(gSelected) && u.permisos && u.permisos.p_ger_apr === true);
-            if (gerentes && gerentes.length > 0) { 
-                document.getElementById('sol-gerente-display').value = gerentes.map(g => g.nombre).join(', '); 
-                document.getElementById('sol-email-gerente').value = gerentes.map(g => g.email || '').filter(e=>e).join(', ') || "Sin Email"; 
-            } else { 
-                document.getElementById('sol-gerente-display').value = "No asignado"; document.getElementById('sol-email-gerente').value = ""; 
+            let updateData = { titulo: tit, cod_ref: cod, ver_ref: ver }; let msjChat = `SGC actualizó los datos pre-aprobación. Título: ${tit}, Cód: ${cod}, Ver: ${ver}.`;
+            if(f.files[0]) {
+                let fileUrl = await window.uploadToCloudinary(f.files[0]); if(!fileUrl) { window.hideLoading(); return alert("Error subiendo archivo."); }
+                updateData.adjunto = fileUrl; updateData.adjunto_nombre = f.files[0].name; msjChat += ` (Nuevo adjunto subido: ${f.files[0].name})`;
             }
-            const depSelect = document.getElementById('sol-dep'); let depHtml = "<option value=''>-- Seleccionar Departamento --</option>";
-            const depsFiltrados = allDepartamentos.filter(d => d.gerencia === gSelected); depsFiltrados.forEach(d => { depHtml += `<option value="${d.nombre}">${d.nombre}</option>`; });
-            depSelect.innerHTML = depHtml;
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { ...updateData, chat: arrayUnion({u: currentUser.nombre, m: `✏️ ${msjChat}`, t: new Date().toLocaleString()}) });
+            window.hideLoading(); alert("Datos actualizados correctamente."); window.closeModal();
         };
 
-        window.crearSolicitud = async () => {
-            const tit = document.getElementById('sol-tit').value; const gerTarget = document.getElementById('sol-ger').value; if(!tit) return alert("Título obligatorio"); 
-            window.showLoading(); const f = document.getElementById('sol-file');
-            let fileName = f.files[0] ? f.files[0].name : ""; let url = null; 
-            if (f.files[0]) { url = await window.uploadToCloudinary(f.files[0]); if (!url) { window.hideLoading(); return alert("Error al subir archivo."); } }
-            
-            const extraEmailsNodes = document.querySelectorAll('.involucrado-item'); const extraEmails = Array.from(extraEmailsNodes).map(el => el.dataset.email); 
-            const fci = await window.getNextFCI(); const gerenteEmailVisible = document.getElementById('sol-email-gerente').value; const now = new Date().toISOString();
-            
-            const data = { 
-                customId: fci, titulo: tit, accion: document.getElementById('sol-accion').value, tipoDoc: document.getElementById('sol-tipo-doc').value, prioridad: document.getElementById('sol-prioridad').value, gerencia: gerTarget, departamento: document.getElementById('sol-dep').value, motivo: document.getElementById('sol-motivo').value, cod_ref: document.getElementById('sol-cod-prev').value, ver_ref: document.getElementById('sol-ver-prev').value, fecha_ref: document.getElementById('sol-fecha-prev').value, solicitante: currentUser.nombre, solicitante_email: currentUser.email, uid: currentUser.usuario, involucrados: extraEmails, idx: 0, estado: "Pendiente Documentado", fase_0_ini: now, adjunto: url, adjunto_nombre: fileName, chat: [{u: "SISTEMA", m: "Solicitud creada exitosamente.", t: new Date().toLocaleString()}], fecha: now 
-            };
-            
-            await addDoc(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), data); document.getElementById('lista-involucrados-tags').innerHTML = ""; 
-            const toEmails = new Set([EMAIL_ADMIN_SGC, EMAIL_GRUPO_SGC, currentUser.email, ...extraEmails]); const destinatarios = { to: Array.from(toEmails).join(','), cc: gerenteEmailVisible }; 
-            window.sendNotification(destinatarios, "Nueva Solicitud Creada", `El usuario ${currentUser.nombre} ha creado la solicitud ${fci} con prioridad ${data.prioridad}.`);
-            window.hideLoading(); alert("Solicitud Creada: " + fci); window.cambiarVista('sec-hist', document.getElementById('nav-hist'));
+        window.guardarSLA = async function() {
+            const dateSLA = document.getElementById('m-sla-date').value;
+            if(!dateSLA) return alert("Selecciona una fecha válida.");
+            window.showLoading();
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), {
+                fecha_esperada_cierre: dateSLA,
+                chat: arrayUnion({u: currentUser.nombre, m: `⏱️ <b>FECHA LÍMITE (SLA) ESTABLECIDA:</b> ${window.formatearFechaAbreviada(dateSLA)}`, t: new Date().toLocaleString()})
+            });
+            window.hideLoading(); alert("Fecha límite actualizada.");
+            window.verDetalle(selectedId);
         };
 
-        window.verDetalle = async (id) => {
+        window.verDetalle = async function(id) {
             selectedId = id; document.getElementById('m-extra-input').innerHTML = ""; document.getElementById('m-comentario-libre').innerHTML = "";
-            const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", id)); selectedDocData = docSnap.data(); const s = selectedDocData; const p = currentUser.permisos;
+            const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", id));
+            selectedDocData = docSnap.data(); const s = selectedDocData; const p = currentUser.permisos;
             
             document.getElementById('m-id').innerText = s.customId; document.getElementById('m-tit').innerText = s.titulo; document.getElementById('m-sol').innerText = s.solicitante;
             let estadoStr = (s.estado || "").toUpperCase(); let isAprobadoFinalModal = estadoStr.includes('APROBADO FINAL'); let isCancelado = estadoStr === 'ANULADO' || estadoStr === 'RECHAZADO';
@@ -1609,7 +1590,12 @@
             let fActual = PASOS_NOMBRES[s.idx]; if (!isAprobadoFinalModal && !isCancelado && fActual) { document.getElementById('m-est').innerHTML += ` <span style="font-size:10px; color:#64748b; font-weight:700; margin-left:8px; background:transparent; border:none; display:inline-block; vertical-align:middle;">(📍 Etapa: ${fActual})</span>`; }
             
             document.getElementById('m-ger').innerText = s.gerencia; document.getElementById('m-tipo').innerText = s.tipoDoc || "N/A"; 
-            let pr = s.prioridad || "Normal"; let bPr = pr === 'Alta' ? 'badge-danger' : (pr === 'Básica' ? 'badge-info' : 'badge-dark'); document.getElementById('m-prioridad').innerText = pr.toUpperCase(); document.getElementById('m-prioridad').className = `badge ${bPr}`;
+            
+            let pr = s.prioridad || "Normal";
+            let bPr = pr === 'Alta' ? 'badge-danger' : (pr === 'Básica' ? 'badge-info' : 'badge-dark');
+            document.getElementById('m-prioridad').innerText = pr.toUpperCase();
+            document.getElementById('m-prioridad').className = `badge ${bPr}`;
+            
             document.getElementById('m-accion').innerText = s.accion; document.getElementById('m-jus').innerText = s.motivo || s.justificacion || "Sin justificación";
             let adjOrigName = s.adjunto_nombre || "Ver Archivo"; if(adjOrigName.startsWith('http')) { try { adjOrigName = decodeURIComponent(adjOrigName.split('/').pop().split('?')[0]); } catch(e){} }
             let dlUrl = s.adjunto ? window.getDownloadUrl(s.adjunto) : "#"; 
@@ -1619,13 +1605,24 @@
 
             let invHTML = "No hay personas extras añadidas.";
             if(s.involucrados && s.involucrados.length > 0) {
-                invHTML = s.involucrados.map(email => { let userFound = allUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase()); return userFound ? `${userFound.nombre} (${email})` : email; }).join('<br>');
+                invHTML = s.involucrados.map(email => {
+                    let userFound = allUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+                    return userFound ? `${userFound.nombre} (${email})` : email;
+                }).join('<br>');
             }
             document.getElementById('m-involucrados-list').innerHTML = invHTML;
 
-            for(let i=1; i<=4; i++) { const st = document.getElementById('s'+i); st.className = 'step'; if(isCancelado) continue; if(i <= s.idx) st.classList.add('completed'); if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active'); }
+            for(let i=1; i<=4; i++) {
+                const st = document.getElementById('s'+i); st.className = 'step'; 
+                if(isCancelado) continue;
+                if(i <= s.idx) st.classList.add('completed'); 
+                if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active');
+            }
 
-            const esAdminSGC = p.admin || p.p_gest_sgc; const esGer = p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia); const activo = !isAprobadoFinalModal && !isCancelado;
+            const esAdminSGC = p.admin || p.p_gest_sgc; 
+            const esGer = p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia);
+            
+            const activo = !isAprobadoFinalModal && !isCancelado;
             
             let puedeGestionarSGC = false;
             if(activo) {
@@ -1633,19 +1630,43 @@
                 if (s.idx === 1 && (p.p_gest_sgc || p.p_paso2 || p.admin)) puedeGestionarSGC = true;
                 if (s.idx === 3 && (p.p_gest_sgc || p.p_paso4 || p.admin)) puedeGestionarSGC = true;
             }
-            const puedeGestionarGerente = esGer && s.idx === 2 && activo;
-            const esInvolucradoActivo = s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()); const esDuenio = s.uid === currentUser.usuario || esInvolucradoActivo; 
-
-            document.getElementById('btn-reabrir').style.display = (esAdminSGC && !activo) ? 'inline-flex' : 'none'; document.getElementById('m-add-involucrado-section').style.display = activo ? 'flex' : 'none';
-            document.getElementById('m-actions').style.display = (puedeGestionarSGC || puedeGestionarGerente) ? 'block' : 'none'; document.getElementById('applicant-actions').style.display = (esDuenio && activo) ? 'block' : 'none'; document.getElementById('m-input-area').style.display = 'none'; document.getElementById('general-comment-area').style.display = !isCancelado ? 'block' : 'none';
             
-            const puedeDevolver = (puedeGestionarSGC || puedeGestionarGerente) && s.idx > 0 && activo; document.getElementById('btn-devolver-paso').style.display = puedeDevolver ? 'inline-block' : 'none'; document.getElementById('btn-anular').style.display = ((puedeGestionarSGC || esDuenio) && activo) ? 'inline-block' : 'none'; 
+            const puedeGestionarGerente = esGer && s.idx === 2 && activo;
 
-            const slaPanel = document.getElementById('m-admin-sla'); const slaDateInput = document.getElementById('m-sla-date'); const slaBtn = document.getElementById('btn-save-sla');
-            if(s.fecha_esperada_cierre) { slaPanel.style.display = 'block'; slaDateInput.value = s.fecha_esperada_cierre; if(!esAdminSGC) { slaDateInput.disabled = true; slaBtn.style.display = 'none'; } else { slaDateInput.disabled = false; slaBtn.style.display = 'inline-block'; } } else if (esAdminSGC && activo) { slaPanel.style.display = 'block'; slaDateInput.value = ''; slaDateInput.disabled = false; slaBtn.style.display = 'inline-block'; } else { slaPanel.style.display = 'none'; }
+            const esInvolucradoActivo = s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()); 
+            const esDuenio = s.uid === currentUser.usuario || esInvolucradoActivo; 
+
+            document.getElementById('btn-reabrir').style.display = (esAdminSGC && !activo) ? 'inline-flex' : 'none';
+            document.getElementById('m-add-involucrado-section').style.display = activo ? 'flex' : 'none';
+            
+            document.getElementById('m-actions').style.display = (puedeGestionarSGC || puedeGestionarGerente) ? 'block' : 'none';
+            document.getElementById('applicant-actions').style.display = (esDuenio && activo) ? 'block' : 'none';
+            document.getElementById('m-input-area').style.display = 'none';
+            document.getElementById('general-comment-area').style.display = !isCancelado ? 'block' : 'none';
+            
+            const puedeDevolver = (puedeGestionarSGC || puedeGestionarGerente) && s.idx > 0 && activo;
+            document.getElementById('btn-devolver-paso').style.display = puedeDevolver ? 'inline-block' : 'none';
+            document.getElementById('btn-anular').style.display = ((puedeGestionarSGC || esDuenio) && activo) ? 'inline-block' : 'none'; 
+
+            const slaPanel = document.getElementById('m-admin-sla');
+            const slaDateInput = document.getElementById('m-sla-date');
+            const slaBtn = document.getElementById('btn-save-sla');
+            if(s.fecha_esperada_cierre) {
+                slaPanel.style.display = 'block';
+                slaDateInput.value = s.fecha_esperada_cierre;
+                if(!esAdminSGC) { slaDateInput.disabled = true; slaBtn.style.display = 'none'; } else { slaDateInput.disabled = false; slaBtn.style.display = 'inline-block'; }
+            } else if (esAdminSGC && activo) {
+                slaPanel.style.display = 'block';
+                slaDateInput.value = ''; slaDateInput.disabled = false; slaBtn.style.display = 'inline-block';
+            } else {
+                slaPanel.style.display = 'none';
+            }
+
             document.getElementById('m-panel-final-sgc').style.display = 'none'; document.getElementById('m-panel-update-sgc').style.display = 'none'; document.getElementById('m-display-final').style.display = 'none'; document.getElementById('m-original-data').classList.remove('locked-data'); document.getElementById('m-orig-title').style.display = 'none';
 
-            if ((esAdminSGC || p.p_paso2) && s.idx === 1 && activo) { document.getElementById('m-panel-update-sgc').style.display = 'block'; document.getElementById('m-upd-tit').value = s.titulo || ''; document.getElementById('m-upd-cod').value = s.cod_ref || ''; document.getElementById('m-upd-ver').value = s.ver_ref || ''; }
+            if ((esAdminSGC || p.p_paso2) && s.idx === 1 && activo) {
+                document.getElementById('m-panel-update-sgc').style.display = 'block'; document.getElementById('m-upd-tit').value = s.titulo || ''; document.getElementById('m-upd-cod').value = s.cod_ref || ''; document.getElementById('m-upd-ver').value = s.ver_ref || '';
+            }
             
             if (isAprobadoFinalModal) {
                 if (s.version_final) {
@@ -1679,25 +1700,42 @@
             document.getElementById('modal').style.display = 'flex';
         };
 
-        window.reabrirSolicitud = async () => {
+        window.reabrirSolicitud = async function() {
             if(!confirm("⚠️ ¿Estás seguro de REABRIR esta solicitud?")) return;
             let motivo = prompt("Describe el motivo de la reapertura:"); if(!motivo) return alert("Se requiere un motivo.");
-            window.showLoading(); const now = new Date().toISOString();
-            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Pendiente Documentado", idx: 0, fase_0_ini: now, chat: arrayUnion({u: currentUser.nombre, m: `<b style="color:var(--danger);">⚠️ REAPERTURA DE SOLICITUD POR ADMINISTRACIÓN</b><br><b>Motivo:</b> ${motivo}`, t: new Date().toLocaleString()}) });
-            const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Solicitud Reabierta: ${selectedDocData.customId}`, `Motivo: ${motivo}`); window.hideLoading(); alert("Solicitud reabierta."); window.closeModal();
+            window.showLoading();
+            const now = new Date().toISOString();
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { 
+                estado: "Pendiente Documentado", 
+                idx: 0, 
+                fase_0_ini: now, 
+                chat: arrayUnion({u: currentUser.nombre, m: `<b style="color:var(--danger);">⚠️ REAPERTURA DE SOLICITUD POR ADMINISTRACIÓN</b><br><b>Motivo:</b> ${motivo}`, t: new Date().toLocaleString()}) 
+            });
+            const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Solicitud Reabierta: ${selectedDocData.customId}`, `Motivo: ${motivo}`);
+            window.hideLoading(); alert("Solicitud reabierta."); window.closeModal();
         };
 
-        window.gestionar = (tipo) => { tempAction = tipo; document.getElementById('m-input-area').style.display = 'block'; if(tipo === 'Reunión') { document.getElementById('reunion-container').style.display = 'block'; document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Tema de la reunión...'); } else { document.getElementById('reunion-container').style.display = 'none'; document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Motivo / Consulta / Comentario...'); } };
-        window.responderSolicitante = () => { tempAction = "Respuesta"; document.getElementById('m-input-area').style.display = 'block'; document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Detalla tu corrección...'); document.getElementById('reunion-container').style.display = 'none'; };
+        window.gestionar = function(tipo) { tempAction = tipo; document.getElementById('m-input-area').style.display = 'block'; if(tipo === 'Reunión') { document.getElementById('reunion-container').style.display = 'block'; document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Tema de la reunión...'); } else { document.getElementById('reunion-container').style.display = 'none'; document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Motivo / Consulta / Comentario...'); } };
 
-        window.firmarPaso = async () => {
-            const s = selectedDocData; const nIdx = s.idx + 1; const nEst = nIdx < 4 ? PASOS_NOMBRES[nIdx] : "Aprobado Final"; const faseAprobada = PASOS_NOMBRES[s.idx]; const now = new Date().toISOString();
-            let updates = { idx: nIdx, estado: nEst, [`fase_${s.idx}_fin`]: now, [`fase_${nIdx}_ini`]: now, chat: arrayUnion({u: currentUser.nombre, m: `✅ FASE COMPLETADA: ${faseAprobada}`, t: new Date().toLocaleString()}) };
+        window.responderSolicitante = function() { tempAction = "Respuesta"; document.getElementById('m-input-area').style.display = 'block'; document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Detalla tu corrección...'); document.getElementById('reunion-container').style.display = 'none'; };
+
+        window.firmarPaso = async function() {
+            const s = selectedDocData; const nIdx = s.idx + 1; const nEst = nIdx < 4 ? PASOS_NOMBRES[nIdx] : "Aprobado Final"; const faseAprobada = PASOS_NOMBRES[s.idx]; 
+            const now = new Date().toISOString();
+            
+            let updates = { 
+                idx: nIdx, 
+                estado: nEst, 
+                [`fase_${s.idx}_fin`]: now,
+                [`fase_${nIdx}_ini`]: now,
+                chat: arrayUnion({u: currentUser.nombre, m: `✅ FASE COMPLETADA: ${faseAprobada}`, t: new Date().toLocaleString()}) 
+            };
+
             await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), updates);
             const dest = await window.getDatosEnvio(s); window.sendNotification(dest, `Avance: ${s.customId}`, `La solicitud avanzó a: ${nEst}.`); window.closeModal();
         };
 
-        window.enviarComentarioLibre = async () => {
+        window.enviarComentarioLibre = async function() {
             const box = document.getElementById('m-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = document.getElementById('m-file-comentario');
             if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta un archivo.");
             window.showLoading(); let fileUrl = null;
@@ -1708,11 +1746,12 @@
             box.innerHTML = ""; f.value = ""; window.hideLoading(); window.closeModal();
         };
 
-        window.guardarCierreFinal = async () => {
+        window.guardarCierreFinal = async function() {
             const codFinal = document.getElementById('m-final-cod').value; const ver = document.getElementById('m-final-ver').value; const fecha = document.getElementById('m-final-fecha').value; const com = document.getElementById('m-final-comentario').value; const f = document.getElementById('m-final-file');
             if(!ver || !fecha || !f.files[0]) return alert("Versión Final, Fecha y Documento son obligatorios.");
             window.showLoading(); let fileUrl = await window.uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error al subir."); }
-            const now = new Date().toISOString(); let fileName = f.files[0].name; let chatPayload = {u: "SISTEMA (SGC)", m: `🏁 <b>SOLICITUD APROBADA FINALMENTE.</b><br>Ver: ${ver}. Obs: ${com}`, t: new Date().toLocaleString(), archivo: fileUrl};
+            const now = new Date().toISOString();
+            let fileName = f.files[0].name; let chatPayload = {u: "SISTEMA (SGC)", m: `🏁 <b>SOLICITUD APROBADA FINALMENTE.</b><br>Ver: ${ver}. Obs: ${com}`, t: new Date().toLocaleString(), archivo: fileUrl};
             await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Aprobado Final", codigo_final: codFinal, version_final: ver, fecha_final: fecha, comentario_final: com, documento_final: fileUrl, documento_final_nombre: fileName, fase_3_fin: now, chat: arrayUnion(chatPayload) });
             let dataMaestro = { estatus: "Vigente", registrado_por: "Sistema (Automático)", fecha_registro: new Date().toISOString() };
             columnasMaestro.forEach(c => { let cName = typeof c === 'string' ? c : c.nombre; let low = cName.toLowerCase(); if(low.includes('código') || low === 'codigo') dataMaestro[cName] = codFinal || selectedDocData.cod_ref || "POR_ASIGNAR"; else if(low.includes('gerencia')) dataMaestro[cName] = selectedDocData.gerencia; else if(low.includes('departamento')) dataMaestro[cName] = selectedDocData.departamento; else if(low.includes('tipo')) dataMaestro[cName] = selectedDocData.tipoDoc; else if(low.includes('nombre')) dataMaestro[cName] = selectedDocData.titulo; else if(low.includes('vers')) dataMaestro[cName] = ver; else if(low.includes('ubicaci') || low.includes('archivo') || low.includes('documento')) dataMaestro[cName] = fileUrl; else if(low.includes('fecha última') || low.includes('fecha ultima') || low === 'fecha') dataMaestro[cName] = fecha; });
@@ -1720,49 +1759,89 @@
             const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Cierre Exitoso: ${selectedDocData.customId}`, `Documento versión ${ver} publicado.`); window.hideLoading(); window.closeModal();
         };
 
-        window.anularSolicitud = async () => {
-            if(!confirm("⚠️ ¿Estás seguro de anular esta solicitud?")) return; let motivo = prompt("Motivo de anulación:"); if(!motivo) return; window.showLoading();
+        window.anularSolicitud = async function() {
+            if(!confirm("⚠️ ¿Estás seguro de anular esta solicitud?")) return;
+            let motivo = prompt("Motivo de anulación:"); if(!motivo) return; window.showLoading();
             await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Anulado", chat: arrayUnion({u: currentUser.nombre, m: `🚫 <b>SOLICITUD ANULADA</b><br>Motivo: ${motivo}`, t: new Date().toLocaleString()}) });
             const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Cancelación: ${selectedDocData.customId}`, `ANULADA por ${currentUser.nombre}.`); window.hideLoading(); window.closeModal();
         };
 
-        window.addInvolucradoList = () => {
-            const sel = document.getElementById('sol-involucrado-sel'); const email = sel.value; const name = sel.options[sel.selectedIndex].text;
+        window.addInvolucradoList = function() {
+            const sel = document.getElementById('sol-involucrado-sel');
+            const email = sel.value;
+            const name = sel.options[sel.selectedIndex].text;
+            
             if(!email) return alert("Seleccione un usuario válido.");
-            const existingTags = Array.from(document.querySelectorAll('.involucrado-item')); if(existingTags.some(el => el.dataset.email === email)) { return alert("El usuario ya está en la lista."); }
-            const div = document.createElement('div'); div.className = 'involucrado-item badge badge-info'; div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '5px'; div.style.fontSize = '12px'; div.style.padding = '6px 12px'; div.dataset.email = email; div.innerHTML = `${name} <span class="material-icons-round" style="font-size:14px; cursor:pointer; color:var(--danger);" onclick="this.parentElement.remove()">close</span>`;
-            document.getElementById('lista-involucrados-tags').appendChild(div); sel.value = "";
+            
+            const existingTags = Array.from(document.querySelectorAll('.involucrado-item'));
+            if(existingTags.some(el => el.dataset.email === email)) {
+                return alert("El usuario ya está en la lista.");
+            }
+
+            const div = document.createElement('div');
+            div.className = 'involucrado-item badge badge-info';
+            div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '5px'; div.style.fontSize = '12px'; div.style.padding = '6px 12px';
+            div.dataset.email = email;
+            div.innerHTML = `${name} <span class="material-icons-round" style="font-size:14px; cursor:pointer; color:var(--danger);" onclick="this.parentElement.remove()">close</span>`;
+            
+            document.getElementById('lista-involucrados-tags').appendChild(div);
+            sel.value = "";
         };
 
-        window.guardarNuevoInvolucrado = async () => {
-            const sel = document.getElementById('m-new-involucrado-sel'); const newEmail = sel.value; const newName = sel.options[sel.selectedIndex].text;
-            if(!newEmail || !newEmail.includes('@')) return alert('Selecciona un usuario válido.'); window.showLoading();
-            let currentInv = selectedDocData.involucrados || []; if(currentInv.includes(newEmail)) { window.hideLoading(); return alert('El usuario ya está en la lista de involucrados.'); } 
-            currentInv.push(newEmail); await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { involucrados: currentInv, chat: arrayUnion({u: currentUser.nombre, m: `👥 Añadió a ${newName} a la lista de involucrados.`, t: new Date().toLocaleString()}) });
+        window.guardarNuevoInvolucrado = async function() {
+            const sel = document.getElementById('m-new-involucrado-sel');
+            const newEmail = sel.value;
+            const newName = sel.options[sel.selectedIndex].text;
+            
+            if(!newEmail || !newEmail.includes('@')) return alert('Selecciona un usuario válido.'); 
+            window.showLoading();
+            
+            let currentInv = selectedDocData.involucrados || []; 
+            if(currentInv.includes(newEmail)) { 
+                window.hideLoading(); return alert('El usuario ya está en la lista de involucrados.'); 
+            } 
+            
+            currentInv.push(newEmail);
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { 
+                involucrados: currentInv, 
+                chat: arrayUnion({u: currentUser.nombre, m: `👥 Añadió a ${newName} a la lista de involucrados.`, t: new Date().toLocaleString()}) 
+            });
+            
             sel.value = ''; window.hideLoading(); window.verDetalle(selectedId);
         };
 
-        window.filtrarTabla = (inputId, tbodyId) => {
+        window.filtrarTabla = function(inputId, tbodyId) {
             const input = document.getElementById(inputId); if (!input) return; const filter = input.value.toLowerCase(); const tbody = document.getElementById(tbodyId); if (!tbody) return; const trs = tbody.getElementsByTagName('tr');
             for (let i = 0; i < trs.length; i++) { let rowText = trs[i].textContent || trs[i].innerText; if (rowText.toLowerCase().indexOf(filter) > -1) { trs[i].style.display = ""; } else { trs[i].style.display = "none"; } }
         };
 
-        window.setFilterGest = (filterText) => {
+        window.setFilterGest = function(filterText) {
             const tbody = document.getElementById('tbody-gestionar'); if (!tbody) return; const trs = tbody.getElementsByTagName('tr'); const filter = filterText.toLowerCase();
             for (let i = 0; i < trs.length; i++) { let statusCell = trs[i].getElementsByTagName('td')[3]; if (statusCell) { let text = statusCell.textContent || statusCell.innerText; if (filter === "" || text.toLowerCase().includes(filter)) { trs[i].style.display = ""; } else { trs[i].style.display = "none"; } } }
         };
 
-        window.rechazar = () => { tempAction = 'Rechazado'; document.getElementById('m-input-area').style.display='block'; document.getElementById('reunion-container').style.display = 'none'; };
+        window.rechazar = function() { tempAction = 'Rechazado'; document.getElementById('m-input-area').style.display='block'; document.getElementById('reunion-container').style.display = 'none'; };
+
+        window.devolverPaso = async function() {
+            if(!selectedDocData || selectedDocData.idx <= 0) return;
+            if(!confirm("¿Estás seguro de devolver esta solicitud a la etapa anterior?")) return;
+            let motivo = prompt("Motivo para devolver la solicitud:"); if(!motivo) return alert("El motivo es obligatorio.");
+            window.showLoading();
+            const nIdx = selectedDocData.idx - 1; const nEst = PASOS_NOMBRES[nIdx]; const faseActual = PASOS_NOMBRES[selectedDocData.idx]; const now = new Date().toISOString();
+            let updates = { idx: nIdx, estado: nEst, [`fase_${selectedDocData.idx}_fin`]: now, [`fase_${nIdx}_ini`]: now, chat: arrayUnion({u: currentUser.nombre, m: `⏪ <b>DEVUELTO A ETAPA ANTERIOR</b><br>De: ${faseActual} -> A: ${nEst}<br><b>Motivo:</b> ${motivo}`, t: new Date().toLocaleString()}) };
+            await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), updates);
+            const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Retroceso de Etapa: ${selectedDocData.customId}`, `La solicitud ha sido devuelta a: ${nEst}.\nMotivo: ${motivo}`); window.hideLoading(); window.closeModal();
+        };
 
         // ==========================================
-        // AUDITORÍA (F-005, F-020, F-003, F-002)
+        // AUDITORÍA
         // ==========================================
-        window.switchAuditTab = (tabId) => {
+        window.switchAuditTab = function(tabId) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(`btn-tab-${tabId}`).classList.add('active'); document.getElementById(`tab-${tabId}`).classList.add('active');
         };
 
-        window.renderAuditSACs = () => {
+        window.renderAuditSACs = function() {
             const tb = document.getElementById('tbody-audit-sacs'); if(!tb) return; let html = ""; let hallazgosFiltrados = currentAuditF020.filter(i => i.hallazgo === 'NC Mayor' || i.hallazgo === 'NC Menor' || i.hallazgo === 'OM');
             if(hallazgosFiltrados.length === 0) { tb.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No se encontraron NC o Mejoras en la Lista de Verificación.</td></tr>"; return; }
 
@@ -1785,7 +1864,7 @@
             tb.innerHTML = html;
         };
 
-        window.abrirCrearSAC = (f020_id) => {
+        window.abrirCrearSAC = function(f020_id) {
             let h = currentAuditF020.find(i => i.id === f020_id); if(!h) return;
             currentEditingSacId = null; currentEditingF020Ref = h;
             document.getElementById('sac-num').value = "POR GENERAR"; document.getElementById('sac-estado-badge').innerText = "NUEVA"; document.getElementById('sac-estado-badge').className = "badge badge-info"; document.getElementById('sac-detalle').value = h.comentarios || h.pregunta;
@@ -1797,7 +1876,7 @@
             document.getElementById('btn-save-sac').style.display = 'inline-block'; document.getElementById('modal-sac').style.display = 'flex';
         };
 
-        window.verSAC = (sac_id) => {
+        window.verSAC = function(sac_id) {
             let sac = globalAllSacs.find(s => s.sac_id === sac_id); if(!sac) return; currentEditingSacId = sac_id;
             document.getElementById('sac-num').value = sac.sac_num; let est = sac.estado; let bs = est === 'Abierta' ? 'badge-danger' : (est === 'Respondida' ? 'badge-warning' : 'badge-success');
             document.getElementById('sac-estado-badge').innerText = est.toUpperCase(); document.getElementById('sac-estado-badge').className = `badge ${bs}`; document.getElementById('sac-detalle').value = sac.detalle_nc;
@@ -1816,7 +1895,7 @@
             document.getElementById('btn-save-sac').style.display = (puedeEditarAuditor || puedeEditarDueno) ? 'inline-block' : 'none'; document.getElementById('modal-sac').style.display = 'flex';
         };
 
-        window.guardarSAC = async () => {
+        window.guardarSAC = async function() {
             window.showLoading(); let data = {};
             if(!currentEditingSacId) {
                 let dSel = document.getElementById('sac-dueno').value; if(!dSel) { window.hideLoading(); return alert("Debe asignar un Dueño de Proceso."); }
@@ -1857,7 +1936,7 @@
             if(selectedAuditId) window.verModalAuditoria(selectedAuditId);
         };
 
-        window.renderF020 = () => {
+        window.renderF020 = function() {
             const tbody = document.getElementById('tbody-f020'); if(!tbody) return; let html = "";
             let canEdit = selectedAuditData.estado !== 'Completada'; if(currentUser.permisos.admin) canEdit = true;
 
@@ -1869,29 +1948,29 @@
             tbody.innerHTML = html; document.querySelectorAll('.f020-action-col').forEach(el => el.style.display = canEdit ? '' : 'none');
         };
 
-        window.agregarFilaF020 = () => { currentAuditF020.push({ id: 'f020_' + Date.now() + Math.floor(Math.random()*1000), pregunta: '', requisito: '', comentarios: '', auditado: '', hallazgo: 'N/A' }); window.renderF020(); };
-        window.eliminarF020 = (id) => { if(!confirm("¿Eliminar ítem?")) return; currentAuditF020 = currentAuditF020.filter(x => x.id !== id); window.renderF020(); };
+        window.agregarFilaF020 = function() { currentAuditF020.push({ id: 'f020_' + Date.now() + Math.floor(Math.random()*1000), pregunta: '', requisito: '', comentarios: '', auditado: '', hallazgo: 'N/A' }); window.renderF020(); };
+        window.eliminarF020 = function(id) { if(!confirm("¿Eliminar ítem?")) return; currentAuditF020 = currentAuditF020.filter(x => x.id !== id); window.renderF020(); };
 
-        window.guardarF020 = async () => {
+        window.guardarF020 = async function() {
             const trs = document.querySelectorAll('#tbody-f020 tr'); let dataArr = [];
             trs.forEach(tr => { let inputs = tr.querySelectorAll('.table-input, .table-select'); dataArr.push({ id: tr.dataset.id, pregunta: inputs[0].value, requisito: inputs[1].value, comentarios: inputs[2].value, auditado: inputs[3].value, hallazgo: inputs[4].value }); });
             window.showLoading(); await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { lista_verificacion: dataArr, bitacora: arrayUnion({u: currentUser.nombre, m: `📝 <b>Actualizó Lista de Verificación (F-020)</b>`, t: new Date().toLocaleString()}) });
             window.hideLoading(); alert("F-020 Guardado correctamente."); window.verModalAuditoria(selectedAuditId); 
         };
 
-        window.actualizarMetricasF003 = () => {
+        window.actualizarMetricasF003 = function() {
             let ncMay = 0, ncMen = 0, om = 0, fort = 0;
             currentAuditF020.forEach(i => { if(i.hallazgo === 'NC Mayor') ncMay++; if(i.hallazgo === 'NC Menor') ncMen++; if(i.hallazgo === 'OM') om++; if(i.hallazgo === 'Fortaleza') fort++; });
             document.getElementById('f003-nc-mayor').innerText = ncMay; document.getElementById('f003-nc-menor').innerText = ncMen; document.getElementById('f003-om').innerText = om; document.getElementById('f003-fort').innerText = fort;
         };
 
-        window.guardarF003 = async () => {
+        window.guardarF003 = async function() {
             const conc = document.getElementById('f003-conclusiones').value; const nots = document.getElementById('f003-notas').value;
             window.showLoading(); await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { reporte_auditoria: { conclusiones: conc, notas: nots }, bitacora: arrayUnion({u: currentUser.nombre, m: `📊 <b>Actualizó Reporte de Auditoría (F-003)</b>`, t: new Date().toLocaleString()}) });
             window.hideLoading(); alert("Reporte F-003 guardado.");
         };
 
-        window.renderF023Global = () => {
+        window.renderF023Global = function() {
             const tb = document.getElementById('tbody-noconf'); if(!tb) return;
             let html = ""; let filtrados = [...globalAllSacs];
             const selEst = document.getElementById('filter-noconf-estado');
@@ -1909,15 +1988,15 @@
             tb.innerHTML = html;
         };
 
-        window.setFilterGestNC = (val) => { window.renderF023Global(); };
+        window.setFilterGestNC = function(val) { window.renderF023Global(); };
 
-        window.verSACGlobal = async (sac_id, audit_id) => {
+        window.verSACGlobal = async function(sac_id, audit_id) {
             const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", audit_id));
             if(docSnap.exists()) { selectedAuditData = docSnap.data(); selectedAuditId = audit_id; }
             window.verSAC(sac_id);
         };
 
-        window.exportarExcelNoConf = () => {
+        window.exportarExcelNoConf = function() {
             if(globalAllSacs.length === 0) return alert("No hay registros SAC para exportar.");
             let dataExport = globalAllSacs.map(s => {
                 let uDueno = allUsers.find(u => u.usuario === s.dueno_uid);
@@ -1927,7 +2006,7 @@
         };
 
         // ==========================================
-        // INICIALIZACIÓN DE FIREBASE Y CARGA PRINCIPAL
+        // CARGAR DATOS DE FIREBASE
         // ==========================================
         function cargarDatos() {
             const path = (c) => collection(db, "artifacts", appId, "public", "data", c);
@@ -2027,6 +2106,32 @@
                 setTimeout(() => { window.checkDailyAlerts(); }, 3000);
             });
         }
+
+        // ==========================================
+        // AUTO EJECUCIÓN (INICIO)
+        // ==========================================
+        window.iniciarSesion = async function() {
+            const u = document.getElementById('login-user').value.toLowerCase().trim();
+            const p = document.getElementById('login-pass').value.trim();
+            if (!u || !p) { alert("Por favor, ingresa tu usuario y contraseña."); return; }
+            window.showLoading();
+            try {
+                if(u === 'admin' && p === '1130') {
+                    const adminRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", "admin"); const snapAdmin = await getDoc(adminRef);
+                    if(!snapAdmin.exists()) {
+                        await setDoc(adminRef, {
+                            nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencias: ["SGC"], gerencia: "SGC", email: EMAIL_ADMIN_SGC,
+                            permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_ver_todas:true, p_users:true, p_struct:true, p_ver_listado:true, p_audit_admin:true, p_audit_ver:true, admin:true, p_paso1:true, p_paso2:true, p_paso4:true }
+                        });
+                    }
+                }
+                const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", u), where("pass", "==", p));
+                const querySnapshot = await getDocs(q);
+                if(!querySnapshot.empty) {
+                    localStorage.setItem('sgc_session_user', u); currentUser = querySnapshot.docs[0].data(); window.completarLoginUI();
+                } else { alert("Credenciales incorrectas. Verifica tu usuario o contraseña."); }
+            } catch (error) { console.error("Error:", error); alert("Hubo un problema al conectar con la base de datos."); } finally { window.hideLoading(); }
+        };
 
         async function arrancar() {
             const savedUser = localStorage.getItem('sgc_session_user');
