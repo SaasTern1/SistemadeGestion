@@ -26,8 +26,9 @@ const EMAIL_ADMIN_SGC = "sistemadegestion@fcipty.com";
 const CLOUD_NAME = "df79cjklp"; const UPLOAD_PRESET = "fci_documentos";
 const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
 
+// Variables Globales Corregidas
 let currentUser = null, selectedId = null, selectedDocData = null, tempAction = "";
-let allUsers = [], allDepartamentos = [], tiposDocumento = [], columnasMaestro = [], estatusMaestro = [], dataMaestro = [];
+let allUsers = [], allDepartamentos = [], tiposDocumento = [], columnasMaestro = [], estatusMaestro = [], dataMaestro = [], editandoMaestroId = null;
 let globalSolicitudes = [], globalAuditPlan = null, globalAllAuditorias = [], globalAuditorias = [];
 let selectedAuditId = null, selectedAuditData = null, editandoAuditoriaId = null;
 let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, currentEditingF020Ref = null;
@@ -35,7 +36,6 @@ let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, curre
 // ==========================================
 // 1. UTILIDADES Y CARGA DE ARCHIVOS
 // ==========================================
-// Función de seguridad para evitar errores si falta un HTML
 const setDisplay = (id, val) => { const el = document.getElementById(id); if (el) el.style.display = val; };
 
 window.abrirDocumento = async (url, nombreOriginal) => {
@@ -541,13 +541,11 @@ window.verDetalle = async (id) => {
     let badgeClass = 'badge-info'; if(estadoStr.includes('APROBADO')) badgeClass = 'badge-success'; if(isCancelado) badgeClass = 'badge-danger'; if(estadoStr.includes('PENDIENTE')) badgeClass = 'badge-warning';
     
     if(document.getElementById('m-est')) { document.getElementById('m-est').innerText = isAprobadoFinalModal ? 'APROBADO FINAL' : s.estado; document.getElementById('m-est').className = `badge ${badgeClass}`; }
-    
     if(document.getElementById('m-ger')) document.getElementById('m-ger').innerText = s.gerencia; 
     if(document.getElementById('m-tipo')) document.getElementById('m-tipo').innerText = s.tipoDoc || "N/A"; 
     
     let pr = s.prioridad || "Normal"; let bPr = pr === 'Alta' ? 'badge-danger' : (pr === 'Básica' ? 'badge-info' : 'badge-dark'); 
     if(document.getElementById('m-prioridad')) { document.getElementById('m-prioridad').innerText = pr.toUpperCase(); document.getElementById('m-prioridad').className = `badge ${bPr}`; }
-    
     if(document.getElementById('m-accion')) document.getElementById('m-accion').innerText = s.accion; 
     if(document.getElementById('m-jus')) document.getElementById('m-jus').innerText = s.motivo || s.justificacion || "Sin justificación";
     
@@ -570,22 +568,32 @@ window.verDetalle = async (id) => {
         if(st) { st.className = 'step'; if(isCancelado) continue; if(i <= s.idx) st.classList.add('completed'); if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active'); }
     }
 
+    const esAdminSGC = p.admin || p.p_gest_sgc; 
+    const esGer = p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia); 
+    const activo = !isAprobadoFinalModal && !isCancelado;
+
+    // RENDERIZAR TIEMPOS DE FASE CONECTADOS A FIREBASE (Sólo para SGC/Admins)
     const fDiff = (ini, fin) => {
         if(!ini || !fin) return "-";
         let ms = new Date(fin) - new Date(ini); if(ms < 0) return "-";
         let d = Math.floor(ms / 86400000); let h = Math.floor((ms % 86400000) / 3600000);
         return `${d}d ${h}h`;
     };
-    if (document.getElementById('m-tiempos-grid')) {
-        document.getElementById('m-tiempos-grid').innerHTML = `
-            <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 1 (Doc)</b><br>${fDiff(s.fase_0_ini, s.fase_0_fin)}</div>
-            <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 2 (Verif)</b><br>${fDiff(s.fase_1_ini, s.fase_1_fin)}</div>
-            <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 3 (Gerencia)</b><br>${fDiff(s.fase_2_ini, s.fase_2_fin)}</div>
-            <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 4 (SGC Final)</b><br>${fDiff(s.fase_3_ini, s.fecha_final || s.fase_3_fin)}</div>
-        `;
+    
+    if (document.getElementById('m-tiempos-panel')) {
+        if(esAdminSGC) {
+            setDisplay('m-tiempos-panel', 'block');
+            document.getElementById('m-tiempos-grid').innerHTML = `
+                <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 1 (Doc)</b><br>${fDiff(s.fase_0_ini, s.fase_0_fin)}</div>
+                <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 2 (Verif)</b><br>${fDiff(s.fase_1_ini, s.fase_1_fin)}</div>
+                <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 3 (Gerencia)</b><br>${fDiff(s.fase_2_ini, s.fase_2_fin)}</div>
+                <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 4 (SGC Final)</b><br>${fDiff(s.fase_3_ini, s.fecha_final || s.fase_3_fin)}</div>
+            `;
+        } else {
+            setDisplay('m-tiempos-panel', 'none');
+        }
     }
 
-    const esAdminSGC = p.admin || p.p_gest_sgc; const esGer = p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia); const activo = !isAprobadoFinalModal && !isCancelado;
     let puedeGestionarSGC = false;
     if(activo) { if (s.idx === 0 && (p.p_gest_sgc || p.p_paso1 || p.admin)) puedeGestionarSGC = true; if (s.idx === 1 && (p.p_gest_sgc || p.p_paso2 || p.admin)) puedeGestionarSGC = true; if (s.idx === 3 && (p.p_gest_sgc || p.p_paso4 || p.admin)) puedeGestionarSGC = true; }
     const puedeGestionarGerente = esGer && s.idx === 2 && activo; const esInvolucradoActivo = s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()); const esDuenio = s.uid === currentUser.usuario || esInvolucradoActivo; 
@@ -632,6 +640,9 @@ window.verDetalle = async (id) => {
             
             let finName = s.documento_final_nombre || "Documento Oficial"; let finUrl = s.documento_final ? window.getDownloadUrl(s.documento_final) : "#"; 
             if(document.getElementById('m-disp-file')) document.getElementById('m-disp-file').innerHTML = s.documento_final ? `<a href="#" onclick="window.abrirDocumento('${finUrl}', '${finName}'); return false;" class="file-link">📄 ${finName}</a>` : "N/A";
+        } else if (esAdminSGC || p.p_paso4) { 
+            setDisplay('m-panel-final-sgc', 'block'); 
+            if(document.getElementById('m-final-cod')) document.getElementById('m-final-cod').value = s.cod_ref || ""; 
         }
     }
     
@@ -739,10 +750,12 @@ window.setFilterGest = (filterText) => {
     for (let i = 0; i < trs.length; i++) { let statusCell = trs[i].getElementsByTagName('td')[3]; if (statusCell) { let text = statusCell.textContent || statusCell.innerText; if (filter === "" || text.toLowerCase().includes(filter)) { trs[i].style.display = ""; } else { trs[i].style.display = "none"; } } }
 };
 
-window.descargarExcelFiltrado = (origen = 'hist', isAdminTotal = false) => {
+window.descargarExcelFiltrado = (origen = 'hist') => {
     let desde = document.getElementById(`${origen}-f-desde`).value; let hasta = document.getElementById(`${origen}-f-hasta`).value; let estado = document.getElementById(`${origen}-f-estado`).value;
+    let esAdminSGC = currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
+
     let datosFiltrados = globalSolicitudes.filter(s => {
-        if (origen !== 'all' && !isAdminTotal) {
+        if (origen !== 'all' && !esAdminSGC) {
             let isMine = (s.uid === currentUser.usuario) || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()));
             if (origen === 'hist' && !isMine) return false;
             if (origen === 'gest') { const p = currentUser.permisos; let ver = p.p_ver_all || (p.p_ver_ger && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia)) || isMine; if(!ver) return false; }
@@ -756,6 +769,7 @@ window.descargarExcelFiltrado = (origen = 'hist', isAdminTotal = false) => {
         }
         return true;
     });
+
     if(datosFiltrados.length === 0) return alert("No hay datos que coincidan con estos filtros.");
 
     const formatearDiferencia = (ini, fin) => {
@@ -767,10 +781,20 @@ window.descargarExcelFiltrado = (origen = 'hist', isAdminTotal = false) => {
     let dataExport = datosFiltrados.map(s => {
         let p = PASOS_NOMBRES[s.idx] || ''; let estadoFormat = s.estado === 'Aprobado Final' ? 'Aprobado Final' : (s.estado === 'Anulado' || s.estado === 'Rechazado' ? s.estado : `${s.estado} (${p})`);
         let baseObj = { "ID Solicitud": s.customId, "Solicitante": s.solicitante || '', "Email Solicitante": s.solicitante_email || '', "Gerencia": s.gerencia || '', "Departamento": s.departamento || '', "Acción": s.accion || '', "Prioridad": s.prioridad || 'Normal', "Tipo Documento": s.tipoDoc || '', "Título Documento": s.titulo || '', "Estado Actual": estadoFormat, "Fecha Límite (SLA)": s.fecha_esperada_cierre || 'No definida', "Fecha de Creación": s.fecha ? new Date(s.fecha).toLocaleString() : '', "Código Ref. Original": s.cod_ref || '', "Versión Original": s.ver_ref || '', "Código Final Asignado": s.codigo_final || '', "Versión Final Asignada": s.version_final || '', "Fecha Final": s.fecha_final || '' };
-        if (isAdminTotal) { baseObj["Tiempo Fase 1 (Documentado)"] = formatearDiferencia(s.fase_0_ini, s.fase_0_fin); baseObj["Tiempo Fase 2 (Verificado)"] = formatearDiferencia(s.fase_1_ini, s.fase_1_fin); baseObj["Tiempo Fase 3 (Aprob. Gerencia)"] = formatearDiferencia(s.fase_2_ini, s.fase_2_fin); baseObj["Tiempo Fase 4 (Aprob. SGC)"] = formatearDiferencia(s.fase_3_ini, s.fase_3_fin); baseObj["TIEMPO TOTAL DEL FLUJO"] = formatearDiferencia(s.fase_0_ini, s.fecha_final || s.fase_3_fin || s.fase_2_fin || s.fase_1_fin || s.fase_0_fin); }
+        
+        // ADICIÓN EXCLUSIVA DE TIEMPOS PARA SGC/ADMINS EN EL REPORTE EXCEL
+        if (esAdminSGC) { 
+            baseObj["Tiempo Fase 1 (Documentado)"] = formatearDiferencia(s.fase_0_ini, s.fase_0_fin); 
+            baseObj["Tiempo Fase 2 (Verificado)"] = formatearDiferencia(s.fase_1_ini, s.fase_1_fin); 
+            baseObj["Tiempo Fase 3 (Aprob. Gerencia)"] = formatearDiferencia(s.fase_2_ini, s.fase_2_fin); 
+            baseObj["Tiempo Fase 4 (Aprob. SGC)"] = formatearDiferencia(s.fase_3_ini, s.fase_3_fin); 
+            baseObj["TIEMPO TOTAL DEL FLUJO"] = formatearDiferencia(s.fase_0_ini, s.fecha_final || s.fase_3_fin || s.fase_2_fin || s.fase_1_fin || s.fase_0_fin); 
+        }
         return baseObj;
     });
-    let nameF = isAdminTotal ? "Reporte_Admin_Tiempos" : "Reporte_Solicitudes"; let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dataExport); XLSX.utils.book_append_sheet(wb, ws, "Datos_Filtrados"); XLSX.writeFile(wb, `${nameF}.xlsx`);
+
+    let nameF = esAdminSGC ? "Reporte_SGC_Completo" : "Reporte_Solicitudes"; 
+    let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dataExport); XLSX.utils.book_append_sheet(wb, ws, "Datos_Filtrados"); XLSX.writeFile(wb, `${nameF}.xlsx`);
 };
 
 // ==========================================
@@ -858,6 +882,7 @@ window.cargarAuditoriaParaEditar = async (id) => {
 
     let auditadosArr = audit.auditado ? audit.auditado.split(', ') : []; 
     Array.from(document.getElementById('aud-auditado-sel').options).forEach(opt => { opt.selected = auditadosArr.includes(opt.value); });
+    
     let auditoresArr = audit.auditor ? audit.auditor.split(', ') : []; 
     Array.from(document.getElementById('aud-auditor-sel').options).forEach(opt => { opt.selected = auditoresArr.includes(opt.value); });
     
@@ -869,7 +894,9 @@ window.cancelarEdicionAuditoria = () => {
     document.getElementById('aud-fecha').value = ''; document.getElementById('aud-h-ini').value = ''; document.getElementById('aud-h-fin').value = ''; document.getElementById('aud-lugar').value = ''; document.getElementById('aud-proceso').value = ''; document.getElementById('aud-req').value = ''; document.getElementById('aud-obs').value = '';
     document.getElementById('aud-org').value = ''; document.getElementById('aud-dir').value = ''; document.getElementById('aud-sitios').value = ''; document.getElementById('aud-personal').value = ''; document.getElementById('aud-turnos').value = ''; document.getElementById('aud-formacion').value = '';
 
-    document.getElementById('aud-auditado-sel').selectedIndex = -1; document.getElementById('aud-auditor-sel').selectedIndex = -1;
+    document.getElementById('aud-auditado-sel').selectedIndex = -1;
+    document.getElementById('aud-auditor-sel').selectedIndex = -1;
+    
     document.getElementById('btn-guardar-aud').innerText = "GENERAR AUDITORÍA Y NOTIFICAR"; setDisplay('btn-cancelar-aud', 'none');
 };
 
@@ -884,7 +911,8 @@ window.guardarAuditoria = async () => {
 
     let data = { 
         fecha: fecha, hora_inicio: hIni, hora_fin: hFin, lugar: lugar, proceso: proceso, requisitos: req, 
-        auditado: auditadoNombres.join(', '), auditado_emails: auditadoEmails, auditor: auditorNombres.join(', '), auditor_emails: auditorEmails, observacion: obs,
+        auditado: auditadoNombres.join(', '), auditado_emails: auditadoEmails, 
+        auditor: auditorNombres.join(', '), auditor_emails: auditorEmails, observacion: obs,
         organizacion: document.getElementById('aud-org').value, direccion: document.getElementById('aud-dir').value, sitios: document.getElementById('aud-sitios').value, personal: document.getElementById('aud-personal').value, turnos: document.getElementById('aud-turnos').value, auditores_formacion: document.getElementById('aud-formacion').value
     };
 
@@ -1235,9 +1263,7 @@ window.exportarExcelNoConf = () => {
 // ARRANQUE DE LA APLICACIÓN
 // ==========================================
 const inicializarApp = async () => {
-    console.log("🚀 Paso 1: Iniciando aplicación...");
-    window.hideLoading(); 
-    
+    console.log("🚀 Paso 1: Iniciando aplicación..."); window.hideLoading(); 
     const savedUser = localStorage.getItem('sgc_session_user');
     console.log("👤 Paso 2: Usuario guardado en caché:", savedUser ? savedUser : "Ninguno");
 
@@ -1247,29 +1273,18 @@ const inicializarApp = async () => {
             console.log("⏳ Paso 3: Conectando con Firebase para validar sesión...");
             const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", savedUser));
             const snap = await getDocs(q);
-            
             if (!snap.empty) { 
                 console.log("✅ Paso 4: Sesión restaurada con éxito. Renderizando UI...");
-                currentUser = snap.docs[0].data(); 
-                window.completarLoginUI(); 
+                currentUser = snap.docs[0].data(); window.completarLoginUI(); 
             } else { 
-                console.log("⚠️ Paso 4: El usuario ya no existe en la BD. Limpiando sesión...");
-                window.logout();
+                console.log("⚠️ Paso 4: El usuario ya no existe en la BD. Limpiando sesión..."); window.logout();
             }
-        } catch(e) { 
-            console.error("❌ Error al restaurar sesión:", e); 
-            window.logout();
-        }
+        } catch(e) { console.error("❌ Error al restaurar sesión:", e); window.logout(); }
         window.hideLoading();
     } else {
-        console.log("👋 Paso 3: No hay sesión. Mostrando pantalla de Login.");
-        window.hideLoading();
-        setDisplay('login-screen', 'flex');
+        console.log("👋 Paso 3: No hay sesión. Mostrando pantalla de Login."); window.hideLoading();
+        const loginScreen = document.getElementById('login-screen'); if (loginScreen) { loginScreen.style.display = 'flex'; }
     }
 };
 
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", inicializarApp);
-} else {
-    inicializarApp();
-}
+if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", inicializarApp); } else { inicializarApp(); }
