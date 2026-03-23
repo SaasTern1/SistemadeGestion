@@ -36,19 +36,82 @@ let selectedAuditId = null, selectedAuditData = null, editandoAuditoriaId = null
 let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, currentEditingF020Ref = null;
 
 // ==========================================
-// ASIGNACIÓN DE FUNCIONES AL OBJETO WINDOW
+// FUNCIONES DE SESIÓN Y UI
 // ==========================================
-window.showLoading = () => document.getElementById('loading-overlay').style.display = 'flex';
-window.hideLoading = () => document.getElementById('loading-overlay').style.display = 'none';
+window.completarLoginUI = () => {
+    // 1. Ocultar la pantalla de login
+    const loginScreen = document.getElementById('login-screen');
+    if(loginScreen) loginScreen.style.display = 'none';
+
+    // 2. Mostrar datos del usuario en la barra lateral
+    const currNameEl = document.getElementById('curr-name');
+    if(currNameEl) currNameEl.innerText = currentUser.nombre || 'Usuario';
+    
+    const currGerEl = document.getElementById('curr-ger');
+    if(currGerEl) currGerEl.innerText = currentUser.gerencias ? currentUser.gerencias.join(', ') : (currentUser.gerencia || 'Sin Gerencia');
+
+    // 3. Mostrar/Ocultar menús según los permisos del usuario
+    const p = currentUser.permisos || {};
+
+    const adminMenu = document.getElementById('admin-only');
+    if(adminMenu) adminMenu.style.display = (p.admin || p.p_users || p.p_struct) ? 'block' : 'none';
+
+    const auditGroup = document.getElementById('nav-audit-group');
+    if(auditGroup) auditGroup.style.display = (p.admin || p.p_audit_ver || p.p_audit_admin || p.p_audit_auditor || p.p_audit_dueno) ? 'block' : 'none';
+
+    const navListado = document.getElementById('nav-listado');
+    if(navListado) navListado.style.display = (p.admin || p.p_ver_listado) ? 'flex' : 'none';
+
+    const navAll = document.getElementById('nav-all');
+    if(navAll) navAll.style.display = (p.admin || p.p_ver_todas) ? 'flex' : 'none';
+
+    // 4. Redirigir a la vista del Dashboard (Panel Analítico) por defecto
+    const navDash = document.getElementById('nav-dash');
+    if(navDash) window.cambiarVista('sec-dash', navDash);
+};
+
+window.logout = () => {
+    // Limpiar sesión local y resetear usuario
+    localStorage.removeItem('sgc_session_user');
+    currentUser = null;
+    
+    // Mostrar pantalla de login nuevamente y limpiar campos
+    const loginScreen = document.getElementById('login-screen');
+    if(loginScreen) loginScreen.style.display = 'flex';
+    
+    const userEl = document.getElementById('login-user');
+    if(userEl) userEl.value = '';
+    
+    const passEl = document.getElementById('login-pass');
+    if(passEl) passEl.value = '';
+};
+
+// ==========================================
+// ASIGNACIÓN DE OTRAS FUNCIONES AL OBJETO WINDOW
+// ==========================================
+window.showLoading = () => {
+    const loader = document.getElementById('loading-overlay');
+    if(loader) loader.style.display = 'flex';
+};
+window.hideLoading = () => {
+    const loader = document.getElementById('loading-overlay');
+    if(loader) loader.style.display = 'none';
+};
 
 window.cambiarVista = (id, btn) => {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+    
+    const section = document.getElementById(id);
+    if(section) section.classList.add('active');
+    
     if(btn) btn.classList.add('active');
+    
     if(window.innerWidth <= 768) { 
-        document.getElementById('sidebar').classList.remove('open'); 
-        document.getElementById('sidebar-overlay').classList.remove('active'); 
+        const sidebar = document.getElementById('sidebar');
+        if(sidebar) sidebar.classList.remove('open'); 
+        const overlay = document.getElementById('sidebar-overlay');
+        if(overlay) overlay.classList.remove('active'); 
     }
 };
 
@@ -856,10 +919,14 @@ window.iniciarSesion = async () => {
     const u = document.getElementById('login-user').value.toLowerCase().trim();
     const p = document.getElementById('login-pass').value.trim();
     if (!u || !p) { alert("Por favor, ingresa tu usuario y contraseña."); return; }
+    
     window.showLoading();
+    
     try {
+        // Validación temporal de administrador maestro para evitar quedarse bloqueado sin usuarios
         if(u === 'admin' && p === '1130') {
-            const adminRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", "admin"); const snapAdmin = await getDoc(adminRef);
+            const adminRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", "admin"); 
+            const snapAdmin = await getDoc(adminRef);
             if(!snapAdmin.exists()) {
                 await setDoc(adminRef, {
                     nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencias: ["SGC"], gerencia: "SGC", email: EMAIL_ADMIN_SGC,
@@ -867,12 +934,23 @@ window.iniciarSesion = async () => {
                 });
             }
         }
+        
         const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", u), where("pass", "==", p));
         const querySnapshot = await getDocs(q);
+        
         if(!querySnapshot.empty) {
-            localStorage.setItem('sgc_session_user', u); currentUser = querySnapshot.docs[0].data(); window.completarLoginUI();
-        } else { alert("Credenciales incorrectas. Verifica tu usuario o contraseña."); }
-    } catch (error) { console.error("Error:", error); alert("Hubo un problema al conectar con la base de datos."); } finally { window.hideLoading(); }
+            localStorage.setItem('sgc_session_user', u); 
+            currentUser = querySnapshot.docs[0].data(); 
+            window.completarLoginUI();
+        } else { 
+            alert("Credenciales incorrectas. Verifica tu usuario o contraseña."); 
+        }
+    } catch (error) { 
+        console.error("Error:", error); 
+        alert("Hubo un problema al conectar con la base de datos."); 
+    } finally { 
+        window.hideLoading(); 
+    }
 };
 
 window.onload = async () => {
@@ -882,9 +960,15 @@ window.onload = async () => {
         try {
             const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", savedUser));
             const snap = await getDocs(q);
-            if(!snap.empty) { currentUser = snap.docs[0].data(); window.completarLoginUI(); } 
-            else { localStorage.removeItem('sgc_session_user'); }
-        } catch(e) { console.error("Error restaurando sesión:", e); }
+            if(!snap.empty) { 
+                currentUser = snap.docs[0].data(); 
+                window.completarLoginUI(); 
+            } else { 
+                localStorage.removeItem('sgc_session_user'); 
+            }
+        } catch(e) { 
+            console.error("Error restaurando sesión:", e); 
+        }
         window.hideLoading();
     }
 };
