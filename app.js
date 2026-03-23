@@ -954,35 +954,50 @@ window.iniciarSesion = async () => {
 };
 
 // ==========================================
-// ARRANQUE DE LA APLICACIÓN (Corregido para Módulos)
+// ARRANQUE DE LA APLICACIÓN (A prueba de fallos)
 // ==========================================
 const inicializarApp = async () => {
-    const savedUser = localStorage.getItem('sgc_session_user');
+    console.log("🚀 Paso 1: Iniciando aplicación...");
+    window.hideLoading(); // Por si el overlay blanco se quedó pegado
     
+    const savedUser = localStorage.getItem('sgc_session_user');
+    console.log("👤 Paso 2: Usuario guardado en caché:", savedUser ? savedUser : "Ninguno");
+
     if (savedUser) {
         window.showLoading();
         try {
+            console.log("⏳ Paso 3: Conectando con Firebase para validar sesión...");
             const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", savedUser));
             const snap = await getDocs(q);
             
             if (!snap.empty) { 
+                console.log("✅ Paso 4: Sesión restaurada con éxito.");
                 currentUser = snap.docs[0].data(); 
                 window.completarLoginUI(); 
             } else { 
-                window.logout(); // Si el usuario fue borrado de la BD, limpiamos la sesión
+                console.log("⚠️ Paso 4: El usuario ya no existe en la BD. Cerrando sesión...");
+                window.logout();
             }
         } catch(e) { 
-            console.error("Error restaurando sesión:", e); 
-            window.logout(); // Si falla la red o BD, mostramos el login
+            console.error("❌ Error grave al restaurar sesión:", e); 
+            window.logout();
         }
         window.hideLoading();
     } else {
-        // Si no hay sesión, nos aseguramos de ocultar el loader y mostrar el login
+        console.log("👋 Paso 3: Mostrando pantalla de Login.");
         window.hideLoading();
         const loginScreen = document.getElementById('login-screen');
-        if (loginScreen) loginScreen.style.display = 'flex';
+        if (loginScreen) {
+            loginScreen.style.display = 'flex';
+        } else {
+            console.error("❌ ERROR: No se encontró el elemento #login-screen en el HTML.");
+        }
     }
 };
 
-// Ejecutamos la función inmediatamente
-inicializarApp();
+// Asegurarnos de que el HTML exista antes de intentar pintarlo
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", inicializarApp);
+} else {
+    inicializarApp();
+}
