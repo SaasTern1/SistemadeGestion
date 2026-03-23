@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión</title>
+    <title>Sistema de Gestión de Seguridad</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
@@ -579,7 +579,7 @@
                     <p style="font-size:11px; color:#64748b; margin-bottom:10px;">Departamentos principales que evalúan solicitudes.</p>
                     <div style="display:flex; gap:0; margin-bottom:15px;">
                         <input type="text" id="g-nom" placeholder="Nueva Gerencia..." style="margin:0; border-radius: 8px 0 0 8px; border-right:none;">
-                        <button class="btn btn-success" id="btnSaveGer" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button>
+                        <button class="btn btn-success" id="btnSaveGer" onclick="window.agregarGerencia()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button>
                     </div>
                     <div id="list-ger" class="settings-list"></div>
                 </div>
@@ -590,7 +590,7 @@
                     <div style="display:flex; gap:0; margin-bottom:15px;">
                         <select id="d-ger-sel" style="margin:0; border-radius: 8px 0 0 8px; border-right:1px solid #cbd5e1; width:40%; padding:12px;"></select>
                         <input type="text" id="d-nom" placeholder="Nuevo Depto..." style="margin:0; border-radius: 0; border-right:none; width:60%;">
-                        <button class="btn btn-success" id="btnSaveDep" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button>
+                        <button class="btn btn-success" id="btnSaveDep" onclick="window.agregarDepartamento()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button>
                     </div>
                     <div id="list-dep" class="settings-list"></div>
                 </div>
