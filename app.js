@@ -43,14 +43,21 @@ window.completarLoginUI = () => {
     const loginScreen = document.getElementById('login-screen');
     if(loginScreen) loginScreen.style.display = 'none';
 
-    // 2. Mostrar datos del usuario en la barra lateral
+    // 2. MOSTRAR LA INTERFAZ PRINCIPAL (Esta era la causa de la pantalla blanca)
+    const sidebar = document.getElementById('sidebar');
+    if(sidebar) sidebar.style.display = 'flex';
+    
+    const main = document.getElementById('main');
+    if(main) main.style.display = 'block';
+
+    // 3. Mostrar datos del usuario en la barra lateral
     const currNameEl = document.getElementById('curr-name');
     if(currNameEl) currNameEl.innerText = currentUser.nombre || 'Usuario';
     
     const currGerEl = document.getElementById('curr-ger');
     if(currGerEl) currGerEl.innerText = currentUser.gerencias ? currentUser.gerencias.join(', ') : (currentUser.gerencia || 'Sin Gerencia');
 
-    // 3. Mostrar/Ocultar menús según los permisos del usuario
+    // 4. Mostrar/Ocultar menús según los permisos del usuario
     const p = currentUser.permisos || {};
 
     const adminMenu = document.getElementById('admin-only');
@@ -65,7 +72,7 @@ window.completarLoginUI = () => {
     const navAll = document.getElementById('nav-all');
     if(navAll) navAll.style.display = (p.admin || p.p_ver_todas) ? 'flex' : 'none';
 
-    // 4. Redirigir a la vista del Dashboard (Panel Analítico) por defecto
+    // 5. Redirigir a la vista del Dashboard (Panel Analítico) por defecto
     const navDash = document.getElementById('nav-dash');
     if(navDash) window.cambiarVista('sec-dash', navDash);
 };
@@ -75,6 +82,13 @@ window.logout = () => {
     localStorage.removeItem('sgc_session_user');
     currentUser = null;
     
+    // Ocultar interfaz principal
+    const sidebar = document.getElementById('sidebar');
+    if(sidebar) sidebar.style.display = 'none';
+    
+    const main = document.getElementById('main');
+    if(main) main.style.display = 'none';
+
     // Mostrar pantalla de login nuevamente y limpiar campos
     const loginScreen = document.getElementById('login-screen');
     if(loginScreen) loginScreen.style.display = 'flex';
@@ -87,7 +101,7 @@ window.logout = () => {
 };
 
 // ==========================================
-// ASIGNACIÓN DE OTRAS FUNCIONES AL OBJETO WINDOW
+// ASIGNACIÓN DE FUNCIONES AL OBJETO WINDOW
 // ==========================================
 window.showLoading = () => {
     const loader = document.getElementById('loading-overlay');
@@ -913,52 +927,11 @@ window.enviarComentarioAuditoria = async () => {
 };
 
 // ==========================================
-// LOGIN Y ARRANQUE
-// ==========================================
-window.iniciarSesion = async () => {
-    const u = document.getElementById('login-user').value.toLowerCase().trim();
-    const p = document.getElementById('login-pass').value.trim();
-    if (!u || !p) { alert("Por favor, ingresa tu usuario y contraseña."); return; }
-    
-    window.showLoading();
-    
-    try {
-        // Validación temporal de administrador maestro para evitar quedarse bloqueado sin usuarios
-        if(u === 'admin' && p === '1130') {
-            const adminRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", "admin"); 
-            const snapAdmin = await getDoc(adminRef);
-            if(!snapAdmin.exists()) {
-                await setDoc(adminRef, {
-                    nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencias: ["SGC"], gerencia: "SGC", email: EMAIL_ADMIN_SGC,
-                    permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_ver_todas:true, p_users:true, p_struct:true, p_ver_listado:true, p_audit_admin:true, p_audit_ver:true, admin:true, p_paso1:true, p_paso2:true, p_paso4:true }
-                });
-            }
-        }
-        
-        const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", u), where("pass", "==", p));
-        const querySnapshot = await getDocs(q);
-        
-        if(!querySnapshot.empty) {
-            localStorage.setItem('sgc_session_user', u); 
-            currentUser = querySnapshot.docs[0].data(); 
-            window.completarLoginUI();
-        } else { 
-            alert("Credenciales incorrectas. Verifica tu usuario o contraseña."); 
-        }
-    } catch (error) { 
-        console.error("Error:", error); 
-        alert("Hubo un problema al conectar con la base de datos."); 
-    } finally { 
-        window.hideLoading(); 
-    }
-};
-
-// ==========================================
-// ARRANQUE DE LA APLICACIÓN (A prueba de fallos)
+// ARRANQUE DE LA APLICACIÓN (Corregido y Robusto)
 // ==========================================
 const inicializarApp = async () => {
     console.log("🚀 Paso 1: Iniciando aplicación...");
-    window.hideLoading(); // Por si el overlay blanco se quedó pegado
+    window.hideLoading(); // Por si el loader quedó pegado
     
     const savedUser = localStorage.getItem('sgc_session_user');
     console.log("👤 Paso 2: Usuario guardado en caché:", savedUser ? savedUser : "Ninguno");
@@ -971,31 +944,29 @@ const inicializarApp = async () => {
             const snap = await getDocs(q);
             
             if (!snap.empty) { 
-                console.log("✅ Paso 4: Sesión restaurada con éxito.");
+                console.log("✅ Paso 4: Sesión restaurada con éxito. Renderizando UI...");
                 currentUser = snap.docs[0].data(); 
                 window.completarLoginUI(); 
             } else { 
-                console.log("⚠️ Paso 4: El usuario ya no existe en la BD. Cerrando sesión...");
+                console.log("⚠️ Paso 4: El usuario ya no existe en la BD. Limpiando sesión...");
                 window.logout();
             }
         } catch(e) { 
-            console.error("❌ Error grave al restaurar sesión:", e); 
+            console.error("❌ Error al restaurar sesión:", e); 
             window.logout();
         }
         window.hideLoading();
     } else {
-        console.log("👋 Paso 3: Mostrando pantalla de Login.");
+        console.log("👋 Paso 3: No hay sesión. Mostrando pantalla de Login.");
         window.hideLoading();
         const loginScreen = document.getElementById('login-screen');
         if (loginScreen) {
             loginScreen.style.display = 'flex';
-        } else {
-            console.error("❌ ERROR: No se encontró el elemento #login-screen en el HTML.");
         }
     }
 };
 
-// Asegurarnos de que el HTML exista antes de intentar pintarlo
+// Garantizar que la página HTML esté 100% lista antes de buscar elementos visuales
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", inicializarApp);
 } else {
