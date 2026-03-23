@@ -287,6 +287,61 @@ window.formatearFechaAbreviada = (fechaISO) => {
     return `${fecha.getDate()}-${meses[fecha.getMonth()]}-${fecha.getFullYear()}`;
 };
 
+// ==========================================
+// FUNCIONES PARA CREAR GERENCIAS Y DEPARTAMENTOS
+// ==========================================
+window.agregarGerencia = async () => {
+    let val = document.getElementById('g-nom').value.trim().toUpperCase(); 
+    if(!val) return; 
+    window.showLoading();
+    let gers = [];
+    const docRef = doc(db, "artifacts", appId, "public", "data", "Configuracion", "Estructura");
+    const snap = await getDoc(docRef);
+    if(snap.exists() && snap.data().gerencias) gers = snap.data().gerencias;
+    if(gers.includes(val)) { window.hideLoading(); return alert("Esa Gerencia ya existe."); }
+    gers.push(val);
+    await setDoc(docRef, { gerencias: gers }, {merge: true});
+    document.getElementById('g-nom').value = "";
+    window.hideLoading();
+};
+
+window.eliminarGerencia = async (idx) => {
+    if(!confirm("¿Eliminar Gerencia?")) return;
+    window.showLoading();
+    const docRef = doc(db, "artifacts", appId, "public", "data", "Configuracion", "Estructura");
+    const snap = await getDoc(docRef);
+    let gers = snap.data().gerencias;
+    gers.splice(idx, 1);
+    await setDoc(docRef, { gerencias: gers }, {merge: true});
+    window.hideLoading();
+};
+
+window.agregarDepartamento = async () => {
+    let ger = document.getElementById('d-ger-sel').value;
+    let nom = document.getElementById('d-nom').value.trim();
+    if(!ger || !nom) return alert("Seleccione una Gerencia y escriba el nombre del Depto.");
+    window.showLoading();
+    let deps = [];
+    const docRef = doc(db, "artifacts", appId, "public", "data", "Configuracion", "Estructura");
+    const snap = await getDoc(docRef);
+    if(snap.exists() && snap.data().departamentos) deps = snap.data().departamentos;
+    deps.push({ nombre: nom, gerencia: ger });
+    await setDoc(docRef, { departamentos: deps }, {merge: true});
+    document.getElementById('d-nom').value = "";
+    window.hideLoading();
+};
+
+window.eliminarDepartamento = async (idx) => {
+    if(!confirm("¿Eliminar Departamento?")) return;
+    window.showLoading();
+    const docRef = doc(db, "artifacts", appId, "public", "data", "Configuracion", "Estructura");
+    const snap = await getDoc(docRef);
+    let deps = snap.data().departamentos;
+    deps.splice(idx, 1);
+    await setDoc(docRef, { departamentos: deps }, {merge: true});
+    window.hideLoading();
+};
+
 window.getGCalFormat = (fechaStr, horaStr) => {
     let d = new Date(`${fechaStr}T${horaStr}:00`);
     return d.toISOString().replace(/-|:|\.\d+/g, '');
