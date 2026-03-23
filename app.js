@@ -953,22 +953,36 @@ window.iniciarSesion = async () => {
     }
 };
 
-window.onload = async () => {
+// ==========================================
+// ARRANQUE DE LA APLICACIÓN (Corregido para Módulos)
+// ==========================================
+const inicializarApp = async () => {
     const savedUser = localStorage.getItem('sgc_session_user');
-    if(savedUser) {
+    
+    if (savedUser) {
         window.showLoading();
         try {
             const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", savedUser));
             const snap = await getDocs(q);
-            if(!snap.empty) { 
+            
+            if (!snap.empty) { 
                 currentUser = snap.docs[0].data(); 
                 window.completarLoginUI(); 
             } else { 
-                localStorage.removeItem('sgc_session_user'); 
+                window.logout(); // Si el usuario fue borrado de la BD, limpiamos la sesión
             }
         } catch(e) { 
             console.error("Error restaurando sesión:", e); 
+            window.logout(); // Si falla la red o BD, mostramos el login
         }
         window.hideLoading();
+    } else {
+        // Si no hay sesión, nos aseguramos de ocultar el loader y mostrar el login
+        window.hideLoading();
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) loginScreen.style.display = 'flex';
     }
 };
+
+// Ejecutamos la función inmediatamente
+inicializarApp();
