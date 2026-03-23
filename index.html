@@ -44,113 +44,57 @@
         
         <nav style="flex:1">
             <p style="font-size:10px; color:#64748b; font-weight:800; margin-left:12px; margin-bottom:5px; margin-top:5px;">MÓDULO DOCUMENTAL</p>
-            <button class="nav-link" id="nav-hist" onclick="window.cambiarVista('sec-hist', this)">
-                <span class="material-icons-round">history</span> Mis Solicitudes
-            </button>
-            <button class="nav-link" id="nav-all" onclick="window.cambiarVista('sec-all', this)" style="display:none;">
-                <span class="material-icons-round">all_inbox</span> Todas las Solicitudes
-            </button>
-            <button class="nav-link" id="nav-dash" onclick="window.cambiarVista('sec-dash', this)">
-                <span class="material-icons-round">dashboard</span> Panel Analítico
-            </button>
-            <button class="nav-link" id="nav-crear" onclick="window.cambiarVista('sec-crear', this)">
-                <span class="material-icons-round">add_box</span> Crear Solicitud
-            </button>
-            <button class="nav-link" id="nav-gest" onclick="window.cambiarVista('sec-gest', this)">
-                <span class="material-icons-round">fact_check</span> Bandeja de Gestión
-            </button>
-            <button class="nav-link" id="nav-listado" onclick="window.cambiarVista('sec-listado', this)" style="display:none;">
-                <span class="material-icons-round">library_books</span> Listado Maestro
-            </button>
+            <button class="nav-link" id="nav-hist" onclick="window.cambiarVista('sec-hist', this)"><span class="material-icons-round">history</span> Mis Solicitudes</button>
+            <button class="nav-link" id="nav-all" onclick="window.cambiarVista('sec-all', this)" style="display:none;"><span class="material-icons-round">all_inbox</span> Todas las Solicitudes</button>
+            <button class="nav-link" id="nav-dash" onclick="window.cambiarVista('sec-dash', this)"><span class="material-icons-round">dashboard</span> Panel Analítico</button>
+            <button class="nav-link" id="nav-crear" onclick="window.cambiarVista('sec-crear', this)"><span class="material-icons-round">add_box</span> Crear Solicitud</button>
+            <button class="nav-link" id="nav-gest" onclick="window.cambiarVista('sec-gest', this)"><span class="material-icons-round">fact_check</span> Bandeja de Gestión</button>
+            <button class="nav-link" id="nav-listado" onclick="window.cambiarVista('sec-listado', this)" style="display:none;"><span class="material-icons-round">library_books</span> Listado Maestro</button>
 
             <div id="nav-audit-group" style="display:none;">
                 <p style="font-size:10px; color:#64748b; font-weight:800; margin-left:12px; margin-bottom:5px; margin-top:15px;">MÓDULO DE AUDITORÍA</p>
-                <button class="nav-link" id="nav-audit" onclick="window.cambiarVista('sec-audit', this)">
-                    <span class="material-icons-round">calendar_month</span> Calendario & Ejecución
-                </button>
-                <button class="nav-link" id="nav-noconf" onclick="window.cambiarVista('sec-noconf', this)">
-                    <span class="material-icons-round">warning</span> NC y Mejoras (F-023)
-                </button>
+                <button class="nav-link" id="nav-audit" onclick="window.cambiarVista('sec-audit', this)"><span class="material-icons-round">calendar_month</span> Calendario & Ejecución</button>
+                <button class="nav-link" id="nav-noconf" onclick="window.cambiarVista('sec-noconf', this)"><span class="material-icons-round">warning</span> NC y Mejoras (F-023)</button>
             </div>
             
             <div id="admin-only" style="display:none; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 15px; padding-top: 15px;">
                 <p style="font-size:10px; color:#64748b; font-weight:800; margin-left:12px; margin-bottom:5px;">ADMINISTRACIÓN</p>
-                <button class="nav-link" id="nav-users" onclick="window.cambiarVista('sec-usuarios', this)">
-                    <span class="material-icons-round">people</span> Usuarios y Permisos
-                </button>
-                <button class="nav-link" id="nav-struct" onclick="window.cambiarVista('sec-estructura', this)">
-                    <span class="material-icons-round">account_tree</span> Config. del Sistema
-                </button>
+                <button class="nav-link" id="nav-users" onclick="window.cambiarVista('sec-usuarios', this)"><span class="material-icons-round">people</span> Usuarios y Permisos</button>
+                <button class="nav-link" id="nav-struct" onclick="window.cambiarVista('sec-estructura', this)"><span class="material-icons-round">account_tree</span> Config. del Sistema</button>
             </div>
         </nav>
         
         <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 16px;">
             <p id="curr-name" style="font-weight: 700; font-size: 13px;"></p>
             <p id="curr-ger" style="font-size: 10px; color: #94a3b8; margin-top:5px;"></p>
-            <button onclick="window.logout()" style="background:none; border:none; color:var(--danger); font-size:11px; font-weight:700; cursor:pointer; margin-top:10px; display:flex; align-items:center; gap:5px; padding:0;">
-                <span class="material-icons-round" style="font-size:16px;">logout</span> Salir
-            </button>
+            <button onclick="window.logout()" style="background:none; border:none; color:var(--danger); font-size:11px; font-weight:700; cursor:pointer; margin-top:10px; display:flex; align-items:center; gap:5px; padding:0;"><span class="material-icons-round" style="font-size:16px;">logout</span> Salir</button>
         </div>
     </aside>
 
     <main class="main" id="main">
-        
         <div class="mobile-header">
-            <h2 style="font-size: 16px; color: var(--primary); margin:0; display:flex; align-items:center; gap:5px; font-weight:800;">
-                <span class="material-icons-round">verified_user</span> SISTEMA DE GESTIÓN
-            </h2>
-            <button class="menu-btn" onclick="window.toggleMenu()">
-                <span class="material-icons-round">menu</span>
-            </button>
+            <h2 style="font-size: 16px; color: var(--primary); margin:0; display:flex; align-items:center; gap:5px; font-weight:800;"><span class="material-icons-round">verified_user</span> SISTEMA DE GESTIÓN</h2>
+            <button class="menu-btn" onclick="window.toggleMenu()"><span class="material-icons-round">menu</span></button>
         </div>
 
         <section id="sec-dash" class="section">
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:25px;">
-                <div>
-                    <h1 style="font-size: 28px; font-weight: 800; color: var(--sidebar);">Panel Analítico</h1>
-                    <p style="color: #64748b;">Métricas y Estado de Solicitudes</p>
-                </div>
+                <div><h1 style="font-size: 28px; font-weight: 800; color: var(--sidebar);">Panel Analítico</h1></div>
             </div>
-
-            <h3 style="margin-bottom:15px; color:var(--primary); display:flex; align-items:center; gap:8px;"><span class="material-icons-round">person</span> Mis Estadísticas Personales</h3>
+            <h3 style="margin-bottom:15px; color:var(--primary); display:flex; align-items:center; gap:8px;"><span class="material-icons-round">person</span> Mis Estadísticas</h3>
             <div class="stats-grid grid-4" style="gap: 20px; margin-bottom: 35px;">
-                <div class="card" style="border-left: 5px solid var(--sidebar);">
-                    <label>Mis Solicitudes Totales</label>
-                    <h2 id="dash-mis-tot" style="font-size:36px; margin-top:5px;">0</h2>
-                </div>
-                <div class="card" style="border-left: 5px solid var(--warning); background:#fffbeb;">
-                    <label style="color:#92400e;">En Gestión / Pendientes</label>
-                    <h2 id="dash-mis-pend" style="font-size:36px; margin-top:5px; color:#92400e;">0</h2>
-                </div>
-                <div class="card" style="border-left: 5px solid var(--success); background:#f0fdf4;">
-                    <label style="color:#166534;">Aprobadas Oficialmente</label>
-                    <h2 id="dash-mis-ok" style="font-size:36px; margin-top:5px; color:#166534;">0</h2>
-                </div>
-                <div class="card" style="border-left: 5px solid var(--danger); background:#fef2f2;">
-                    <label style="color:#991b1b;">Rechazadas / Anuladas</label>
-                    <h2 id="dash-mis-rech" style="font-size:36px; margin-top:5px; color:#991b1b;">0</h2>
-                </div>
+                <div class="card" style="border-left: 5px solid var(--sidebar);"><label>Solicitudes Totales</label><h2 id="dash-mis-tot" style="font-size:36px; margin-top:5px;">0</h2></div>
+                <div class="card" style="border-left: 5px solid var(--warning); background:#fffbeb;"><label style="color:#92400e;">En Gestión / Pendientes</label><h2 id="dash-mis-pend" style="font-size:36px; margin-top:5px; color:#92400e;">0</h2></div>
+                <div class="card" style="border-left: 5px solid var(--success); background:#f0fdf4;"><label style="color:#166534;">Aprobadas Oficialmente</label><h2 id="dash-mis-ok" style="font-size:36px; margin-top:5px; color:#166534;">0</h2></div>
+                <div class="card" style="border-left: 5px solid var(--danger); background:#fef2f2;"><label style="color:#991b1b;">Rechazadas / Anuladas</label><h2 id="dash-mis-rech" style="font-size:36px; margin-top:5px; color:#991b1b;">0</h2></div>
             </div>
-
             <div id="dash-admin-section" style="display:none; padding-top:20px; border-top:2px dashed var(--border);">
-                <h3 style="margin-bottom:15px; color:var(--info); display:flex; align-items:center; gap:8px;"><span class="material-icons-round">public</span> Visión Global SGC (Administración)</h3>
+                <h3 style="margin-bottom:15px; color:var(--info); display:flex; align-items:center; gap:8px;"><span class="material-icons-round">public</span> Visión Global SGC</h3>
                 <div class="stats-grid grid-4" style="gap: 20px;">
-                    <div class="card" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color:white; border:none;">
-                        <label style="color:rgba(255,255,255,0.8);">Total Histórico Global</label>
-                        <h2 id="dash-glob-tot" style="font-size:36px; margin-top:5px;">0</h2>
-                    </div>
-                    <div class="card" style="border-left: 5px solid var(--warning);">
-                        <label>Pendientes Globales</label>
-                        <h2 id="dash-glob-pend" style="font-size:36px; margin-top:5px; color:#d97706;">0</h2>
-                    </div>
-                    <div class="card" style="border-left: 5px solid var(--success);">
-                        <label>Aprobadas Globales</label>
-                        <h2 id="dash-glob-ok" style="font-size:36px; margin-top:5px; color:#059669;">0</h2>
-                    </div>
-                    <div class="card" style="border-left: 5px solid var(--danger);">
-                        <label>Anuladas Globales</label>
-                        <h2 id="dash-glob-rech" style="font-size:36px; margin-top:5px; color:#dc2626;">0</h2>
-                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color:white; border:none;"><label style="color:rgba(255,255,255,0.8);">Total Histórico Global</label><h2 id="dash-glob-tot" style="font-size:36px; margin-top:5px;">0</h2></div>
+                    <div class="card" style="border-left: 5px solid var(--warning);"><label>Pendientes Globales</label><h2 id="dash-glob-pend" style="font-size:36px; margin-top:5px; color:#d97706;">0</h2></div>
+                    <div class="card" style="border-left: 5px solid var(--success);"><label>Aprobadas Globales</label><h2 id="dash-glob-ok" style="font-size:36px; margin-top:5px; color:#059669;">0</h2></div>
+                    <div class="card" style="border-left: 5px solid var(--danger);"><label>Anuladas Globales</label><h2 id="dash-glob-rech" style="font-size:36px; margin-top:5px; color:#dc2626;">0</h2></div>
                 </div>
             </div>
         </section>
@@ -159,36 +103,16 @@
             <div class="card" style="max-width: 900px; margin: auto;">
                 <h2 style="margin-bottom:20px;">Registrar Solicitud FCI-SOL</h2>
                 <div class="grid-3">
-                    <div>
-                        <label>Acción Requerida</label>
-                        <select id="sol-accion" onchange="window.toggleModPanel(this.value)">
-                            <option value="Creación">Creación</option>
-                            <option value="Modificación">Modificación</option>
-                            <option value="Inactivación">Inactivación</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Tipo Documento</label>
-                        <select id="sol-tipo-doc"></select>
-                    </div>
-                    <div>
-                        <label>Prioridad de Solicitud</label>
-                        <select id="sol-prioridad">
-                            <option value="Normal">Normal</option>
-                            <option value="Básica">Básica</option>
-                            <option value="Alta">Alta (Urgente)</option>
-                        </select>
-                    </div>
+                    <div><label>Acción Requerida</label><select id="sol-accion" onchange="window.toggleModPanel(this.value)"><option value="Creación">Creación</option><option value="Modificación">Modificación</option><option value="Inactivación">Inactivación</option></select></div>
+                    <div><label>Tipo Documento</label><select id="sol-tipo-doc"></select></div>
+                    <div><label>Prioridad de Solicitud</label><select id="sol-prioridad"><option value="Normal">Normal</option><option value="Básica">Básica</option><option value="Alta">Alta (Urgente)</option></select></div>
                 </div>
                 <div id="panel-mod" class="grid-3" style="display:none; background:#f8fafc; padding:15px; border-radius:10px; margin-bottom:15px;">
-                    <div><label>Código Actual</label><input type="text" id="sol-cod-prev"></div>
-                    <div><label>Versión</label><input type="text" id="sol-ver-prev"></div>
-                    <div><label>Fecha Ult. Ver.</label><input type="date" id="sol-fecha-prev"></div>
+                    <div><label>Código Actual</label><input type="text" id="sol-cod-prev"></div><div><label>Versión</label><input type="text" id="sol-ver-prev"></div><div><label>Fecha Ult. Ver.</label><input type="date" id="sol-fecha-prev"></div>
                 </div>
-                <label>Título del Documento</label>
-                <input type="text" id="sol-tit">
+                <label>Título del Documento</label><input type="text" id="sol-tit">
                 <div class="grid-2">
-                    <div><label>Gerencia (Selecciona para ver Gerente y filtrar Depto)</label><select id="sol-ger" onchange="window.actualizarGerenteSelect(this.value)"></select></div>
+                    <div><label>Gerencia</label><select id="sol-ger" onchange="window.actualizarGerenteSelect(this.value)"></select></div>
                     <div><label>Departamento</label><select id="sol-dep"><option value="">-- Seleccione Gerencia Primero --</option></select></div>
                 </div>
                 <div class="grid-2" style="background:#f0fdf4; padding:15px; border-radius:10px; margin-bottom:15px; border:1px solid #bbf7d0;">
@@ -196,21 +120,13 @@
                     <div><label style="color:#166534">Email Notificación</label><input type="text" id="sol-email-gerente" disabled style="background:transparent; border:none; font-weight:bold; color:#15803d; padding:0;"></div>
                 </div>
                 <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px;">
-                    <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0;">
-                        Añadir Personas Involucradas / Co-solicitantes
-                    </label>
-                    <p style="font-size:10px; color:#64748b; margin-top:5px; margin-bottom:10px;">Selecciona usuarios para notificarles sobre este documento.</p>
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <select id="sol-involucrado-sel" style="margin:0; flex:1; background:white;"><option value="">-- Seleccionar Usuario --</option></select>
-                        <button type="button" class="btn btn-info" style="padding: 4px 15px;" onclick="window.addInvolucradoList()"><span class="material-icons-round" style="font-size:16px; margin-right:4px;">person_add</span> Añadir</button>
-                    </div>
+                    <label>Añadir Involucrados</label>
+                    <div style="display:flex; gap:10px; margin-bottom:10px;"><select id="sol-involucrado-sel" style="margin:0; flex:1; background:white;"><option value="">-- Seleccionar --</option></select><button type="button" class="btn btn-info" onclick="window.addInvolucradoList()">Añadir</button></div>
                     <div id="lista-involucrados-tags" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
                 </div>
-                <label>Justificación / Motivo</label>
-                <textarea id="sol-motivo" rows="4"></textarea>
+                <label>Justificación / Motivo</label><textarea id="sol-motivo" rows="4"></textarea>
                 <div style="background: #eff6ff; padding: 20px; border-radius: 12px; border: 1px dashed var(--accent); margin-bottom: 20px;">
-                    <label style="color:var(--primary)">Adjuntar Archivo Inicial (Opcional si es creación, obligatorio en modificación)</label>
-                    <input type="file" id="sol-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.png" style="margin-bottom:0; background:white;">
+                    <label style="color:var(--primary)">Adjuntar Archivo Inicial</label><input type="file" id="sol-file" style="margin-bottom:0; background:white;">
                 </div>
                 <button class="btn btn-primary" id="btnSendSol" onclick="window.crearSolicitud()" style="width:100%; padding: 15px;">ENVIAR A REVISIÓN</button>
             </div>
@@ -219,7 +135,7 @@
         <section id="sec-hist" class="section">
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;"><h1>Mis Solicitudes</h1></div>
             <div class="card" style="padding:0; padding-top:15px; overflow:hidden;">
-                <div style="padding: 0 15px; margin-bottom:15px;"><input type="text" id="search-hist" class="search-bar" placeholder="🔍 Buscar por ID, Título o Estado..." onkeyup="window.filtrarTabla('search-hist', 'tbody-historial')"></div>
+                <div style="padding: 0 15px; margin-bottom:15px;"><input type="text" id="search-hist" class="search-bar" placeholder="🔍 Buscar por ID o Título..." onkeyup="window.filtrarTabla('search-hist', 'tbody-historial')"></div>
                 <div class="table-responsive"><table id="tabla-mis-solicitudes"><thead><tr><th>ID</th><th>Solicitante</th><th>Documento</th><th>Prioridad</th><th>Estado</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-historial"></tbody></table></div>
             </div>
         </section>
@@ -227,20 +143,20 @@
         <section id="sec-all" class="section">
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;"><div><h1>Todas las Solicitudes</h1></div></div>
             <div class="card" style="padding:0; padding-top:15px; overflow:hidden;">
-                <div style="padding: 0 15px; margin-bottom:15px;"><input type="text" id="search-all" class="search-bar" placeholder="🔍 Buscar por ID, Título, Solicitante o Estado..." onkeyup="window.filtrarTabla('search-all', 'tbody-all')"></div>
+                <div style="padding: 0 15px; margin-bottom:15px;"><input type="text" id="search-all" class="search-bar" placeholder="🔍 Buscar..." onkeyup="window.filtrarTabla('search-all', 'tbody-all')"></div>
                 <div class="table-responsive"><table id="tabla-todas-solicitudes"><thead><tr><th>ID</th><th>Solicitante</th><th>Documento</th><th>Prioridad</th><th>Estado</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-all"></tbody></table></div>
             </div>
         </section>
 
         <section id="sec-gest" class="section">
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;"><div><h1 style="font-size: 26px; font-weight: 800;">Bandeja de Gestión Administrativa</h1></div></div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;"><div><h1 style="font-size: 26px; font-weight: 800;">Bandeja de Gestión</h1></div></div>
             <div class="card" style="padding:0; border-radius: 16px; overflow:hidden;">
                 <div style="background: #f8fafc; padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
                     <div style="flex:1; min-width:250px;"><input type="text" id="search-gest" class="search-bar" style="max-width:100%; margin-bottom:0;" placeholder="🔍 Buscar en tabla..." onkeyup="window.filtrarTabla('search-gest', 'tbody-gestionar')"></div>
                 </div>
                 <div class="table-responsive">
                     <table id="tabla-gestion-solicitudes">
-                        <thead><tr><th style="width: 120px;">ID Sistema</th><th>Origen / Solicitante</th><th>Documento y Prioridad</th><th>Etapa Actual</th><th class="no-export">Gestión</th></tr></thead>
+                        <thead><tr><th style="width: 120px;">ID Sistema</th><th>Origen</th><th>Documento</th><th>Etapa Actual</th><th class="no-export">Gestión</th></tr></thead>
                         <tbody id="tbody-gestionar"></tbody>
                     </table>
                 </div>
@@ -250,16 +166,15 @@
         <section id="sec-audit" class="section">
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
                 <div>
-                    <h1 style="margin-bottom: 5px; display:flex; align-items:center; gap:8px;">
-                        <span class="material-icons-round" style="color:var(--primary); font-size:28px;">calendar_month</span> Calendario de Auditoría
-                    </h1>
+                    <h1 style="margin-bottom: 5px; display:flex; align-items:center; gap:8px;"><span class="material-icons-round" style="color:var(--primary); font-size:28px;">calendar_month</span> Calendario de Auditoría</h1>
                     <p style="color:#64748b;">Programación anual y ejecución (F-005).</p>
                 </div>
                 <div style="display:flex; gap:10px; align-items:center; background:white; padding:8px 15px; border-radius:12px; border:1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <label style="margin:0; font-size:12px;">Año:</label>
                     <select id="aud-year-select" style="margin:0; width:130px; padding:8px; border:none; font-weight:bold; color:var(--primary); background:transparent; cursor:pointer;" onchange="window.cambiarAnioAuditoria(this.value)"></select>
                     <div style="width:1px; height:20px; background:var(--border); margin:0 5px;"></div>
-                    <button class="btn btn-info" id="btn-config-plan" style="display:none; padding:8px 12px; font-size:11px;" onclick="window.toggleAuditHeaderForm()"><span class="material-icons-round" style="font-size:14px;">settings</span> Configurar Plan</button>
+                    <button class="btn btn-info" id="btn-config-plan" style="display:none; padding:8px 12px; font-size:11px;" onclick="window.toggleAuditHeaderForm()">Configurar Plan</button>
+                    <button class="btn btn-primary" onclick="window.abrirNuevaAuditoria()" style="padding:8px 12px; font-size:11px;"><span class="material-icons-round" style="font-size:14px;">add</span> Nueva Auditoría</button>
                     <button class="btn btn-success" onclick="window.exportarExcelAuditoria()" style="padding:8px 12px; font-size:11px;"><span class="material-icons-round" style="font-size:14px;">download</span> Exportar Plan</button>
                 </div>
             </div>
@@ -269,15 +184,8 @@
                    <h3 style="color:var(--sidebar); margin:0;">Plan Anual de Auditorías <span id="view-year-label" style="color:var(--primary);"></span></h3>
                    <div style="text-align:right;"><span style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">Última Modificación</span><p id="view-ah-mod-info" style="font-size:11px; margin:0; color:var(--primary);"></p></div>
                </div>
-               <div class="grid-2" style="margin-bottom:15px;">
-                   <div class="audit-info-box"><label>Objetivo</label><p id="view-ah-obj"></p></div>
-                   <div class="audit-info-box"><label>Alcance</label><p id="view-ah-alcance"></p></div>
-               </div>
-               <div class="grid-3" style="margin-bottom:15px;">
-                   <div class="audit-info-box"><label>Técnica</label><p id="view-ah-tecnica"></p></div>
-                   <div class="audit-info-box"><label>Criterios</label><p id="view-ah-criterios"></p></div>
-                   <div class="audit-info-box"><label>Doc. Referencia / Fecha Elab.</label><p><span id="view-ah-ref"></span> <br><small style="color:#94a3b8" id="view-ah-fecha"></small></p></div>
-               </div>
+               <div class="grid-2" style="margin-bottom:15px;"><div class="audit-info-box"><label>Objetivo</label><p id="view-ah-obj"></p></div><div class="audit-info-box"><label>Alcance</label><p id="view-ah-alcance"></p></div></div>
+               <div class="grid-3" style="margin-bottom:15px;"><div class="audit-info-box"><label>Técnica</label><p id="view-ah-tecnica"></p></div><div class="audit-info-box"><label>Criterios</label><p id="view-ah-criterios"></p></div><div class="audit-info-box"><label>Doc. Referencia / Fecha Elab.</label><p><span id="view-ah-ref"></span> <br><small style="color:#94a3b8" id="view-ah-fecha"></small></p></div></div>
                <div class="grid-2">
                    <div class="audit-info-box" style="background:#eff6ff; border-color:#bfdbfe;"><label style="color:#1d4ed8;"><span class="material-icons-round" style="font-size:12px; vertical-align:middle;">groups</span> Equipo Auditor Global</label><p><b>Líder:</b> <span id="view-ah-lider"></span></p><p style="margin-top:5px;"><b>Auditores:</b> <span id="view-ah-auditor"></span></p></div>
                    <div class="audit-info-box" style="background:#f0fdf4; border-color:#bbf7d0;"><label style="color:#15803d;"><span class="material-icons-round" style="font-size:12px; vertical-align:middle;">build</span> Recursos Generales</label><p><b>Tecnológicos:</b> <span id="view-ah-tec"></span></p><p style="margin-top:5px;"><b>Humanos:</b> <span id="view-ah-rrhh"></span></p></div>
@@ -286,65 +194,38 @@
 
             <div id="audit-header-edit" class="card" style="display:none; background:#f8fafc; border: 1px dashed var(--accent);">
                 <h4 style="color:var(--primary); margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">Editando Plan Anual <span id="edit-year-label"></span></h4>
-                <div class="grid-2">
-                    <div><label>Objetivo</label><textarea id="ah-obj" rows="2"></textarea></div>
-                    <div><label>Alcance</label><textarea id="ah-alcance" rows="2"></textarea></div>
-                </div>
-                <div class="grid-3">
-                    <div><label>Técnica</label><input type="text" id="ah-tecnica"></div>
-                    <div><label>Criterios</label><input type="text" id="ah-criterios"></div>
-                    <div><label>Referencia y Fecha</label><div style="display:flex; gap:5px;"><input type="text" id="ah-ref" style="width:60%;"><input type="date" id="ah-fecha" style="width:40%;"></div></div>
-                </div>
+                <div class="grid-2"><div><label>Objetivo</label><textarea id="ah-obj" rows="2"></textarea></div><div><label>Alcance</label><textarea id="ah-alcance" rows="2"></textarea></div></div>
+                <div class="grid-3"><div><label>Técnica</label><input type="text" id="ah-tecnica"></div><div><label>Criterios</label><input type="text" id="ah-criterios"></div><div><label>Referencia y Fecha</label><div style="display:flex; gap:5px;"><input type="text" id="ah-ref" style="width:60%;"><input type="date" id="ah-fecha" style="width:40%;"></div></div></div>
                 <div class="grid-2" style="background:white; padding:15px; border-radius:10px; border:1px solid var(--border); margin-bottom:15px;">
                     <div><label>Auditor Líder</label><select id="ah-lider" style="margin-bottom:15px;"></select></div>
-                    <div><label>Equipo Auditor (Casillas)</label><div id="ah-auditor-list" class="checkbox-list"></div></div>
+                    <div><label>Equipo Auditor (Ctrl+Click múltiple)</label><select multiple id="ah-auditor-list" class="table-input" style="border:1px solid #ccc; height:100px; border-radius:8px;"></select></div>
                 </div>
-                <div class="grid-2">
-                    <div><label>Recursos Tecnológicos</label><input type="text" id="ah-tec"></div>
-                    <div><label>Recursos Humanos</label><input type="text" id="ah-rrhh"></div>
-                </div>
-                <div style="background:#eff6ff; padding:15px; border-radius:10px; border:1px dashed var(--info);">
-                    <label style="color:var(--info);">Correos Adicionales (Externos)</label>
-                    <input type="text" id="ah-extra-emails" placeholder="ej: asesor@mail.com" style="margin-bottom:0;">
-                </div>
-                <div style="display:flex; gap:10px; margin-top:20px; padding-top:15px; border-top:1px solid var(--border);">
-                    <button class="btn btn-primary" onclick="window.saveAuditPlan()" style="flex:1;">GUARDAR ESTRUCTURA DEL PLAN</button>
-                    <button class="btn btn-ghost" onclick="window.toggleAuditHeaderForm()" style="flex:1;">CANCELAR</button>
-                </div>
+                <div class="grid-2"><div><label>Recursos Tecnológicos</label><input type="text" id="ah-tec"></div><div><label>Recursos Humanos</label><input type="text" id="ah-rrhh"></div></div>
+                <div style="background:#eff6ff; padding:15px; border-radius:10px; border:1px dashed var(--info);"><label style="color:var(--info);">Correos Adicionales (Externos)</label><input type="text" id="ah-extra-emails" placeholder="ej: asesor@mail.com" style="margin-bottom:0;"></div>
+                <div style="display:flex; gap:10px; margin-top:20px; padding-top:15px; border-top:1px solid var(--border);"><button class="btn btn-primary" onclick="window.saveAuditPlan()" style="flex:1;">GUARDAR PLAN</button><button class="btn btn-ghost" onclick="window.toggleAuditHeaderForm()" style="flex:1;">CANCELAR</button></div>
             </div>
 
             <div id="audit-admin-panel" style="display:none; background:white; padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                 <h3 style="margin-bottom:15px; color:var(--primary); border-bottom:1px solid var(--border); padding-bottom:10px;" id="titulo-form-auditoria">Programar Nueva Auditoría</h3>
                 
                 <div class="grid-4">
-                    <div><label>Fecha Estimada</label><input type="date" id="aud-fecha"></div>
-                    <div><label>Hora Inicio</label><input type="time" id="aud-h-ini"></div>
-                    <div><label>Hora Final</label><input type="time" id="aud-h-fin"></div>
-                    <div><label>Lugar / Modalidad</label><input type="text" id="aud-lugar"></div>
+                    <div><label>Fecha Estimada</label><input type="date" id="aud-fecha"></div><div><label>Hora Inicio</label><input type="time" id="aud-h-ini"></div>
+                    <div><label>Hora Final</label><input type="time" id="aud-h-fin"></div><div><label>Lugar / Modalidad</label><input type="text" id="aud-lugar"></div>
                 </div>
                 
-                <div class="grid-2">
-                    <div><label>Proceso / Área / Actividad</label><input type="text" id="aud-proceso"></div>
-                    <div><label>Requisitos (Norma/Cláusula)</label><input type="text" id="aud-req"></div>
-                </div>
+                <div class="grid-2"><div><label>Proceso / Área / Actividad</label><input type="text" id="aud-proceso"></div><div><label>Requisitos (Norma/Cláusula)</label><input type="text" id="aud-req"></div></div>
 
                 <div class="grid-2" style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid var(--border); margin-bottom:15px;">
-                    <div><label style="color:var(--primary);">Auditado(s) (Selecciona casillas)</label><div id="aud-auditado-list" class="checkbox-list"></div></div>
-                    <div><label style="color:var(--primary);">Auditor(es) a cargo (Selecciona casillas)</label><div id="aud-auditor-list" class="checkbox-list"></div></div>
+                    <div><label style="color:var(--primary);">Auditado(s) (Ctrl+Click)</label><select multiple id="aud-auditado-sel" style="width:100%; height:120px; border:1px solid #ccc; border-radius:8px; padding:5px;"></select></div>
+                    <div><label style="color:var(--primary);">Auditor(es) a cargo (Ctrl+Click)</label><select multiple id="aud-auditor-sel" style="width:100%; height:120px; border:1px solid #ccc; border-radius:8px; padding:5px;"></select></div>
                 </div>
 
                 <div class="grid-3" style="margin-bottom: 15px;">
-                    <div><label>Organización</label><input type="text" id="aud-org" placeholder="Ej: FCI Logistic"></div>
-                    <div><label>Dirección</label><input type="text" id="aud-dir" placeholder="Dirección principal"></div>
-                    <div><label>Sitio(s) Auditado(s)</label><input type="text" id="aud-sitios"></div>
-                    <div><label>No. de Personal</label><input type="number" id="aud-personal" placeholder="Ej: 50"></div>
-                    <div><label>No. de Turnos</label><input type="number" id="aud-turnos" placeholder="Ej: 2"></div>
-                    <div><label>Auditores en Formación</label><input type="text" id="aud-formacion"></div>
+                    <div><label>Organización</label><input type="text" id="aud-org" placeholder="Ej: FCI Logistic"></div><div><label>Dirección</label><input type="text" id="aud-dir" placeholder="Dirección principal"></div><div><label>Sitio(s) Auditado(s)</label><input type="text" id="aud-sitios"></div>
+                    <div><label>No. de Personal</label><input type="number" id="aud-personal" placeholder="Ej: 50"></div><div><label>No. de Turnos</label><input type="number" id="aud-turnos" placeholder="Ej: 2"></div><div><label>Auditores en Formación</label><input type="text" id="aud-formacion"></div>
                 </div>
 
-                <label>Observaciones / Enfoque</label>
-                <textarea id="aud-obs" rows="2"></textarea>
-
+                <label>Observaciones / Enfoque</label><textarea id="aud-obs" rows="2"></textarea>
                 <div style="display:flex; gap:10px;">
                     <button class="btn btn-primary" id="btn-guardar-aud" onclick="window.guardarAuditoria()" style="flex:1;">GENERAR AUDITORÍA Y NOTIFICAR</button>
                     <button class="btn btn-dark" id="btn-cancelar-aud" onclick="window.cancelarEdicionAuditoria()" style="flex:1; display:none;">CANCELAR EDICIÓN</button>
@@ -352,82 +233,41 @@
             </div>
 
             <div class="card" style="padding:0; overflow:hidden;">
-                <div class="table-responsive">
-                    <table id="tabla-auditorias">
-                        <thead><tr><th>N° Auditoría</th><th>Fecha / Hora</th><th>Proceso / Área</th><th>Auditado(s)</th><th>Auditor(es)</th><th>Estado</th><th class="no-export">Acción</th></tr></thead>
-                        <tbody id="tbody-auditorias"></tbody>
-                    </table>
-                </div>
+                <div class="table-responsive"><table id="tabla-auditorias"><thead><tr><th>N° Auditoría</th><th>Fecha / Hora</th><th>Proceso / Área</th><th>Auditado(s)</th><th>Auditor(es)</th><th>Estado</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-auditorias"></tbody></table></div>
             </div>
         </section>
 
         <section id="sec-noconf" class="section">
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-                <div>
-                    <h1 style="display:flex; align-items:center; gap:8px;"><span class="material-icons-round" style="color:var(--danger); font-size:28px;">warning</span> Control de NC y Mejoras (F-023)</h1>
-                    <p style="color:#64748b; font-size:12px;">Seguimiento global de hallazgos y acciones correctivas (SAC) resultantes de las auditorías.</p>
-                </div>
-                <button class="btn btn-success" onclick="window.exportarExcelNoConf()" style="padding:8px 15px;"><span class="material-icons-round" style="font-size:16px;">download</span> Exportar F-023</button>
+                <div><h1 style="display:flex; align-items:center; gap:8px;"><span class="material-icons-round" style="color:var(--danger); font-size:28px;">warning</span> Control de NC y Mejoras (F-023)</h1></div>
             </div>
-
             <div class="card" style="padding:0; padding-top:15px; margin-top:20px;">
                 <div style="padding: 0 15px; margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
                     <input type="text" id="search-noconf" class="search-bar" placeholder="🔍 Buscar por Proceso, NC, o Estado..." onkeyup="window.filtrarTabla('search-noconf', 'tbody-noconf')" style="flex:1;">
-                    <select id="filter-noconf-estado" class="search-bar" style="width:200px;" onchange="window.setFilterGestNC(this.value)">
-                        <option value="">Todos los Estados</option>
-                        <option value="Abierta">Abierta (En Plan)</option>
-                        <option value="En Seguimiento">En Seguimiento</option>
-                        <option value="Cerrada">Cerrada</option>
-                    </select>
+                    <select id="filter-noconf-estado" class="search-bar" style="width:200px;" onchange="window.setFilterGestNC(this.value)"><option value="">Todos los Estados</option><option value="Abierta">Abierta (En Plan)</option><option value="En Seguimiento">En Seguimiento</option><option value="Cerrada">Cerrada</option></select>
                 </div>
-                <div class="table-responsive">
-                    <table id="tabla-noconf" style="white-space:nowrap;">
-                        <thead>
-                            <tr>
-                                <th>SAC N°</th>
-                                <th>Proceso / Auditoría</th>
-                                <th>Tipo</th>
-                                <th>Responsable</th>
-                                <th>Detalle</th>
-                                <th>Apertura</th>
-                                <th>Estado</th>
-                                <th>Cierre</th>
-                                <th class="no-export">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody-noconf"></tbody>
-                    </table>
-                </div>
+                <div class="table-responsive"><table id="tabla-noconf" style="white-space:nowrap;"><thead><tr><th>SAC N°</th><th>Proceso / Auditoría</th><th>Tipo</th><th>Responsable</th><th>Detalle</th><th>Apertura</th><th>Estado</th><th>Cierre</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-noconf"></tbody></table></div>
             </div>
         </section>
 
         <section id="sec-listado" class="section">
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-                <div><h1>Listado Maestro</h1></div>
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <button class="btn btn-primary" id="btn-nuevo-maestro" onclick="window.abrirModalListadoMaestro()" style="display:none;"><span class="material-icons-round" style="font-size:16px;">add</span> Nuevo Registro</button>
-                </div>
-            </div>
-            <div class="card" style="padding:0; padding-top:15px; margin-top:20px;">
-                <div style="padding: 0 15px;"><input type="text" id="search-maestro" class="search-bar" placeholder="🔍 Buscar en el listado maestro..." onkeyup="window.filtrarTabla('search-maestro', 'tbody-listado-maestro')"></div>
-                <div class="table-responsive"><table id="tabla-listado-maestro" style="white-space:nowrap;"><thead id="thead-listado-maestro"></thead><tbody id="tbody-listado-maestro"></tbody></table></div>
-            </div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px; flex-wrap:wrap; gap:10px;"><div><h1>Listado Maestro</h1></div><div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="btn btn-primary" id="btn-nuevo-maestro" onclick="window.abrirModalListadoMaestro()" style="display:none;">Nuevo Registro</button></div></div>
+            <div class="card" style="padding:0; padding-top:15px; margin-top:20px;"><div style="padding: 0 15px;"><input type="text" id="search-maestro" class="search-bar" placeholder="🔍 Buscar en el listado maestro..." onkeyup="window.filtrarTabla('search-maestro', 'tbody-listado-maestro')"></div><div class="table-responsive"><table id="tabla-listado-maestro" style="white-space:nowrap;"><thead id="thead-listado-maestro"></thead><tbody id="tbody-listado-maestro"></tbody></table></div></div>
         </section>
         
         <section id="sec-usuarios" class="section">
             <div class="card">
                 <h2 id="user-form-title" style="margin-bottom:20px; color:var(--primary); display:flex; align-items:center; gap:8px;"><span class="material-icons-round">person_add</span> Registrar / Editar Usuario</h2>
                 <div class="grid-3">
-                    <div><label>Nombre Completo</label><input type="text" id="u-nom"></div>
-                    <div><label>Usuario ID (Login)</label><input type="text" id="u-usr"></div>
-                    <div><label>Contraseña</label><input type="text" id="u-pas" value="123"></div>
-                    <div><label>Rol (Etiqueta Visual)</label><input type="text" id="u-rol"></div>
-                    <div style="grid-column: span 2;"><label>Email Corporativo</label><input type="email" id="u-email"></div>
+                    <div><label>Nombre Completo</label><input type="text" id="u-nom"></div><div><label>Usuario ID (Login)</label><input type="text" id="u-usr"></div><div><label>Contraseña</label><input type="text" id="u-pas" value="123"></div>
+                    <div><label>Rol (Etiqueta Visual)</label><input type="text" id="u-rol"></div><div style="grid-column: span 2;"><label>Email Corporativo</label><input type="email" id="u-email"></div>
                 </div>
+                
                 <div style="margin-top:15px; margin-bottom:20px;">
-                    <label style="color:var(--primary);">Gerencias Vinculadas (Múltiples)</label>
-                    <div id="u-ger-list" class="checkbox-list" style="max-height: 120px;"></div>
+                    <label style="color:var(--primary);">Gerencias Vinculadas (Ctrl+Click Múltiples)</label>
+                    <select multiple id="u-ger-sel" style="width:100%; height:120px; border:1px solid #ccc; border-radius:8px; padding:10px;"></select>
                 </div>
+
                 <label style="margin-bottom:10px; color:var(--sidebar); font-size:14px;"><span class="material-icons-round" style="font-size:18px; vertical-align:middle;">security</span> Permisos de Acceso del Usuario</label>
                 <div class="grid-3">
                     <div class="permisos-group">
@@ -473,39 +313,26 @@
         <section id="sec-estructura" class="section">
             <h2 style="margin-bottom: 20px; color:var(--primary); display:flex; align-items:center; gap:8px;">Configuración del Sistema</h2>
             <div class="grid-2">
-                <div class="card" style="border-top: 4px solid var(--accent);">
-                    <h3>Gerencias</h3>
-                    <div style="display:flex; gap:0; margin-bottom:15px;"><input type="text" id="g-nom" style="margin:0; border-radius: 8px 0 0 8px;"><button class="btn btn-success" onclick="window.agregarGerencia()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button></div>
-                    <div id="list-ger" class="settings-list"></div>
-                </div>
-                <div class="card" style="border-top: 4px solid var(--info);">
-                    <h3>Departamentos</h3>
-                    <div style="display:flex; gap:0; margin-bottom:15px;"><select id="d-ger-sel" style="margin:0; width:40%; border-radius: 8px 0 0 8px;"></select><input type="text" id="d-nom" style="margin:0; border-radius: 0; width:60%;"><button class="btn btn-success" onclick="window.agregarDepartamento()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button></div>
-                    <div id="list-dep" class="settings-list"></div>
-                </div>
+                <div class="card" style="border-top: 4px solid var(--accent);"><h3>Gerencias</h3><div style="display:flex; gap:0; margin-bottom:15px;"><input type="text" id="g-nom" style="margin:0; border-radius: 8px 0 0 8px;"><button class="btn btn-success" onclick="window.agregarGerencia()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button></div><div id="list-ger" class="settings-list"></div></div>
+                <div class="card" style="border-top: 4px solid var(--info);"><h3>Departamentos</h3><div style="display:flex; gap:0; margin-bottom:15px;"><select id="d-ger-sel" style="margin:0; width:40%; border-radius: 8px 0 0 8px;"></select><input type="text" id="d-nom" style="margin:0; border-radius: 0; width:60%;"><button class="btn btn-success" onclick="window.agregarDepartamento()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button></div><div id="list-dep" class="settings-list"></div></div>
             </div>
             <h3 style="margin:35px 0 15px; color:var(--primary); border-bottom:1px solid #e2e8f0; padding-bottom:10px;">Configuración Dinámica</h3>
             <div class="grid-3">
-                <div class="card" style="border-top: 4px solid var(--success);">
-                    <h3>Tipos de Documento</h3>
-                    <div style="display:flex; gap:0; margin-bottom:15px;"><input type="text" id="doc-tipo-nom" style="margin:0; border-radius: 8px 0 0 8px;"><button class="btn btn-success" onclick="window.agregarTipoDoc()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button></div>
-                    <div id="list-tipos-doc" class="settings-list"></div>
-                </div>
-                <div class="card" style="border-top: 4px solid #8b5cf6;">
-                    <h3>Columnas Listado Maestro</h3>
-                    <div style="display:flex; gap:0; margin-bottom:15px; flex-wrap:wrap;"><input type="text" id="col-nom" style="margin:0; border-radius: 8px 0 0 8px; flex:1;"><select id="col-tipo" style="margin:0; width:110px; border-radius:0;"><option value="text">Texto</option><option value="date">Fecha</option><option value="number">Número</option><option value="url">Enlace</option></select><button class="btn btn-success" onclick="window.agregarColumna()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button></div>
-                    <div id="list-columnas" class="settings-list"></div>
-                </div>
-                <div class="card" style="border-top: 4px solid var(--warning);">
-                    <h3>Estatus Listado Maestro</h3>
-                    <div style="display:flex; gap:0; margin-bottom:15px;"><input type="text" id="est-nom" style="margin:0; border-radius: 8px 0 0 8px;"><button class="btn btn-success" onclick="window.agregarEstatus()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button></div>
-                    <div id="list-estatus" class="settings-list"></div>
-                </div>
+                <div class="card" style="border-top: 4px solid var(--success);"><h3>Tipos de Documento</h3><div style="display:flex; gap:0; margin-bottom:15px;"><input type="text" id="doc-tipo-nom" style="margin:0; border-radius: 8px 0 0 8px;"><button class="btn btn-success" onclick="window.agregarTipoDoc()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button></div><div id="list-tipos-doc" class="settings-list"></div></div>
+                <div class="card" style="border-top: 4px solid #8b5cf6;"><h3>Columnas Listado Maestro</h3><div style="display:flex; gap:0; margin-bottom:15px; flex-wrap:wrap;"><input type="text" id="col-nom" style="margin:0; border-radius: 8px 0 0 8px; flex:1;"><select id="col-tipo" style="margin:0; width:110px; border-radius:0;"><option value="text">Texto</option><option value="date">Fecha</option><option value="number">Número</option><option value="url">Enlace</option></select><button class="btn btn-success" onclick="window.agregarColumna()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button></div><div id="list-columnas" class="settings-list"></div></div>
+                <div class="card" style="border-top: 4px solid var(--warning);"><h3>Estatus Listado Maestro</h3><div style="display:flex; gap:0; margin-bottom:15px;"><input type="text" id="est-nom" style="margin:0; border-radius: 8px 0 0 8px;"><button class="btn btn-success" onclick="window.agregarEstatus()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button></div><div id="list-estatus" class="settings-list"></div></div>
             </div>
         </section>
     </main>
 
-    <div class="modal-overlay" id="modal"><div class="modal-content"><div class="modal-main" style="padding:30px;"><div style="display:flex; justify-content:space-between; margin-bottom:20px;"><div><span id="m-id" style="font-weight:800; color:var(--primary);"></span><h2 id="m-tit"></h2></div><div style="display:flex; gap:10px;"><button class="btn btn-warning" id="btn-reabrir" onclick="window.reabrirSolicitud()" style="display:none;">Reabrir</button><button class="btn btn-danger" id="btn-anular" onclick="window.anularSolicitud()" style="display:none;">Anular</button><button class="btn btn-dark" onclick="window.closeModal()">Cerrar</button></div></div><div class="step-container"><div class="step" id="s1"><div class="step-dot">1</div><label>Pendiente Doc</label></div><div class="step" id="s2"><div class="step-dot">2</div><label>Pendiente Verif</label></div><div class="step" id="s3"><div class="step-dot">3</div><label>Aprob. Gerencia</label></div><div class="step" id="s4"><div class="step-dot">4</div><label>Aprob. SGC</label></div></div><div id="m-admin-sla" style="display:none; margin-bottom:20px; background:#fffbeb; padding:15px; border-radius:12px; border: 1px dashed var(--warning);"><div style="display:flex; gap:10px; align-items:center;"><input type="date" id="m-sla-date" style="margin:0;"><button class="btn btn-warning" id="btn-save-sla" onclick="window.guardarSLA()">Guardar SLA</button></div></div><div id="m-display-final" style="display:none; margin-bottom:20px; background:#f0fdf4; padding:20px; border-radius:12px; border: 1px solid #bbf7d0;"><div class="grid-3"><div><label>Código</label><p id="m-disp-cod" style="font-weight:bold;"></p></div><div><label>Versión</label><p id="m-disp-ver" style="font-weight:bold;"></p></div><div><label>Fecha</label><p id="m-disp-fecha" style="font-weight:bold; margin:0;"></p></div><div style="grid-column: span 3;"><label>Doc Oficial</label><div id="m-disp-file"></div></div></div></div><div id="m-panel-update-sgc" style="display:none; margin-bottom:20px; background:#f8fafc; padding:20px; border-radius:12px; border: 1px dashed var(--info);"><div class="grid-2"><div><label>Título</label><input type="text" id="m-upd-tit"></div><div><label>Código</label><input type="text" id="m-upd-cod"></div><div><label>Versión</label><input type="text" id="m-upd-ver"></div><div><label>Adjunto</label><input type="file" id="m-upd-file"></div></div><button class="btn btn-info" onclick="window.actualizarDatosSGC()" style="width:100%;">Actualizar</button></div><div id="m-panel-final-sgc" style="display:none; margin-bottom:20px; background:#eff6ff; padding:20px; border-radius:12px; border: 1px dashed var(--primary);"><div class="grid-3"><div><label>Cod. Final</label><input type="text" id="m-final-cod"></div><div><label>Ver. Final</label><input type="text" id="m-final-ver"></div><div><label>Fecha</label><input type="date" id="m-final-fecha"></div></div><input type="file" id="m-final-file"><input type="text" id="m-final-comentario" placeholder="Obs final..."><button class="btn btn-primary" onclick="window.guardarCierreFinal()" style="width:100%;">Publicar</button></div><div id="m-original-data"><div class="grid-3"><div><label>Solicitante</label><p id="m-sol"></p></div><div><label>Gerencia</label><p id="m-ger"></p></div><div><label>Estado</label><span id="m-est" class="badge"></span></div><div><label>Tipo</label><p id="m-tipo"></p></div><div><label>Prioridad</label><span id="m-prioridad" class="badge badge-dark"></span></div><div><label>Acción</label><p id="m-accion"></p></div><div style="grid-column: span 3;"><label>Adjunto</label><div id="m-file-link"></div></div></div><div id="m-extra-panel" style="display:none;"><div class="grid-3"><div><label>Cód. Original</label><p id="m-cod"></p></div><div><label>Ver. Anterior</label><p id="m-ver"></p></div><div><label>Fecha Ult.</label><p id="m-fecha-ult"></p></div></div></div><div style="margin-top:20px;"><label>Justificación</label><p id="m-jus"></p></div><div id="m-involucrados-container" style="margin-top:15px;"><label>Involucrados</label><p id="m-involucrados-list"></p><div id="m-add-involucrado-section" style="display:flex; gap:10px;"><select id="m-new-involucrado-sel" style="flex:1;"><option value="">-- Seleccionar --</option></select><button class="btn btn-info" onclick="window.guardarNuevoInvolucrado()">Añadir</button></div></div></div><div id="m-actions" style="margin-top:30px; display:none;"><div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="btn btn-info" onclick="window.gestionar('Consulta')">Consultar</button><button class="btn btn-warning" onclick="window.gestionar('Reunión')">Reunión</button><button class="btn btn-primary" id="btn-firma-next" onclick="window.firmarPaso()">Firmar</button><button class="btn btn-warning" id="btn-devolver-paso" onclick="window.devolverPaso()" style="display:none; background-color:#d97706;">Devolver</button><button class="btn btn-danger" onclick="window.rechazar()">Rechazar</button></div></div><div id="applicant-actions" style="margin-top:20px; display:none;"><button class="btn btn-info" style="background:var(--accent);" onclick="window.responderSolicitante()"> Responder</button></div><div id="m-input-area" style="display:none; margin-top:15px;"><div id="reunion-container" style="display:none;"><input type="datetime-local" id="m-date-meeting"></div><div id="m-extra-input" contenteditable="true" style="min-height:50px; border:1px solid #ccc; padding:10px; background:white;"></div><input type="file" id="m-file-gestion" style="margin-top:10px;"><button class="btn btn-success" id="btnConfirmAction" style="width:100%; margin-top:10px;">Confirmar</button><button class="btn btn-ghost" onclick="document.getElementById('m-input-area').style.display='none'" style="width:100%; margin-top:5px;">Cancelar</button></div><div id="general-comment-area" style="margin-top:30px;"><div id="m-comentario-libre" contenteditable="true" style="min-height:60px; border:1px solid #ccc; padding:10px; background:white;"></div><div style="display:flex; gap:10px; align-items:center; margin-top:10px;"><input type="file" id="m-file-comentario"><button class="btn btn-success" onclick="window.enviarComentarioLibre()">Enviar</button></div></div></div><div class="modal-side"><div id="chat-box"></div></div></div></div>
+    <div class="modal-overlay" id="modal"><div class="modal-content"><div class="modal-main" style="padding:30px;"><div style="display:flex; justify-content:space-between; margin-bottom:20px;"><div><span id="m-id" style="font-weight:800; color:var(--primary);"></span><h2 id="m-tit"></h2></div><div style="display:flex; gap:10px;"><button class="btn btn-warning" id="btn-reabrir" onclick="window.reabrirSolicitud()" style="display:none;">Reabrir</button><button class="btn btn-danger" id="btn-anular" onclick="window.anularSolicitud()" style="display:none;">Anular</button><button class="btn btn-dark" onclick="window.closeModal()">Cerrar</button></div></div><div class="step-container"><div class="step" id="s1"><div class="step-dot">1</div><label>Pendiente Doc</label></div><div class="step" id="s2"><div class="step-dot">2</div><label>Pendiente Verif</label></div><div class="step" id="s3"><div class="step-dot">3</div><label>Aprob. Gerencia</label></div><div class="step" id="s4"><div class="step-dot">4</div><label>Aprob. SGC</label></div></div><div id="m-admin-sla" style="display:none; margin-bottom:20px; background:#fffbeb; padding:15px; border-radius:12px; border: 1px dashed var(--warning);"><div style="display:flex; gap:10px; align-items:center;"><input type="date" id="m-sla-date" style="margin:0;"><button class="btn btn-warning" id="btn-save-sla" onclick="window.guardarSLA()">Guardar SLA</button></div></div>
+    
+    <div id="m-tiempos-panel" style="margin-bottom:20px; background:#f0fdf4; padding:15px; border-radius:10px; border:1px solid #bbf7d0;">
+        <label style="color:#166534; font-weight:800; font-size:12px; margin-bottom:10px;"><span class="material-icons-round" style="font-size:16px; vertical-align:middle;">timer</span> Tiempos de Gestión por Fase</label>
+        <div class="grid-4" id="m-tiempos-grid" style="gap:10px;"></div>
+    </div>
+
+    <div id="m-display-final" style="display:none; margin-bottom:20px; background:#f0fdf4; padding:20px; border-radius:12px; border: 1px solid #bbf7d0;"><div class="grid-3"><div><label>Código</label><p id="m-disp-cod" style="font-weight:bold;"></p></div><div><label>Versión</label><p id="m-disp-ver" style="font-weight:bold;"></p></div><div><label>Fecha</label><p id="m-disp-fecha" style="font-weight:bold; margin:0;"></p></div><div style="grid-column: span 3;"><label>Doc Oficial</label><div id="m-disp-file"></div></div></div></div><div id="m-panel-update-sgc" style="display:none; margin-bottom:20px; background:#f8fafc; padding:20px; border-radius:12px; border: 1px dashed var(--info);"><div class="grid-2"><div><label>Título</label><input type="text" id="m-upd-tit"></div><div><label>Código</label><input type="text" id="m-upd-cod"></div><div><label>Versión</label><input type="text" id="m-upd-ver"></div><div><label>Adjunto</label><input type="file" id="m-upd-file"></div></div><button class="btn btn-info" onclick="window.actualizarDatosSGC()" style="width:100%;">Actualizar</button></div><div id="m-panel-final-sgc" style="display:none; margin-bottom:20px; background:#eff6ff; padding:20px; border-radius:12px; border: 1px dashed var(--primary);"><div class="grid-3"><div><label>Cod. Final</label><input type="text" id="m-final-cod"></div><div><label>Ver. Final</label><input type="text" id="m-final-ver"></div><div><label>Fecha</label><input type="date" id="m-final-fecha"></div></div><input type="file" id="m-final-file"><input type="text" id="m-final-comentario" placeholder="Obs final..."><button class="btn btn-primary" onclick="window.guardarCierreFinal()" style="width:100%;">Publicar</button></div><div id="m-original-data"><div class="grid-3"><div><label>Solicitante</label><p id="m-sol"></p></div><div><label>Gerencia</label><p id="m-ger"></p></div><div><label>Estado</label><span id="m-est" class="badge"></span></div><div><label>Tipo</label><p id="m-tipo"></p></div><div><label>Prioridad</label><span id="m-prioridad" class="badge badge-dark"></span></div><div><label>Acción</label><p id="m-accion"></p></div><div style="grid-column: span 3;"><label>Adjunto</label><div id="m-file-link"></div></div></div><div id="m-extra-panel" style="display:none;"><div class="grid-3"><div><label>Cód. Original</label><p id="m-cod"></p></div><div><label>Ver. Anterior</label><p id="m-ver"></p></div><div><label>Fecha Ult.</label><p id="m-fecha-ult"></p></div></div></div><div style="margin-top:20px;"><label>Justificación</label><p id="m-jus"></p></div><div id="m-involucrados-container" style="margin-top:15px;"><label>Involucrados</label><p id="m-involucrados-list"></p><div id="m-add-involucrado-section" style="display:flex; gap:10px;"><select id="m-new-involucrado-sel" style="flex:1;"><option value="">-- Seleccionar --</option></select><button class="btn btn-info" onclick="window.guardarNuevoInvolucrado()">Añadir</button></div></div></div><div id="m-actions" style="margin-top:30px; display:none;"><div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="btn btn-info" onclick="window.gestionar('Consulta')">Consultar</button><button class="btn btn-warning" onclick="window.gestionar('Reunión')">Reunión</button><button class="btn btn-primary" id="btn-firma-next" onclick="window.firmarPaso()">Firmar</button><button class="btn btn-warning" id="btn-devolver-paso" onclick="window.devolverPaso()" style="display:none; background-color:#d97706;">Devolver</button><button class="btn btn-danger" onclick="window.rechazar()">Rechazar</button></div></div><div id="applicant-actions" style="margin-top:20px; display:none;"><button class="btn btn-info" style="background:var(--accent);" onclick="window.responderSolicitante()"> Responder</button></div><div id="m-input-area" style="display:none; margin-top:15px;"><div id="reunion-container" style="display:none;"><input type="datetime-local" id="m-date-meeting"></div><div id="m-extra-input" contenteditable="true" style="min-height:50px; border:1px solid #ccc; padding:10px; background:white;"></div><input type="file" id="m-file-gestion" style="margin-top:10px;"><button class="btn btn-success" id="btnConfirmAction" style="width:100%; margin-top:10px;">Confirmar</button><button class="btn btn-ghost" onclick="document.getElementById('m-input-area').style.display='none'" style="width:100%; margin-top:5px;">Cancelar</button></div><div id="general-comment-area" style="margin-top:30px;"><div id="m-comentario-libre" contenteditable="true" style="min-height:60px; border:1px solid #ccc; padding:10px; background:white;"></div><div style="display:flex; gap:10px; align-items:center; margin-top:10px;"><input type="file" id="m-file-comentario"><button class="btn btn-success" onclick="window.enviarComentarioLibre()">Enviar</button></div></div></div><div class="modal-side"><div id="chat-box"></div></div></div></div>
 
     <div class="modal-overlay" id="modal-auditoria">
         <div class="modal-content modal-full">
@@ -814,21 +641,14 @@
     <div class="modal-overlay" id="modal-form-listado">
         <div class="modal-content" style="max-width: 800px; display:block; padding: 30px; height:auto; max-height:90vh; overflow-y:auto;">
            <h2 style="color:var(--primary); margin-bottom: 20px; display:flex; align-items:center; gap:8px;">
-               <span class="material-icons-round">edit_document</span> 
-               <span id="lm-modal-title">Agregar Registro al Listado Maestro</span>
+               <span class="material-icons-round">edit_document</span> <span id="lm-modal-title">Agregar Registro al Listado Maestro</span>
            </h2>
            <div class="grid-2" id="dinamic-form-maestro"></div>
            <div style="background:#eff6ff; padding:15px; border-radius:10px; margin-top:15px; border:1px dashed var(--primary);">
                <label style="color:var(--primary); font-size:11px;">Herramienta Rápida: Subir archivo y generar URL</label>
-               <div style="display:flex; gap:10px; align-items:center; margin-top:5px;">
-                   <input type="file" id="lm-generic-file" style="margin:0; background:white; flex:1;">
-                   <button class="btn btn-info" onclick="window.subirArchivoGenericoLM()">Subir y Llenar Campo</button>
-               </div>
+               <div style="display:flex; gap:10px; align-items:center; margin-top:5px;"><input type="file" id="lm-generic-file" style="margin:0; background:white; flex:1;"><button class="btn btn-info" onclick="window.subirArchivoGenericoLM()">Subir y Llenar Campo</button></div>
            </div>
-           <div style="display:flex; gap:10px; margin-top:20px;">
-               <button class="btn btn-primary" onclick="window.guardarRegistroMaestro()" style="flex:1;">Guardar Documento</button>
-               <button class="btn btn-dark" onclick="document.getElementById('modal-form-listado').style.display='none'" style="flex:1;">Cancelar</button>
-           </div>
+           <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn btn-primary" onclick="window.guardarRegistroMaestro()" style="flex:1;">Guardar Documento</button><button class="btn btn-dark" onclick="document.getElementById('modal-form-listado').style.display='none'" style="flex:1;">Cancelar</button></div>
         </div>
     </div>
 
