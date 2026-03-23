@@ -36,6 +36,84 @@ let selectedAuditId = null, selectedAuditData = null, editandoAuditoriaId = null
 let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, currentEditingF020Ref = null;
 
 // ==========================================
+// FUNCIÓN CENTRALIZADA PARA VER Y DESCARGAR ARCHIVOS
+// ==========================================
+window.abrirDocumento = async (url, nombreOriginal) => {
+    if (!url || url === "#") return;
+    
+    // Preparar y limpiar el nombre original
+    let safeName = nombreOriginal ? nombreOriginal.replace(/[^a-zA-Z0-9.\-_ ]/g, '_') : 'Documento';
+    if (!safeName.includes('.')) {
+        let extMatch = url.match(/\.([a-zA-Z0-9]+)(\?|$)/);
+        if(extMatch) safeName += "." + extMatch[1];
+    }
+
+    // Identificar si es un PDF o una Imagen (se pueden ver en el navegador)
+    let isViewable = url.toLowerCase().match(/\.(pdf|jpg|jpeg|png|gif)(\?|$)/);
+
+    if (isViewable) {
+        // Abrimos la pestaña inmediatamente para que Chrome/Safari no la bloqueen como Popup
+        const nuevaPestana = window.open('', '_blank');
+        if (!nuevaPestana) {
+            alert("El navegador ha bloqueado la pestaña. Por favor, permite las ventanas emergentes (pop-ups).");
+            return;
+        }
+        
+        // Mientras carga, le damos un título amigable a la pestaña
+        nuevaPestana.document.write(`
+            <html style="font-family:sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f8fafc; color:#1e40af;">
+            <head><title>Cargando: ${safeName}</title></head>
+            <body><h2>Preparando documento seguro...</h2></body>
+            </html>
+        `);
+
+        try {
+            // Descargamos el archivo a memoria
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Error de red");
+            
+            const blob = await response.blob();
+            // Truco maestro: Envolvemos el blob en un objeto File para forzar el nombre en el navegador
+            const fileObj = new File([blob], safeName, { type: blob.type });
+            const blobUrl = window.URL.createObjectURL(fileObj);
+            
+            // Reemplazamos la página de carga con el visor nativo de PDF/Imagen
+            nuevaPestana.location.href = blobUrl;
+            
+            // Liberamos la memoria después de un minuto
+            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+            
+        } catch (e) {
+            console.warn("Fallo la carga segura, usando enlace directo a la nube:", e);
+            nuevaPestana.location.href = url;
+        }
+    } else {
+        // Si es Excel, Word o similar, no abrimos pestaña nueva porque el navegador los descarga sí o sí.
+        window.showLoading();
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Error de red");
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = blobUrl;
+            a.download = safeName;
+            document.body.appendChild(a);
+            a.click();
+            
+            window.URL.revokeObjectURL(blobUrl);
+            document.body.removeChild(a);
+        } catch (e) {
+            console.warn("Fallo descarga forzada, intentando abrir normalmente:", e);
+            window.open(url, '_blank');
+        }
+        window.hideLoading();
+    }
+};
+
+// ==========================================
 // CARGA GLOBAL DE DATOS (FIREBASE)
 // ==========================================
 window.cargarDatosCentrales = () => {
@@ -510,8 +588,9 @@ window.renderTablaMaestro = () => {
             
             if(cType === 'url' || val.toString().startsWith("http")) { 
                 let dUrl = window.getDownloadUrl(val); 
-                let fName = item['Nombre del documento'] || item['Título'] || "Ver Documento";
-                rowHTML += `<td><a href="${dUrl}" target="_blank" class="file-link">📁 ${fName}</a></td>`; 
+                let fName = item['Nombre del documento'] || item['Título'] || "Documento_Maestro";
+                // Enlace Único limpio para el Maestro
+                rowHTML += `<td><a href="#" onclick="window.abrirDocumento('${dUrl}', '${fName}'); return false;" class="file-link">📁 ${fName}</a></td>`; 
             } 
             else if(cName.toLowerCase().includes('estatus') || cName.toLowerCase().includes('estado')) { let badge = val.toLowerCase().includes('vigente') || val.toLowerCase().includes('activo') ? 'badge-success' : (val.toLowerCase().includes('obsoleto') || val.toLowerCase().includes('inactivo') ? 'badge-danger' : 'badge-warning'); rowHTML += `<td><span class="badge ${badge}">${val}</span></td>`; } 
             else if(cType === 'date' || cName.toLowerCase().includes('fecha')) { rowHTML += `<td>${window.formatearFechaAbreviada(val)}</td>`; } else { rowHTML += `<td>${val}</td>`; }
@@ -631,9 +710,10 @@ window.verDetalle = async (id) => {
     let pr = s.prioridad || "Normal"; let bPr = pr === 'Alta' ? 'badge-danger' : (pr === 'Básica' ? 'badge-info' : 'badge-dark'); document.getElementById('m-prioridad').innerText = pr.toUpperCase(); document.getElementById('m-prioridad').className = `badge ${bPr}`;
     document.getElementById('m-accion').innerText = s.accion; document.getElementById('m-jus').innerText = s.motivo || s.justificacion || "Sin justificación";
     
-    let adjOrigName = s.adjunto_nombre || "Ver Archivo Adjunto"; 
+    let adjOrigName = s.adjunto_nombre || "Archivo Adjunto"; 
     let dlUrl = s.adjunto ? window.getDownloadUrl(s.adjunto) : "#"; 
-    document.getElementById('m-file-link').innerHTML = s.adjunto ? `<a href="${dlUrl}" target="_blank" class="file-link">📎 ${adjOrigName}</a>` : "Sin archivo";
+    // Enlace simple pero poderoso a "abrirDocumento"
+    document.getElementById('m-file-link').innerHTML = s.adjunto ? `<a href="#" onclick="window.abrirDocumento('${dlUrl}', '${adjOrigName}'); return false;" class="file-link">📎 ${adjOrigName}</a>` : "Sin archivo";
     
     if(s.accion !== 'Creación') { document.getElementById('m-extra-panel').style.display = 'block'; document.getElementById('m-cod').innerText = s.cod_ref; document.getElementById('m-ver').innerText = s.ver_ref; document.getElementById('m-fecha-ult').innerText = window.formatearFechaAbreviada(s.fecha_ref); } else document.getElementById('m-extra-panel').style.display = 'none';
 
@@ -672,9 +752,9 @@ window.verDetalle = async (id) => {
             document.getElementById('m-original-data').classList.add('locked-data'); document.getElementById('m-orig-title').style.display = 'flex'; document.getElementById('m-display-final').style.display = 'block';
             document.getElementById('m-disp-cod').innerText = s.codigo_final || s.cod_ref || "N/A"; document.getElementById('m-disp-ver').innerText = s.version_final; document.getElementById('m-disp-fecha').innerText = s.fecha_final ? window.formatearFechaAbreviada(s.fecha_final) : "N/A"; document.getElementById('m-disp-com').innerText = s.comentario_final || "Sin comentarios adicionales.";
             
-            let finName = s.documento_final_nombre || "Ver Documento Oficial"; 
+            let finName = s.documento_final_nombre || "Documento Oficial"; 
             let finUrl = s.documento_final ? window.getDownloadUrl(s.documento_final) : "#"; 
-            document.getElementById('m-disp-file').innerHTML = s.documento_final ? `<a href="${finUrl}" target="_blank" class="file-link">📄 ${finName}</a>` : "N/A";
+            document.getElementById('m-disp-file').innerHTML = s.documento_final ? `<a href="#" onclick="window.abrirDocumento('${finUrl}', '${finName}'); return false;" class="file-link">📄 ${finName}</a>` : "N/A";
 
             if(p.admin) {
                 document.getElementById('btn-edit-fecha-final').style.display = 'inline-block';
@@ -695,12 +775,11 @@ window.verDetalle = async (id) => {
 
     if(activo) document.getElementById('btn-firma-next').innerText = `Aprobar Etapa (${PASOS_NOMBRES[s.idx] || 'Final'})`;
     
-    // Mapeo del Chat 
     const cb = document.getElementById('chat-box'); 
     cb.innerHTML = s.chat ? s.chat.map(c => 
         `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}">
             <b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}
-            ${c.archivo ? `<br><a href="${window.getDownloadUrl(c.archivo)}" target="_blank" style="font-size:10px;color:blue;font-weight:600;">📎 Ver Evidencia Adjunta</a>` : ''}
+            ${c.archivo ? `<br><a href="#" onclick="window.abrirDocumento('${window.getDownloadUrl(c.archivo)}', 'Evidencia_Adjunta'); return false;" style="font-size:10px;color:blue;font-weight:600;text-decoration:none;">📎 Ver Evidencia Adjunta</a>` : ''}
         </div>`
     ).join('') : ''; 
     
@@ -1132,7 +1211,14 @@ window.verModalAuditoria = async (id) => {
     const isAdminAudit = currentUser.permisos.p_audit_admin || currentUser.permisos.admin || currentUser.permisos.p_gest_sgc; const isAuditor = a.auditor && a.auditor.includes(currentUser.nombre); const canControl = isAdminAudit || isAuditor;
     document.getElementById('btn-comenzar-auditoria').style.display = (canControl && estStr === 'Programada') ? 'inline-block' : 'none'; document.getElementById('btn-finalizar-auditoria').style.display = (canControl && estStr === 'En Progreso') ? 'inline-block' : 'none';
     
-    const cb = document.getElementById('chat-box-audit'); cb.innerHTML = a.bitacora ? a.bitacora.map(c => `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}"><b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}${c.archivo ? `<br><a href="${window.getDownloadUrl(c.archivo)}" target="_blank" style="font-size:10px;color:blue">Ver Adjunto</a>` : ''}</div>`).join('') : '';
+    // Aquí también se inyectó la función de abrirDocumento para las evidencias de auditoría
+    const cb = document.getElementById('chat-box-audit'); 
+    cb.innerHTML = a.bitacora ? a.bitacora.map(c => 
+        `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}">
+            <b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}
+            ${c.archivo ? `<br><a href="#" onclick="window.abrirDocumento('${window.getDownloadUrl(c.archivo)}', 'Evidencia_Auditoria'); return false;" style="font-size:10px;color:blue;font-weight:600;text-decoration:none;">📎 Ver Evidencia</a>` : ''}
+        </div>`
+    ).join('') : '';
 
     currentAuditF020 = a.lista_verificacion || []; window.renderF020();
     if(a.reporte_auditoria) { document.getElementById('f003-conclusiones').value = a.reporte_auditoria.conclusiones || ""; document.getElementById('f003-notas').value = a.reporte_auditoria.notas || ""; } else { document.getElementById('f003-conclusiones').value = ""; document.getElementById('f003-notas').value = ""; }
