@@ -26,45 +26,74 @@ const EMAIL_ADMIN_SGC = "sistemadegestion@fcipty.com";
 const CLOUD_NAME = "df79cjklp"; const UPLOAD_PRESET = "fci_documentos";
 const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
 
-// Variables Globales 
 let currentUser = null, selectedId = null, selectedDocData = null, tempAction = "";
-let allUsers = [], allDepartamentos = [], tiposDocumento = [], columnasMaestro = [], estatusMaestro = [], dataMaestro = [], editandoMaestroId = null;
+let allUsers = [], allDepartamentos = [], tiposDocumento = [], columnasMaestro = [], estatusMaestro = [], dataMaestro = [];
 let globalSolicitudes = [], globalAuditPlan = null, globalAllAuditorias = [], globalAuditorias = [];
 let selectedAuditId = null, selectedAuditData = null, editandoAuditoriaId = null;
 let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, currentEditingF020Ref = null;
 
 // ==========================================
-// 1. UTILIDADES Y VISUALIZADOR DE ARCHIVOS
+// 1. UTILIDADES Y VISUALIZADOR DE ARCHIVOS (CORREGIDO)
 // ==========================================
 const setDisplay = (id, val) => { const el = document.getElementById(id); if (el) el.style.display = val; };
 
-window.abrirDocumento = (url, nombreOriginal) => {
+window.abrirDocumento = async (url, nombreOriginal) => {
     if (!url || url === "#") return;
     
-    // Limpiamos el nombre original para evitar errores en la descarga
+    // Limpiamos el nombre original para evitar caracteres raros
     let safeName = nombreOriginal ? nombreOriginal.replace(/[^a-zA-Z0-9.\-_ ]/g, '_') : 'Documento';
-    if (!safeName.includes('.')) { let extMatch = url.match(/\.([a-zA-Z0-9]+)(\?|$)/); if(extMatch) safeName += "." + extMatch[1]; }
+    if (!safeName.includes('.')) { 
+        let extMatch = url.match(/\.([a-zA-Z0-9]+)(\?|$)/); 
+        if(extMatch) safeName += "." + extMatch[1]; 
+    }
     
-    // Identificamos si es un archivo que el navegador puede visualizar directamente
+    // Identificamos si es un archivo que el navegador puede visualizar directamente (PDF, JPG, etc.)
     let isViewable = url.toLowerCase().match(/\.(pdf|jpg|jpeg|png|gif)(\?|$)/);
     
     if (isViewable) {
         // Abre en nueva pestaña para su visualización inmediata
         window.open(url, '_blank');
     } else {
-        // Archivos de Office u otros: Forzamos descarga inyectando el nombre original en Cloudinary
-        if(url.includes('cloudinary.com')) {
-            let parts = url.split('/upload/');
-            if(parts.length === 2) {
-                // El flag fl_attachment de Cloudinary obliga a descargar y le pone el nombre que le mandemos
-                let dlUrl = parts[0] + '/upload/fl_attachment:' + encodeURIComponent(safeName) + '/' + parts[1];
-                window.open(dlUrl, '_self');
-                return;
+        // Archivos de Office (Excel, Word, etc.): Descarga segura vía Blob para evitar el bloqueo de Chrome
+        window.showLoading();
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Error en la descarga");
+            
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = blobUrl;
+            a.download = safeName;
+            document.body.appendChild(a);
+            a.click();
+            
+            setTimeout(() => {
+                window.URL.revokeObjectURL(blobUrl);
+                document.body.removeChild(a);
+            }, 1000);
+            
+        } catch (error) {
+            console.warn("Fallo descarga por Blob, usando plan B:", error);
+            // Plan B: Abrir el enlace de descarga con fl_attachment en una NUEVA pestaña para evitar error _self
+            let finalUrl = url;
+            if(url.includes('cloudinary.com')) {
+                let parts = url.split('/upload/');
+                if(parts.length === 2) {
+                    finalUrl = parts[0] + '/upload/fl_attachment:' + encodeURIComponent(safeName) + '/' + parts[1];
+                }
             }
+            const a = document.createElement('a');
+            a.href = finalUrl;
+            a.target = '_blank'; // Forzamos nueva pestaña
+            a.download = safeName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
-        // Fallback genérico por si el archivo no está en Cloudinary
-        const a = document.createElement('a'); a.href = url; a.download = safeName; a.target = '_blank';
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        window.hideLoading();
     }
 };
 
@@ -656,7 +685,7 @@ window.verDetalle = async (id) => {
         cb.innerHTML = s.chat ? s.chat.map(c => 
             `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}">
                 <b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}
-                ${c.archivo ? `<br><a href="#" onclick="window.abrirDocumento('${window.getDownloadUrl(c.archivo)}', '${c.archivo_nombre || 'Evidencia_Adjunta'}'); return false;" style="font-size:10px;color:blue;font-weight:600;text-decoration:none;">📎 Ver Adjunto</a>` : ''}
+                ${c.archivo ? `<br><a href="#" onclick="window.abrirDocumento('${window.getDownloadUrl(c.archivo)}', 'Evidencia_Adjunta'); return false;" style="font-size:10px;color:blue;font-weight:600;text-decoration:none;">📎 Ver Evidencia Adjunta</a>` : ''}
             </div>`
         ).join('') : ''; 
     }
@@ -755,7 +784,7 @@ window.setFilterGest = (filterText) => {
     for (let i = 0; i < trs.length; i++) { let statusCell = trs[i].getElementsByTagName('td')[3]; if (statusCell) { let text = statusCell.textContent || statusCell.innerText; if (filter === "" || text.toLowerCase().includes(filter)) { trs[i].style.display = ""; } else { trs[i].style.display = "none"; } } }
 };
 
-window.descargarExcelFiltrado = (origen = 'hist', isAdminTotal = false) => {
+window.descargarExcelFiltrado = (origen = 'hist') => {
     let desde = document.getElementById(`${origen}-f-desde`).value; let hasta = document.getElementById(`${origen}-f-hasta`).value; let estado = document.getElementById(`${origen}-f-estado`).value;
     let esAdminSGC = currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
 
@@ -1193,31 +1222,55 @@ window.addSeguimientoRow = (resultado="", resp="", fecha="") => {
 
 window.abrirCrearSAC = (f020_id) => {
     let h = currentAuditF020.find(i => i.id === f020_id); if(!h) return; currentEditingSacId = null; currentEditingF020Ref = h;
-    document.getElementById('sac-num').innerText = "POR ASIGNAR"; document.getElementById('sac-estado-badge').innerText = "NUEVA"; document.getElementById('sac-estado-badge').className = "badge badge-info"; 
-    document.getElementById('sac-fecha').value = new Date().toISOString().split('T')[0]; document.getElementById('sac-proceso').value = h.proceso || selectedAuditData.proceso || "";
-    document.getElementById('sac-tipo').value = h.hallazgo || ""; document.getElementById('sac-fuente').value = "Auditoría Interna"; document.getElementById('sac-fuente-otro').value = "";
-    document.getElementById('sac-detalle').value = h.comentarios || h.pregunta; document.getElementById('sac-beneficio').value = ""; document.getElementById('sac-causa').value = ""; document.getElementById('sac-accion').value = "";
-    document.getElementById('tbody-plan-accion').innerHTML = ""; document.getElementById('sac-fecha-aprob-plan').value = ""; document.getElementById('tbody-seguimiento').innerHTML = "";
-    document.getElementById('sac-resp-cierre').value = ""; document.getElementById('sac-fecha-cierre').value = ""; document.getElementById('sac-check-cerrar').checked = false;
+    if(document.getElementById('sac-num')) document.getElementById('sac-num').innerText = "POR ASIGNAR"; 
+    if(document.getElementById('sac-estado-badge')) { document.getElementById('sac-estado-badge').innerText = "NUEVA"; document.getElementById('sac-estado-badge').className = "badge badge-info"; }
+    if(document.getElementById('sac-fecha')) document.getElementById('sac-fecha').value = new Date().toISOString().split('T')[0]; 
+    if(document.getElementById('sac-proceso')) document.getElementById('sac-proceso').value = h.proceso || selectedAuditData.proceso || "";
+    if(document.getElementById('sac-tipo')) document.getElementById('sac-tipo').value = h.hallazgo || ""; 
+    if(document.getElementById('sac-fuente')) document.getElementById('sac-fuente').value = "Auditoría Interna"; 
+    if(document.getElementById('sac-fuente-otro')) document.getElementById('sac-fuente-otro').value = "";
+    if(document.getElementById('sac-detalle')) document.getElementById('sac-detalle').value = h.comentarios || h.pregunta; 
+    if(document.getElementById('sac-beneficio')) document.getElementById('sac-beneficio').value = ""; 
+    if(document.getElementById('sac-causa')) document.getElementById('sac-causa').value = ""; 
+    if(document.getElementById('sac-accion')) document.getElementById('sac-accion').value = "";
+    if(document.getElementById('tbody-plan-accion')) document.getElementById('tbody-plan-accion').innerHTML = ""; 
+    if(document.getElementById('sac-fecha-aprob-plan')) document.getElementById('sac-fecha-aprob-plan').value = ""; 
+    if(document.getElementById('tbody-seguimiento')) document.getElementById('tbody-seguimiento').innerHTML = "";
+    if(document.getElementById('sac-resp-cierre')) document.getElementById('sac-resp-cierre').value = ""; 
+    if(document.getElementById('sac-fecha-cierre')) document.getElementById('sac-fecha-cierre').value = ""; 
+    if(document.getElementById('sac-check-cerrar')) document.getElementById('sac-check-cerrar').checked = false;
+    
     let opt = '<option value="">-- Seleccione Responsable (Dueño) --</option>'; allUsers.forEach(u => { opt += `<option value="${u.usuario}">${u.nombre} (${u.gerencias ? u.gerencias[0]:''})</option>`; });
-    document.getElementById('sac-dueno').innerHTML = opt; setDisplay('modal-sac', 'flex');
+    if(document.getElementById('sac-dueno')) document.getElementById('sac-dueno').innerHTML = opt; 
+    setDisplay('modal-sac', 'flex');
 };
 
 window.verSAC = (sac_id) => {
     let sac = globalAllSacs.find(s => s.sac_id === sac_id); if(!sac) return; currentEditingSacId = sac_id;
-    document.getElementById('sac-num').innerText = sac.sac_num; 
+    if(document.getElementById('sac-num')) document.getElementById('sac-num').innerText = sac.sac_num; 
     let est = sac.estado; let bs = est.includes('Abierta') ? 'badge-danger' : (est === 'En Seguimiento' ? 'badge-warning' : 'badge-success');
-    document.getElementById('sac-estado-badge').innerText = est.toUpperCase(); document.getElementById('sac-estado-badge').className = `badge ${bs}`; 
-    document.getElementById('sac-fecha').value = sac.fecha_registro || sac.fecha_apertura.split('T')[0]; document.getElementById('sac-proceso').value = sac.proceso || ""; document.getElementById('sac-tipo').value = sac.tipo_hallazgo || "";
-    document.getElementById('sac-fuente').value = sac.fuente_nc || "Auditoría Interna"; document.getElementById('sac-fuente-otro').value = sac.fuente_otro || ""; document.getElementById('sac-detalle').value = sac.detalle_nc || "";
-    document.getElementById('sac-beneficio').value = sac.beneficio_esperado || ""; document.getElementById('sac-causa').value = sac.causa_raiz || ""; document.getElementById('sac-accion').value = sac.accion_implementar || "";
+    if(document.getElementById('sac-estado-badge')) { document.getElementById('sac-estado-badge').innerText = est.toUpperCase(); document.getElementById('sac-estado-badge').className = `badge ${bs}`; }
+    
+    if(document.getElementById('sac-fecha')) document.getElementById('sac-fecha').value = sac.fecha_registro || sac.fecha_apertura.split('T')[0]; 
+    if(document.getElementById('sac-proceso')) document.getElementById('sac-proceso').value = sac.proceso || ""; 
+    if(document.getElementById('sac-tipo')) document.getElementById('sac-tipo').value = sac.tipo_hallazgo || "";
+    if(document.getElementById('sac-fuente')) document.getElementById('sac-fuente').value = sac.fuente_nc || "Auditoría Interna"; 
+    if(document.getElementById('sac-fuente-otro')) document.getElementById('sac-fuente-otro').value = sac.fuente_otro || ""; 
+    if(document.getElementById('sac-detalle')) document.getElementById('sac-detalle').value = sac.detalle_nc || "";
+    if(document.getElementById('sac-beneficio')) document.getElementById('sac-beneficio').value = sac.beneficio_esperado || ""; 
+    if(document.getElementById('sac-causa')) document.getElementById('sac-causa').value = sac.causa_raiz || ""; 
+    if(document.getElementById('sac-accion')) document.getElementById('sac-accion').value = sac.accion_implementar || "";
+    
     let opt = '<option value="">-- Seleccione Responsable (Dueño) --</option>'; allUsers.forEach(u => { opt += `<option value="${u.usuario}" ${sac.dueno_uid === u.usuario ? 'selected':''}>${u.nombre}</option>`; });
-    document.getElementById('sac-dueno').innerHTML = opt; 
-    document.getElementById('tbody-plan-accion').innerHTML = ""; if(sac.plan_accion) { sac.plan_accion.forEach(p => window.addPlanRow(p.detalle, p.resp, p.inicio, p.fin)); }
-    document.getElementById('sac-fecha-aprob-plan').value = sac.fecha_aprobacion_plan || "";
-    document.getElementById('tbody-seguimiento').innerHTML = ""; if(sac.seguimiento) { sac.seguimiento.forEach(s => window.addSeguimientoRow(s.resultado, s.resp, s.fecha)); }
-    document.getElementById('sac-resp-cierre').value = sac.cerrado_por || ""; document.getElementById('sac-fecha-cierre').value = sac.fecha_cierre ? sac.fecha_cierre.split('T')[0] : "";
-    document.getElementById('sac-check-cerrar').checked = est === 'Cerrada'; setDisplay('modal-sac', 'flex');
+    if(document.getElementById('sac-dueno')) document.getElementById('sac-dueno').innerHTML = opt; 
+    
+    if(document.getElementById('tbody-plan-accion')) { document.getElementById('tbody-plan-accion').innerHTML = ""; if(sac.plan_accion) { sac.plan_accion.forEach(p => window.addPlanRow(p.detalle, p.resp, p.inicio, p.fin)); } }
+    if(document.getElementById('sac-fecha-aprob-plan')) document.getElementById('sac-fecha-aprob-plan').value = sac.fecha_aprobacion_plan || "";
+    if(document.getElementById('tbody-seguimiento')) { document.getElementById('tbody-seguimiento').innerHTML = ""; if(sac.seguimiento) { sac.seguimiento.forEach(s => window.addSeguimientoRow(s.resultado, s.resp, s.fecha)); } }
+    if(document.getElementById('sac-resp-cierre')) document.getElementById('sac-resp-cierre').value = sac.cerrado_por || ""; 
+    if(document.getElementById('sac-fecha-cierre')) document.getElementById('sac-fecha-cierre').value = sac.fecha_cierre ? sac.fecha_cierre.split('T')[0] : "";
+    if(document.getElementById('sac-check-cerrar')) document.getElementById('sac-check-cerrar').checked = est === 'Cerrada'; 
+    setDisplay('modal-sac', 'flex');
 };
 
 window.guardarSAC = async () => {
