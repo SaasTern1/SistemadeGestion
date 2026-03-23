@@ -36,10 +36,9 @@ let selectedAuditId = null, selectedAuditData = null, editandoAuditoriaId = null
 let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, currentEditingF020Ref = null;
 
 // ==========================================
-// CARGA GLOBAL DE DATOS (NUEVO Y RESTAURADO)
+// CARGA GLOBAL DE DATOS (FIREBASE)
 // ==========================================
 window.cargarDatosCentrales = () => {
-    // 1. Cargar Usuarios
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "Usuarios"), (snap) => {
         allUsers = [];
         let htmlUsers = "";
@@ -52,7 +51,6 @@ window.cargarDatosCentrales = () => {
         if (document.getElementById('tbody-users')) document.getElementById('tbody-users').innerHTML = htmlUsers;
     });
 
-    // 2. Cargar Configuración Maestro y Tipos
     onSnapshot(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), (docSnap) => {
         if(docSnap.exists()) {
             const d = docSnap.data();
@@ -63,30 +61,32 @@ window.cargarDatosCentrales = () => {
         }
     });
 
-    // 3. Cargar Estructura (Gerencias y Departamentos)
     onSnapshot(doc(db, "artifacts", appId, "public", "data", "Configuracion", "Estructura"), (docSnap) => {
+        let deps = [];
+        let gers = [];
         if(docSnap.exists()) {
             const d = docSnap.data();
-            allDepartamentos = d.departamentos || [];
-            let gers = d.gerencias || [];
-            let gHtml = ""; gers.forEach(g => gHtml += `<option value="${g}">${g}</option>`);
-            
-            if(document.getElementById('d-ger-sel')) document.getElementById('d-ger-sel').innerHTML = gHtml;
-            if(document.getElementById('sol-ger')) document.getElementById('sol-ger').innerHTML = '<option value="">-- Seleccionar --</option>' + gHtml;
-
-            if(document.getElementById('list-ger')) document.getElementById('list-ger').innerHTML = gers.map(g => `<div class="settings-item"><span>${g}</span></div>`).join('');
-            if(document.getElementById('list-dep')) document.getElementById('list-dep').innerHTML = allDepartamentos.map(dep => `<div class="settings-item"><span>${dep.nombre} <small>(${dep.gerencia})</small></span></div>`).join('');
+            deps = d.departamentos || [];
+            gers = d.gerencias || [];
         }
+        allDepartamentos = deps;
+        
+        let gHtml = ""; gers.forEach(g => gHtml += `<option value="${g}">${g}</option>`);
+        
+        if(document.getElementById('d-ger-sel')) document.getElementById('d-ger-sel').innerHTML = gHtml;
+        if(document.getElementById('sol-ger')) document.getElementById('sol-ger').innerHTML = '<option value="">-- Seleccionar --</option>' + gHtml;
+
+        if(document.getElementById('list-ger')) document.getElementById('list-ger').innerHTML = gers.map((g, idx) => `<div class="settings-item"><span>${g}</span><button class="btn-icon-danger" onclick="window.eliminarGerencia(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
+        if(document.getElementById('list-dep')) document.getElementById('list-dep').innerHTML = deps.map((dep, idx) => `<div class="settings-item"><span>${dep.nombre} <small>(${dep.gerencia})</small></span><button class="btn-icon-danger" onclick="window.eliminarDepartamento(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
+        if(document.getElementById('u-ger-list')) document.getElementById('u-ger-list').innerHTML = gers.map(g => `<label style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:6px;"><input type="checkbox" value="${g}"> ${g}</label>`).join('');
     });
 
-    // 4. Cargar Listado Maestro
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), (snap) => {
         dataMaestro = [];
         snap.forEach(doc => { let d = doc.data(); d.docId = doc.id; dataMaestro.push(d); });
         window.renderTablaMaestro();
     });
 
-    // 5. Cargar Solicitudes Activas y Renderizar Tablas
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), (snap) => {
         globalSolicitudes = [];
         snap.forEach(doc => { let d = doc.data(); d.docId = doc.id; globalSolicitudes.push(d); });
@@ -94,7 +94,6 @@ window.cargarDatosCentrales = () => {
         window.checkDailyAlerts();
     });
 
-    // 6. Cargar Auditorías
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "Auditorias"), (snap) => {
         globalAllAuditorias = [];
         snap.forEach(doc => { let d = doc.data(); d.id = doc.id; globalAllAuditorias.push(d); });
@@ -108,7 +107,6 @@ window.cargarDatosCentrales = () => {
         window.renderTablaAuditorias(year);
     });
 
-    // 7. Cargar SACs (Acciones Correctivas)
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "AccionesCorrectivas"), (snap) => {
         globalAllSacs = [];
         snap.forEach(doc => { let d = doc.data(); d.sac_id = doc.id; globalAllSacs.push(d); });
@@ -116,7 +114,6 @@ window.cargarDatosCentrales = () => {
     });
 };
 
-// Pinta las 3 tablas principales y el Dashboard con los datos en tiempo real
 window.renderTablasSolicitudes = () => {
     let htmlHist = "", htmlAll = "", htmlGest = "";
     let sorted = [...globalSolicitudes].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
@@ -130,16 +127,13 @@ window.renderTablasSolicitudes = () => {
         let bPr = pStr === 'Alta' ? 'badge-danger' : (pStr === 'Básica' ? 'badge-info' : 'badge-dark');
         let etapa = PASOS_NOMBRES[s.idx] || '';
 
-        // Mis Solicitudes
         let isMine = (s.uid === currentUser.usuario) || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()));
         if(isMine) {
             htmlHist += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}</td><td>${s.titulo}<br><span class="badge ${bPr}">${pStr}</span></td><td><span class="badge ${badgeClass}">${estadoStr}</span></td><td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Ver / Gestionar</button></td></tr>`;
         }
 
-        // Todas (Admin)
         htmlAll += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}<br><small>${s.gerencia}</small></td><td>${s.titulo}</td><td><span class="badge ${bPr}">${pStr}</span></td><td><span class="badge ${badgeClass}">${estadoStr}</span><br><small>${etapa}</small></td><td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Ver Detalle</button></td></tr>`;
 
-        // Gestión SGC / Gerentes
         let activo = !isAprobado && !isCancelado;
         let esAdminSGC = currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
         let esGer = currentUser.permisos.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia);
@@ -155,7 +149,6 @@ window.renderTablasSolicitudes = () => {
     if(document.getElementById('tbody-all')) document.getElementById('tbody-all').innerHTML = htmlAll;
     if(document.getElementById('tbody-gestionar')) document.getElementById('tbody-gestionar').innerHTML = htmlGest;
 
-    // Actualizar Panel Analítico (Dashboard)
     if(document.getElementById('dash-mis-tot')) {
         let misSol = sorted.filter(s => s.uid === currentUser.usuario || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase())));
         document.getElementById('dash-mis-tot').innerText = misSol.length;
@@ -206,7 +199,6 @@ window.completarLoginUI = () => {
     const navAll = document.getElementById('nav-all');
     if(navAll) navAll.style.display = (p.admin || p.p_ver_todas) ? 'flex' : 'none';
 
-    // Disparar la descarga de datos mágicos ✨
     window.cargarDatosCentrales();
 
     const navDash = document.getElementById('nav-dash');
@@ -231,64 +223,44 @@ window.logout = () => {
     if(passEl) passEl.value = '';
 };
 
-// ==========================================
-// ASIGNACIÓN DE FUNCIONES AL OBJETO WINDOW
-// ==========================================
-window.showLoading = () => {
-    const loader = document.getElementById('loading-overlay');
-    if(loader) loader.style.display = 'flex';
-};
-window.hideLoading = () => {
-    const loader = document.getElementById('loading-overlay');
-    if(loader) loader.style.display = 'none';
-};
-
-window.cambiarVista = (id, btn) => {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+window.iniciarSesion = async () => {
+    const u = document.getElementById('login-user').value.toLowerCase().trim();
+    const p = document.getElementById('login-pass').value.trim();
+    if (!u || !p) { alert("Por favor, ingresa tu usuario y contraseña."); return; }
     
-    const section = document.getElementById(id);
-    if(section) section.classList.add('active');
-    
-    if(btn) btn.classList.add('active');
-    
-    if(window.innerWidth <= 768) { 
-        const sidebar = document.getElementById('sidebar');
-        if(sidebar) sidebar.classList.remove('open'); 
-        const overlay = document.getElementById('sidebar-overlay');
-        if(overlay) overlay.classList.remove('active'); 
+    window.showLoading();
+    try {
+        if(u === 'admin' && p === '1130') {
+            const adminRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", "admin"); 
+            const snapAdmin = await getDoc(adminRef);
+            if(!snapAdmin.exists()) {
+                await setDoc(adminRef, {
+                    nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencias: ["SGC"], gerencia: "SGC", email: EMAIL_ADMIN_SGC,
+                    permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_ver_todas:true, p_users:true, p_struct:true, p_ver_listado:true, p_audit_admin:true, p_audit_ver:true, admin:true, p_paso1:true, p_paso2:true, p_paso4:true }
+                });
+            }
+        }
+        
+        const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", u), where("pass", "==", p));
+        const querySnapshot = await getDocs(q);
+        
+        if(!querySnapshot.empty) {
+            localStorage.setItem('sgc_session_user', u); 
+            currentUser = querySnapshot.docs[0].data(); 
+            window.completarLoginUI();
+        } else { 
+            alert("Credenciales incorrectas. Verifica tu usuario o contraseña."); 
+        }
+    } catch (error) { 
+        console.error("Error:", error); 
+        alert("Hubo un problema al conectar con la base de datos."); 
+    } finally { 
+        window.hideLoading(); 
     }
 };
 
-window.toggleMenu = () => {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('sidebar-overlay').classList.toggle('active');
-};
-
-window.toggleModPanel = v => document.getElementById('panel-mod').style.display = v === 'Creación' ? 'none' : 'grid';
-window.closeModal = () => document.getElementById('modal').style.display = 'none';
-window.cerrarModalAuditoria = () => document.getElementById('modal-auditoria').style.display = 'none';
-
-window.del = async (c, id) => { 
-    if(confirm("¿Eliminar este registro?")) {
-        window.showLoading();
-        await deleteDoc(doc(db, "artifacts", appId, "public", "data", c, id)); 
-        window.hideLoading();
-    }
-};
-
-window.getDownloadUrl = (url) => { return url ? url : "#"; };
-
-window.formatearFechaAbreviada = (fechaISO) => {
-    if (!fechaISO) return '';
-    let f = fechaISO; if(f.length === 10) f += 'T12:00:00'; 
-    const fecha = new Date(f); if (isNaN(fecha)) return fechaISO; 
-    const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-    return `${fecha.getDate()}-${meses[fecha.getMonth()]}-${fecha.getFullYear()}`;
-};
-
 // ==========================================
-// FUNCIONES PARA CREAR GERENCIAS Y DEPARTAMENTOS
+// FUNCIONES PARA ESTRUCTURA Y GERENCIAS
 // ==========================================
 window.agregarGerencia = async () => {
     let val = document.getElementById('g-nom').value.trim().toUpperCase(); 
@@ -340,6 +312,59 @@ window.eliminarDepartamento = async (idx) => {
     deps.splice(idx, 1);
     await setDoc(docRef, { departamentos: deps }, {merge: true});
     window.hideLoading();
+};
+
+// ==========================================
+// ASIGNACIÓN DE FUNCIONES AL OBJETO WINDOW
+// ==========================================
+window.showLoading = () => {
+    const loader = document.getElementById('loading-overlay');
+    if(loader) loader.style.display = 'flex';
+};
+window.hideLoading = () => {
+    const loader = document.getElementById('loading-overlay');
+    if(loader) loader.style.display = 'none';
+};
+
+window.cambiarVista = (id, btn) => {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    const section = document.getElementById(id);
+    if(section) section.classList.add('active');
+    if(btn) btn.classList.add('active');
+    if(window.innerWidth <= 768) { 
+        const sidebar = document.getElementById('sidebar');
+        if(sidebar) sidebar.classList.remove('open'); 
+        const overlay = document.getElementById('sidebar-overlay');
+        if(overlay) overlay.classList.remove('active'); 
+    }
+};
+
+window.toggleMenu = () => {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('active');
+};
+
+window.toggleModPanel = v => document.getElementById('panel-mod').style.display = v === 'Creación' ? 'none' : 'grid';
+window.closeModal = () => document.getElementById('modal').style.display = 'none';
+window.cerrarModalAuditoria = () => document.getElementById('modal-auditoria').style.display = 'none';
+
+window.del = async (c, id) => { 
+    if(confirm("¿Eliminar este registro?")) {
+        window.showLoading();
+        await deleteDoc(doc(db, "artifacts", appId, "public", "data", c, id)); 
+        window.hideLoading();
+    }
+};
+
+window.getDownloadUrl = (url) => { return url ? url : "#"; };
+
+window.formatearFechaAbreviada = (fechaISO) => {
+    if (!fechaISO) return '';
+    let f = fechaISO; if(f.length === 10) f += 'T12:00:00'; 
+    const fecha = new Date(f); if (isNaN(fecha)) return fechaISO; 
+    const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    return `${fecha.getDate()}-${meses[fecha.getMonth()]}-${fecha.getFullYear()}`;
 };
 
 window.getGCalFormat = (fechaStr, horaStr) => {
@@ -1116,34 +1141,44 @@ window.enviarComentarioAuditoria = async () => {
 // ARRANQUE DE LA APLICACIÓN
 // ==========================================
 const inicializarApp = async () => {
+    console.log("🚀 Paso 1: Iniciando aplicación...");
     window.hideLoading(); 
+    
     const savedUser = localStorage.getItem('sgc_session_user');
+    console.log("👤 Paso 2: Usuario guardado en caché:", savedUser ? savedUser : "Ninguno");
 
     if (savedUser) {
         window.showLoading();
         try {
+            console.log("⏳ Paso 3: Conectando con Firebase para validar sesión...");
             const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", savedUser));
             const snap = await getDocs(q);
             
             if (!snap.empty) { 
+                console.log("✅ Paso 4: Sesión restaurada con éxito. Renderizando UI...");
                 currentUser = snap.docs[0].data(); 
                 window.completarLoginUI(); 
             } else { 
+                console.log("⚠️ Paso 4: El usuario ya no existe en la BD. Limpiando sesión...");
                 window.logout();
             }
         } catch(e) { 
-            console.error("Error al restaurar sesión:", e); 
+            console.error("❌ Error al restaurar sesión:", e); 
             window.logout();
         }
         window.hideLoading();
     } else {
+        console.log("👋 Paso 3: No hay sesión. Mostrando pantalla de Login.");
         window.hideLoading();
         const loginScreen = document.getElementById('login-screen');
-        if (loginScreen) loginScreen.style.display = 'flex';
+        if (loginScreen) {
+            loginScreen.style.display = 'flex';
+        } else {
+            console.error("❌ ERROR: No se encontró la pantalla de login.");
+        }
     }
 };
 
-// Iniciar app automáticamente cuando el DOM esté listo
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", inicializarApp);
 } else {
