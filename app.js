@@ -36,28 +36,162 @@ let selectedAuditId = null, selectedAuditData = null, editandoAuditoriaId = null
 let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, currentEditingF020Ref = null;
 
 // ==========================================
+// CARGA GLOBAL DE DATOS (NUEVO Y RESTAURADO)
+// ==========================================
+window.cargarDatosCentrales = () => {
+    // 1. Cargar Usuarios
+    onSnapshot(collection(db, "artifacts", appId, "public", "data", "Usuarios"), (snap) => {
+        allUsers = [];
+        let htmlUsers = "";
+        snap.forEach(doc => { 
+            let u = doc.data(); 
+            allUsers.push(u); 
+            let gers = u.gerencias ? u.gerencias.join(', ') : (u.gerencia || 'N/A');
+            htmlUsers += `<tr><td>${u.nombre} (${u.usuario})</td><td>${u.email||''}</td><td>${u.role||''} / <small>${gers}</small></td><td class="no-export"><button class="btn btn-info" style="padding:4px 8px; font-size:10px;" onclick="window.cargarUsuarioParaEditar('${u.usuario}')">Editar</button></td></tr>`;
+        });
+        if (document.getElementById('tbody-users')) document.getElementById('tbody-users').innerHTML = htmlUsers;
+    });
+
+    // 2. Cargar Configuración Maestro y Tipos
+    onSnapshot(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), (docSnap) => {
+        if(docSnap.exists()) {
+            const d = docSnap.data();
+            tiposDocumento = d.tiposDoc || [];
+            columnasMaestro = d.columnas || [];
+            estatusMaestro = d.estatus || [];
+            window.renderListasConfig();
+        }
+    });
+
+    // 3. Cargar Estructura (Gerencias y Departamentos)
+    onSnapshot(doc(db, "artifacts", appId, "public", "data", "Configuracion", "Estructura"), (docSnap) => {
+        if(docSnap.exists()) {
+            const d = docSnap.data();
+            allDepartamentos = d.departamentos || [];
+            let gers = d.gerencias || [];
+            let gHtml = ""; gers.forEach(g => gHtml += `<option value="${g}">${g}</option>`);
+            
+            if(document.getElementById('d-ger-sel')) document.getElementById('d-ger-sel').innerHTML = gHtml;
+            if(document.getElementById('sol-ger')) document.getElementById('sol-ger').innerHTML = '<option value="">-- Seleccionar --</option>' + gHtml;
+
+            if(document.getElementById('list-ger')) document.getElementById('list-ger').innerHTML = gers.map(g => `<div class="settings-item"><span>${g}</span></div>`).join('');
+            if(document.getElementById('list-dep')) document.getElementById('list-dep').innerHTML = allDepartamentos.map(dep => `<div class="settings-item"><span>${dep.nombre} <small>(${dep.gerencia})</small></span></div>`).join('');
+        }
+    });
+
+    // 4. Cargar Listado Maestro
+    onSnapshot(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), (snap) => {
+        dataMaestro = [];
+        snap.forEach(doc => { let d = doc.data(); d.docId = doc.id; dataMaestro.push(d); });
+        window.renderTablaMaestro();
+    });
+
+    // 5. Cargar Solicitudes Activas y Renderizar Tablas
+    onSnapshot(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), (snap) => {
+        globalSolicitudes = [];
+        snap.forEach(doc => { let d = doc.data(); d.docId = doc.id; globalSolicitudes.push(d); });
+        window.renderTablasSolicitudes();
+        window.checkDailyAlerts();
+    });
+
+    // 6. Cargar Auditorías
+    onSnapshot(collection(db, "artifacts", appId, "public", "data", "Auditorias"), (snap) => {
+        globalAllAuditorias = [];
+        snap.forEach(doc => { let d = doc.data(); d.id = doc.id; globalAllAuditorias.push(d); });
+        let currentYear = new Date().getFullYear().toString();
+        let yearSelect = document.getElementById('aud-year-select');
+        if(yearSelect && yearSelect.options.length === 0) {
+            yearSelect.innerHTML = `<option value="${currentYear}">${currentYear}</option><option value="nuevo">+ Añadir Año</option>`;
+        }
+        let year = yearSelect ? yearSelect.value : currentYear;
+        window.loadAuditPlan(year);
+        window.renderTablaAuditorias(year);
+    });
+
+    // 7. Cargar SACs (Acciones Correctivas)
+    onSnapshot(collection(db, "artifacts", appId, "public", "data", "AccionesCorrectivas"), (snap) => {
+        globalAllSacs = [];
+        snap.forEach(doc => { let d = doc.data(); d.sac_id = doc.id; globalAllSacs.push(d); });
+        window.renderF023Global();
+    });
+};
+
+// Pinta las 3 tablas principales y el Dashboard con los datos en tiempo real
+window.renderTablasSolicitudes = () => {
+    let htmlHist = "", htmlAll = "", htmlGest = "";
+    let sorted = [...globalSolicitudes].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+    sorted.forEach(s => {
+        let estadoStr = s.estado || "";
+        let isCancelado = estadoStr === 'Anulado' || estadoStr === 'Rechazado';
+        let isAprobado = estadoStr.includes('Aprobado Final');
+        let badgeClass = isAprobado ? 'badge-success' : (isCancelado ? 'badge-danger' : 'badge-warning');
+        let pStr = s.prioridad || "Normal";
+        let bPr = pStr === 'Alta' ? 'badge-danger' : (pStr === 'Básica' ? 'badge-info' : 'badge-dark');
+        let etapa = PASOS_NOMBRES[s.idx] || '';
+
+        // Mis Solicitudes
+        let isMine = (s.uid === currentUser.usuario) || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()));
+        if(isMine) {
+            htmlHist += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}</td><td>${s.titulo}<br><span class="badge ${bPr}">${pStr}</span></td><td><span class="badge ${badgeClass}">${estadoStr}</span></td><td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Ver / Gestionar</button></td></tr>`;
+        }
+
+        // Todas (Admin)
+        htmlAll += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}<br><small>${s.gerencia}</small></td><td>${s.titulo}</td><td><span class="badge ${bPr}">${pStr}</span></td><td><span class="badge ${badgeClass}">${estadoStr}</span><br><small>${etapa}</small></td><td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Ver Detalle</button></td></tr>`;
+
+        // Gestión SGC / Gerentes
+        let activo = !isAprobado && !isCancelado;
+        let esAdminSGC = currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
+        let esGer = currentUser.permisos.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia);
+        let puedeGestionarSGC = activo && ((s.idx === 0 && (esAdminSGC || currentUser.permisos.p_paso1)) || (s.idx === 1 && (esAdminSGC || currentUser.permisos.p_paso2)) || (s.idx === 3 && (esAdminSGC || currentUser.permisos.p_paso4)));
+        let puedeGestionarGerente = activo && s.idx === 2 && esGer;
+
+        if(puedeGestionarSGC || puedeGestionarGerente) {
+            htmlGest += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}<br><small>${s.gerencia}</small></td><td>${s.titulo}<br><span class="badge ${bPr}">${pStr}</span></td><td><span class="badge badge-info">${etapa}</span></td><td class="no-export"><button class="btn btn-warning" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Revisar / Firmar</button></td></tr>`;
+        }
+    });
+
+    if(document.getElementById('tbody-historial')) document.getElementById('tbody-historial').innerHTML = htmlHist;
+    if(document.getElementById('tbody-all')) document.getElementById('tbody-all').innerHTML = htmlAll;
+    if(document.getElementById('tbody-gestionar')) document.getElementById('tbody-gestionar').innerHTML = htmlGest;
+
+    // Actualizar Panel Analítico (Dashboard)
+    if(document.getElementById('dash-mis-tot')) {
+        let misSol = sorted.filter(s => s.uid === currentUser.usuario || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase())));
+        document.getElementById('dash-mis-tot').innerText = misSol.length;
+        document.getElementById('dash-mis-pend').innerText = misSol.filter(s => !s.estado.includes('Aprobado') && s.estado !== 'Anulado' && s.estado !== 'Rechazado').length;
+        document.getElementById('dash-mis-ok').innerText = misSol.filter(s => s.estado.includes('Aprobado Final')).length;
+        document.getElementById('dash-mis-rech').innerText = misSol.filter(s => s.estado === 'Anulado' || s.estado === 'Rechazado').length;
+    }
+
+    if(document.getElementById('dash-glob-tot') && currentUser.permisos && (currentUser.permisos.admin || currentUser.permisos.p_gest_sgc)) {
+        document.getElementById('dash-admin-section').style.display = 'block';
+        document.getElementById('dash-glob-tot').innerText = sorted.length;
+        document.getElementById('dash-glob-pend').innerText = sorted.filter(s => !s.estado.includes('Aprobado') && s.estado !== 'Anulado' && s.estado !== 'Rechazado').length;
+        document.getElementById('dash-glob-ok').innerText = sorted.filter(s => s.estado.includes('Aprobado Final')).length;
+        document.getElementById('dash-glob-rech').innerText = sorted.filter(s => s.estado === 'Anulado' || s.estado === 'Rechazado').length;
+    }
+};
+
+// ==========================================
 // FUNCIONES DE SESIÓN Y UI
 // ==========================================
 window.completarLoginUI = () => {
-    // 1. Ocultar la pantalla de login
     const loginScreen = document.getElementById('login-screen');
     if(loginScreen) loginScreen.style.display = 'none';
 
-    // 2. MOSTRAR LA INTERFAZ PRINCIPAL (Esta era la causa de la pantalla blanca)
     const sidebar = document.getElementById('sidebar');
     if(sidebar) sidebar.style.display = 'flex';
     
     const main = document.getElementById('main');
     if(main) main.style.display = 'block';
 
-    // 3. Mostrar datos del usuario en la barra lateral
     const currNameEl = document.getElementById('curr-name');
     if(currNameEl) currNameEl.innerText = currentUser.nombre || 'Usuario';
     
     const currGerEl = document.getElementById('curr-ger');
     if(currGerEl) currGerEl.innerText = currentUser.gerencias ? currentUser.gerencias.join(', ') : (currentUser.gerencia || 'Sin Gerencia');
 
-    // 4. Mostrar/Ocultar menús según los permisos del usuario
     const p = currentUser.permisos || {};
 
     const adminMenu = document.getElementById('admin-only');
@@ -72,30 +206,27 @@ window.completarLoginUI = () => {
     const navAll = document.getElementById('nav-all');
     if(navAll) navAll.style.display = (p.admin || p.p_ver_todas) ? 'flex' : 'none';
 
-    // 5. Redirigir a la vista del Dashboard (Panel Analítico) por defecto
+    // Disparar la descarga de datos mágicos ✨
+    window.cargarDatosCentrales();
+
     const navDash = document.getElementById('nav-dash');
     if(navDash) window.cambiarVista('sec-dash', navDash);
 };
 
 window.logout = () => {
-    // Limpiar sesión local y resetear usuario
     localStorage.removeItem('sgc_session_user');
     currentUser = null;
     
-    // Ocultar interfaz principal
     const sidebar = document.getElementById('sidebar');
     if(sidebar) sidebar.style.display = 'none';
-    
     const main = document.getElementById('main');
     if(main) main.style.display = 'none';
 
-    // Mostrar pantalla de login nuevamente y limpiar campos
     const loginScreen = document.getElementById('login-screen');
     if(loginScreen) loginScreen.style.display = 'flex';
     
     const userEl = document.getElementById('login-user');
     if(userEl) userEl.value = '';
-    
     const passEl = document.getElementById('login-pass');
     if(passEl) passEl.value = '';
 };
@@ -927,46 +1058,37 @@ window.enviarComentarioAuditoria = async () => {
 };
 
 // ==========================================
-// ARRANQUE DE LA APLICACIÓN (Corregido y Robusto)
+// ARRANQUE DE LA APLICACIÓN
 // ==========================================
 const inicializarApp = async () => {
-    console.log("🚀 Paso 1: Iniciando aplicación...");
-    window.hideLoading(); // Por si el loader quedó pegado
-    
+    window.hideLoading(); 
     const savedUser = localStorage.getItem('sgc_session_user');
-    console.log("👤 Paso 2: Usuario guardado en caché:", savedUser ? savedUser : "Ninguno");
 
     if (savedUser) {
         window.showLoading();
         try {
-            console.log("⏳ Paso 3: Conectando con Firebase para validar sesión...");
             const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", savedUser));
             const snap = await getDocs(q);
             
             if (!snap.empty) { 
-                console.log("✅ Paso 4: Sesión restaurada con éxito. Renderizando UI...");
                 currentUser = snap.docs[0].data(); 
                 window.completarLoginUI(); 
             } else { 
-                console.log("⚠️ Paso 4: El usuario ya no existe en la BD. Limpiando sesión...");
                 window.logout();
             }
         } catch(e) { 
-            console.error("❌ Error al restaurar sesión:", e); 
+            console.error("Error al restaurar sesión:", e); 
             window.logout();
         }
         window.hideLoading();
     } else {
-        console.log("👋 Paso 3: No hay sesión. Mostrando pantalla de Login.");
         window.hideLoading();
         const loginScreen = document.getElementById('login-screen');
-        if (loginScreen) {
-            loginScreen.style.display = 'flex';
-        }
+        if (loginScreen) loginScreen.style.display = 'flex';
     }
 };
 
-// Garantizar que la página HTML esté 100% lista antes de buscar elementos visuales
+// Iniciar app automáticamente cuando el DOM esté listo
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", inicializarApp);
 } else {
