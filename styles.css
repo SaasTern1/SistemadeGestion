@@ -41,7 +41,7 @@ body { background: var(--bg); color: #1e293b; height: 100vh; display: flex; over
 label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: block; letter-spacing: 0.5px; }
 input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 15px; font-size: 14px; background: #fdfdfd; color: inherit; outline:none; transition: 0.2s; }
 input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-input:disabled { background: #e2e8f0; color: #475569; cursor: not-allowed; font-weight: 600; }
+input:disabled, textarea:disabled, select:disabled { background: #e2e8f0; color: #475569; cursor: not-allowed; font-weight: 600; border-color: #cbd5e1; }
 
 .btn { padding: 12px 20px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; font-size: 13px; }
 .btn-primary { background: var(--primary); color: white; }
@@ -84,7 +84,7 @@ input:checked + .slider:before { transform: translateX(16px); }
 .modal-content { background: white; width: 100%; max-width: 1200px; height: 90vh; border-radius: 24px; display: grid; grid-template-columns: 1fr 380px; overflow: hidden; }
 .modal-full { width: 100%; max-width: 1400px; display: flex; flex-direction: column; overflow: hidden; }
 
-/* CORRECCIÓN DE SCROLL EN MODAL DESKTOP */
+/* CORRECCIÓN DE SCROLL EN MODALES */
 .modal-main { overflow-y: auto; max-height: 90vh; position: relative; }
 .modal-side { overflow-y: auto; max-height: 90vh; background:#f8fafc; border-left:1px solid #e2e8f0; }
 
@@ -112,6 +112,7 @@ input:checked + .slider:before { transform: translateX(16px); }
 .checkbox-list { border: 1px solid var(--border); border-radius: 8px; max-height: 140px; overflow-y: auto; padding: 10px; background: white; margin-bottom: 15px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
 .checkbox-list label { display: flex; align-items: center; justify-content: flex-start; gap: 8px; font-size: 13px; font-weight: 500; color: #334155; margin-bottom: 6px; cursor: pointer; padding: 4px; border-radius: 6px; transition: background 0.2s; text-transform: none; }
 .checkbox-list label:hover { background: #f1f5f9; }
+.checkbox-list input[type="checkbox"] { margin: 0; width: auto; flex-shrink: 0; }
 
 .tab-container { display: flex; background: #f8fafc; padding: 10px 10px 0 10px; border-bottom: 1px solid var(--border); overflow-x: auto; white-space: nowrap; }
 .tab-btn { background: #f1f5f9; color: #64748b; border: 1px solid var(--border); border-bottom: none; padding: 12px 20px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 10px 10px 0 0; transition: 0.2s; white-space: nowrap; }
