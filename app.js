@@ -26,7 +26,7 @@ const EMAIL_ADMIN_SGC = "sistemadegestion@fcipty.com";
 const CLOUD_NAME = "df79cjklp"; const UPLOAD_PRESET = "fci_documentos";
 const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
 
-// Variables Globales
+// Variables Globales 
 let currentUser = null, selectedId = null, selectedDocData = null, tempAction = "";
 let allUsers = [], allDepartamentos = [], tiposDocumento = [], columnasMaestro = [], estatusMaestro = [], dataMaestro = [], editandoMaestroId = null;
 let globalSolicitudes = [], globalAuditPlan = null, globalAllAuditorias = [], globalAuditorias = [];
@@ -34,35 +34,37 @@ let selectedAuditId = null, selectedAuditData = null, editandoAuditoriaId = null
 let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, currentEditingF020Ref = null;
 
 // ==========================================
-// 1. UTILIDADES Y CARGA DE ARCHIVOS
+// 1. UTILIDADES Y VISUALIZADOR DE ARCHIVOS
 // ==========================================
 const setDisplay = (id, val) => { const el = document.getElementById(id); if (el) el.style.display = val; };
 
-window.abrirDocumento = async (url, nombreOriginal) => {
+window.abrirDocumento = (url, nombreOriginal) => {
     if (!url || url === "#") return;
+    
+    // Limpiamos el nombre original para evitar errores en la descarga
     let safeName = nombreOriginal ? nombreOriginal.replace(/[^a-zA-Z0-9.\-_ ]/g, '_') : 'Documento';
     if (!safeName.includes('.')) { let extMatch = url.match(/\.([a-zA-Z0-9]+)(\?|$)/); if(extMatch) safeName += "." + extMatch[1]; }
+    
+    // Identificamos si es un archivo que el navegador puede visualizar directamente
     let isViewable = url.toLowerCase().match(/\.(pdf|jpg|jpeg|png|gif)(\?|$)/);
     
     if (isViewable) {
-        const nuevaPestana = window.open('', '_blank');
-        if (!nuevaPestana) return alert("Bloqueado por el navegador. Permite las ventanas emergentes.");
-        nuevaPestana.document.write(`<html style="font-family:sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f8fafc; color:#1e40af;"><head><title>Cargando: ${safeName}</title></head><body><h2>Preparando documento...</h2></body></html>`);
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error("Error de red");
-            const blob = await response.blob(); const fileObj = new File([blob], safeName, { type: blob.type });
-            const blobUrl = window.URL.createObjectURL(fileObj);
-            nuevaPestana.location.href = blobUrl; setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
-        } catch (e) { nuevaPestana.location.href = url; }
+        // Abre en nueva pestaña para su visualización inmediata
+        window.open(url, '_blank');
     } else {
-        window.showLoading();
-        try {
-            const response = await fetch(url); const blob = await response.blob(); const blobUrl = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.style.display = 'none'; a.href = blobUrl; a.download = safeName; document.body.appendChild(a); a.click();
-            window.URL.revokeObjectURL(blobUrl); document.body.removeChild(a);
-        } catch (e) { window.open(url, '_blank'); }
-        window.hideLoading();
+        // Archivos de Office u otros: Forzamos descarga inyectando el nombre original en Cloudinary
+        if(url.includes('cloudinary.com')) {
+            let parts = url.split('/upload/');
+            if(parts.length === 2) {
+                // El flag fl_attachment de Cloudinary obliga a descargar y le pone el nombre que le mandemos
+                let dlUrl = parts[0] + '/upload/fl_attachment:' + encodeURIComponent(safeName) + '/' + parts[1];
+                window.open(dlUrl, '_self');
+                return;
+            }
+        }
+        // Fallback genérico por si el archivo no está en Cloudinary
+        const a = document.createElement('a'); a.href = url; a.download = safeName; a.target = '_blank';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
 };
 
@@ -131,6 +133,7 @@ window.checkDailyAlerts = async () => {
         }
     }
 };
+
 window.verificarAlertasAuditoria = (auditoriasArray) => {
     if(!globalAuditPlan || !globalAuditPlan.correos || globalAuditPlan.correos.length === 0) return;
     const today = new Date(); today.setHours(0,0,0,0);
@@ -183,7 +186,8 @@ window.cargarDatosCentrales = () => {
         if(document.getElementById('sol-ger')) document.getElementById('sol-ger').innerHTML = '<option value="">-- Seleccionar --</option>' + gHtml;
         if(document.getElementById('list-ger')) document.getElementById('list-ger').innerHTML = gers.map((g, idx) => `<div class="settings-item"><span>${g}</span><button class="btn-icon-danger" onclick="window.eliminarGerencia(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
         if(document.getElementById('list-dep')) document.getElementById('list-dep').innerHTML = deps.map((dep, idx) => `<div class="settings-item"><span>${dep.nombre} <small>(${dep.gerencia})</small></span><button class="btn-icon-danger" onclick="window.eliminarDepartamento(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
-        if(document.getElementById('u-ger-list')) document.getElementById('u-ger-list').innerHTML = gers.map(g => `<label style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:6px;"><input type="checkbox" value="${g}"> ${g}</label>`).join('');
+        
+        if(document.getElementById('u-ger-list')) document.getElementById('u-ger-list').innerHTML = gers.map(g => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${g}" style="margin:0; width:auto;"> ${g}</label>`).join('');
     });
 
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), (snap) => {
@@ -330,6 +334,7 @@ window.resetUserForm = () => {
 
 window.guardarUsuario = async () => {
     const nom = document.getElementById('u-nom').value.trim(); const usr = document.getElementById('u-usr').value.toLowerCase().trim(); const pas = document.getElementById('u-pas').value.trim(); const rol = document.getElementById('u-rol').value.trim(); const email = document.getElementById('u-email').value.trim().toLowerCase();
+    
     const gerenciasSel = []; document.querySelectorAll('#u-ger-list input:checked').forEach(cb => { gerenciasSel.push(cb.value); });
     
     if(!nom || !usr || !pas || gerenciasSel.length === 0) return alert("Nombre, Usuario, Contraseña y al menos 1 Gerencia son obligatorios.");
@@ -651,7 +656,7 @@ window.verDetalle = async (id) => {
         cb.innerHTML = s.chat ? s.chat.map(c => 
             `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}">
                 <b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}
-                ${c.archivo ? `<br><a href="#" onclick="window.abrirDocumento('${window.getDownloadUrl(c.archivo)}', 'Evidencia_Adjunta'); return false;" style="font-size:10px;color:blue;font-weight:600;text-decoration:none;">📎 Ver Evidencia Adjunta</a>` : ''}
+                ${c.archivo ? `<br><a href="#" onclick="window.abrirDocumento('${window.getDownloadUrl(c.archivo)}', '${c.archivo_nombre || 'Evidencia_Adjunta'}'); return false;" style="font-size:10px;color:blue;font-weight:600;text-decoration:none;">📎 Ver Adjunto</a>` : ''}
             </div>`
         ).join('') : ''; 
     }
@@ -703,7 +708,8 @@ window.enviarComentarioLibre = async () => {
     const box = document.getElementById('m-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = document.getElementById('m-file-comentario');
     if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta un archivo."); window.showLoading(); let fileUrl = null;
     if (f.files[0]) { fileUrl = await window.uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error de red."); } }
-    let chatPayload = {u: currentUser.nombre, m: `💬 <b>Comentario:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; if (fileUrl) chatPayload.archivo = fileUrl; 
+    let chatPayload = {u: currentUser.nombre, m: `💬 <b>Comentario:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; 
+    if (fileUrl) { chatPayload.archivo = fileUrl; chatPayload.archivo_nombre = f.files[0].name; } 
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { chat: arrayUnion(chatPayload) });
     const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Nuevo Comentario: ${selectedDocData.customId}`, `${currentUser.nombre} dejó un comentario.`); box.innerHTML = ""; f.value = ""; window.hideLoading(); window.closeModal();
 };
@@ -749,7 +755,7 @@ window.setFilterGest = (filterText) => {
     for (let i = 0; i < trs.length; i++) { let statusCell = trs[i].getElementsByTagName('td')[3]; if (statusCell) { let text = statusCell.textContent || statusCell.innerText; if (filter === "" || text.toLowerCase().includes(filter)) { trs[i].style.display = ""; } else { trs[i].style.display = "none"; } } }
 };
 
-window.descargarExcelFiltrado = (origen = 'hist') => {
+window.descargarExcelFiltrado = (origen = 'hist', isAdminTotal = false) => {
     let desde = document.getElementById(`${origen}-f-desde`).value; let hasta = document.getElementById(`${origen}-f-hasta`).value; let estado = document.getElementById(`${origen}-f-estado`).value;
     let esAdminSGC = currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
 
@@ -1271,18 +1277,28 @@ window.exportarExcelNoConf = () => {
 // ARRANQUE DE LA APLICACIÓN
 // ==========================================
 const inicializarApp = async () => {
-    window.hideLoading(); 
+    console.log("🚀 Paso 1: Iniciando aplicación..."); window.hideLoading(); 
     const savedUser = localStorage.getItem('sgc_session_user');
+    console.log("👤 Paso 2: Usuario guardado en caché:", savedUser ? savedUser : "Ninguno");
+
     if (savedUser) {
         window.showLoading();
         try {
+            console.log("⏳ Paso 3: Conectando con Firebase para validar sesión...");
             const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", savedUser));
             const snap = await getDocs(q);
-            if (!snap.empty) { currentUser = snap.docs[0].data(); window.completarLoginUI(); } 
-            else { window.logout(); }
-        } catch(e) { window.logout(); }
+            if (!snap.empty) { 
+                console.log("✅ Paso 4: Sesión restaurada con éxito. Renderizando UI...");
+                currentUser = snap.docs[0].data(); window.completarLoginUI(); 
+            } else { 
+                console.log("⚠️ Paso 4: El usuario ya no existe en la BD. Limpiando sesión..."); window.logout();
+            }
+        } catch(e) { console.error("❌ Error al restaurar sesión:", e); window.logout(); }
         window.hideLoading();
-    } else { window.hideLoading(); setDisplay('login-screen', 'flex'); }
+    } else {
+        console.log("👋 Paso 3: No hay sesión. Mostrando pantalla de Login."); window.hideLoading();
+        const loginScreen = document.getElementById('login-screen'); if (loginScreen) { loginScreen.style.display = 'flex'; }
+    }
 };
 
 if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", inicializarApp); } else { inicializarApp(); }
