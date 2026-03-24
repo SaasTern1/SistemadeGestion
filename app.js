@@ -27,46 +27,59 @@ const CLOUD_NAME = "df79cjklp"; const UPLOAD_PRESET = "fci_documentos";
 const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
 
 let currentUser = null, selectedId = null, selectedDocData = null, tempAction = "";
-let allUsers = [], allDepartamentos = [], tiposDocumento = [], columnasMaestro = [], estatusMaestro = [], dataMaestro = [], editandoMaestroId = null;
+let allUsers = [], allDepartamentos = [], tiposDocumento = [], columnasMaestro = [], estatusMaestro = [], dataMaestro = [];
 let globalSolicitudes = [], globalAuditPlan = null, globalAllAuditorias = [], globalAuditorias = [];
 let selectedAuditId = null, selectedAuditData = null, editandoAuditoriaId = null;
 let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, currentEditingF020Ref = null;
 
+// ==========================================
+// 1. UTILIDADES Y VISUALIZADOR DE ARCHIVOS
+// ==========================================
 const setDisplay = (id, val) => { const el = document.getElementById(id); if (el) el.style.display = val; };
 
 window.abrirDocumento = async (url, nombreOriginal) => {
     if (!url || url === "#") return;
+    
     let safeName = nombreOriginal ? nombreOriginal.replace(/[^a-zA-Z0-9.\-_ ]/g, '_') : 'Documento';
     if (!safeName.includes('.')) { 
         let extMatch = url.match(/\.([a-zA-Z0-9]+)(\?|$)/); 
         if(extMatch) safeName += "." + extMatch[1]; 
     }
+    
     let isViewable = url.toLowerCase().match(/\.(pdf|jpg|jpeg|png|gif)(\?|$)/);
     
     if (isViewable) {
-        window.open(url, '_blank');
+        const nuevaPestana = window.open('', '_blank');
+        if (!nuevaPestana) return alert("Bloqueado por el navegador. Permite las ventanas emergentes.");
+        nuevaPestana.document.write(`<html style="font-family:sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f8fafc; color:#1e40af;"><head><title>Cargando: ${safeName}</title></head><body><h2>Preparando documento...</h2></body></html>`);
+        
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Archivo no disponible");
+            
+            const blob = await response.blob(); 
+            const fileObj = new File([blob], safeName, { type: blob.type });
+            const blobUrl = window.URL.createObjectURL(fileObj);
+            nuevaPestana.location.href = blobUrl; 
+            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+        } catch (e) { 
+            nuevaPestana.close();
+            alert("⚠️ El archivo ya no se encuentra disponible en la nube. Es posible que haya sido eliminado o el enlace esté roto.");
+        }
     } else {
         window.showLoading();
         try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error("Error de red");
-            const blob = await response.blob();
+            const response = await fetch(url); 
+            if (!response.ok) throw new Error("Archivo no disponible");
+            
+            const blob = await response.blob(); 
             const blobUrl = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = blobUrl;
-            a.download = safeName;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => { window.URL.revokeObjectURL(blobUrl); document.body.removeChild(a); }, 1000);
-        } catch (error) {
-            let finalUrl = url;
-            if(url.includes('cloudinary.com')) {
-                let parts = url.split('/upload/');
-                if(parts.length === 2) { finalUrl = parts[0] + '/upload/fl_attachment:' + encodeURIComponent(safeName) + '/' + parts[1]; }
-            }
-            const a = document.createElement('a'); a.href = finalUrl; a.target = '_blank'; a.download = safeName;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            const a = document.createElement('a'); 
+            a.style.display = 'none'; a.href = blobUrl; a.download = safeName; 
+            document.body.appendChild(a); a.click();
+            window.URL.revokeObjectURL(blobUrl); document.body.removeChild(a);
+        } catch (e) { 
+            alert("⚠️ El archivo ya no se encuentra disponible en la nube. Es posible que haya sido eliminado o el enlace esté roto.");
         }
         window.hideLoading();
     }
@@ -157,21 +170,22 @@ window.verificarAlertasAuditoria = (auditoriasArray) => {
     });
 };
 
+// ==========================================
+// 2. CONEXIÓN Y CARGA DE DATOS EN TIEMPO REAL
+// ==========================================
 window.cargarDatosCentrales = () => {
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "Usuarios"), (snap) => {
-        allUsers = []; let htmlUsers = ""; let cbUsers = "";
+        allUsers = []; let htmlUsers = ""; let optUsers = "";
         snap.forEach(doc => { 
             let u = doc.data(); allUsers.push(u); 
             let gers = u.gerencias ? u.gerencias.join(', ') : (u.gerencia || 'N/A');
             htmlUsers += `<tr><td>${u.nombre} (${u.usuario})</td><td>${u.email||''}</td><td>${u.role||''} / <small>${gers}</small></td><td class="no-export"><button class="btn btn-info" style="padding:4px 8px; font-size:10px;" onclick="window.cargarUsuarioParaEditar('${u.usuario}')">Editar</button></td></tr>`;
-            
-            // Revertir a CHECKBOXES para auditores y auditados
-            cbUsers += `<label style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${u.nombre}" data-email="${u.email}" style="margin:0; width:auto;"> ${u.nombre} (${gers})</label>`;
+            optUsers += `<option value="${u.nombre}" data-email="${u.email}">${u.nombre} (${gers})</option>`;
         });
         if (document.getElementById('tbody-users')) document.getElementById('tbody-users').innerHTML = htmlUsers;
-        if (document.getElementById('aud-auditado-list')) document.getElementById('aud-auditado-list').innerHTML = cbUsers;
-        if (document.getElementById('aud-auditor-list')) document.getElementById('aud-auditor-list').innerHTML = cbUsers;
-        if (document.getElementById('ah-auditor-list')) document.getElementById('ah-auditor-list').innerHTML = cbUsers;
+        if (document.getElementById('aud-auditado-sel')) document.getElementById('aud-auditado-sel').innerHTML = optUsers;
+        if (document.getElementById('aud-auditor-sel')) document.getElementById('aud-auditor-sel').innerHTML = optUsers;
+        if (document.getElementById('ah-auditor-list')) document.getElementById('ah-auditor-list').innerHTML = optUsers;
     });
 
     onSnapshot(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), (docSnap) => {
@@ -260,8 +274,12 @@ window.renderTablasSolicitudes = () => {
     }
 };
 
+// ==========================================
+// 3. AUTENTICACIÓN Y SESIÓN
+// ==========================================
 window.completarLoginUI = () => {
     setDisplay('login-screen', 'none'); setDisplay('sidebar', 'flex'); setDisplay('main', 'block');
+    
     const currNameEl = document.getElementById('curr-name'); if(currNameEl) currNameEl.innerText = currentUser.nombre || 'Usuario';
     const currGerEl = document.getElementById('curr-ger'); if(currGerEl) currGerEl.innerText = currentUser.gerencias ? currentUser.gerencias.join(', ') : (currentUser.gerencia || 'Sin Gerencia');
 
@@ -307,6 +325,9 @@ window.iniciarSesion = async () => {
     } catch (error) { alert("Hubo un problema al conectar con la base de datos."); } finally { window.hideLoading(); }
 };
 
+// ==========================================
+// 4. MÓDULO DE USUARIOS Y ESTRUCTURA
+// ==========================================
 window.cargarUsuarioParaEditar = (usuarioId) => {
     const u = allUsers.find(x => x.usuario === usuarioId); if(!u) return;
     document.getElementById('user-form-title').innerText = "Editando Usuario: " + u.usuario;
@@ -369,6 +390,9 @@ window.eliminarDepartamento = async (idx) => {
     let deps = snap.data().departamentos; deps.splice(idx, 1); await setDoc(docRef, { departamentos: deps }, {merge: true}); window.hideLoading();
 };
 
+// ==========================================
+// 5. MÓDULO CONFIGURACIÓN DINÁMICA (MAESTRO Y TIPOS)
+// ==========================================
 window.actualizarSelectTiposDoc = () => {
     let html = '<option value="">-- Seleccione --</option>'; tiposDocumento.forEach(t => html += `<option value="${t}">${t}</option>`);
     if(document.getElementById('sol-tipo-doc')) document.getElementById('sol-tipo-doc').innerHTML = html;
@@ -420,6 +444,9 @@ window.eliminarEstatus = async (idx) => {
     await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { estatus: estatusMaestro }, {merge: true});
 };
 
+// ==========================================
+// 6. MÓDULO LISTADO MAESTRO
+// ==========================================
 window.renderTablaMaestro = () => {
     const thead = document.getElementById("thead-listado-maestro"); const tbody = document.getElementById("tbody-listado-maestro"); if(!thead || !tbody) return;
     let headHTML = "<tr>"; 
@@ -487,6 +514,9 @@ window.exportarExcelListado = () => {
     let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dataExport); XLSX.utils.book_append_sheet(wb, ws, "Listado_Maestro"); XLSX.writeFile(wb, "Listado_Maestro_SGC.xlsx");
 };
 
+// ==========================================
+// 7. MÓDULO DE SOLICITUDES (CREAR / GESTIONAR)
+// ==========================================
 window.actualizarGerenteSelect = (gSelected) => {
     const gerentes = allUsers.filter(u => u.gerencias && u.gerencias.includes(gSelected) && u.permisos && u.permisos.p_ger_apr === true);
     if (gerentes && gerentes.length > 0) { 
@@ -641,7 +671,7 @@ window.verDetalle = async (id) => {
         cb.innerHTML = s.chat ? s.chat.map(c => 
             `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}">
                 <b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}
-                ${c.archivo ? `<br><a href="#" onclick="window.abrirDocumento('${window.getDownloadUrl(c.archivo)}', '${c.archivo_nombre || 'Evidencia_Adjunta'}'); return false;" style="font-size:10px;color:blue;font-weight:600;text-decoration:none;">📎 Ver Adjunto</a>` : ''}
+                ${c.archivo ? `<br><a href="#" onclick="window.abrirDocumento('${window.getDownloadUrl(c.archivo)}', '${c.archivo_nombre || 'Evidencia_Adjunta'}'); return false;" style="font-size:10px;color:blue;font-weight:600;text-decoration:none;">📎 ${c.archivo_nombre || 'Ver Adjunto'}</a>` : ''}
             </div>`
         ).join('') : ''; 
     }
@@ -691,10 +721,10 @@ window.firmarPaso = async () => {
 
 window.enviarComentarioLibre = async () => {
     const box = document.getElementById('m-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = document.getElementById('m-file-comentario');
-    if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta un archivo."); window.showLoading(); let fileUrl = null;
-    if (f.files[0]) { fileUrl = await window.uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error de red."); } }
+    if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta un archivo."); window.showLoading(); let fileUrl = null; let fileName = null;
+    if (f.files[0]) { fileUrl = await window.uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error de red."); } fileName = f.files[0].name; }
     let chatPayload = {u: currentUser.nombre, m: `💬 <b>Comentario:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; 
-    if (fileUrl) { chatPayload.archivo = fileUrl; chatPayload.archivo_nombre = f.files[0].name; } 
+    if (fileUrl) { chatPayload.archivo = fileUrl; chatPayload.archivo_nombre = fileName; } 
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { chat: arrayUnion(chatPayload) });
     const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Nuevo Comentario: ${selectedDocData.customId}`, `${currentUser.nombre} dejó un comentario.`); box.innerHTML = ""; f.value = ""; window.hideLoading(); window.closeModal();
 };
@@ -702,7 +732,7 @@ window.enviarComentarioLibre = async () => {
 window.guardarCierreFinal = async () => {
     const codFinal = document.getElementById('m-final-cod').value; const ver = document.getElementById('m-final-ver').value; const fecha = document.getElementById('m-final-fecha').value; const com = document.getElementById('m-final-comentario').value; const f = document.getElementById('m-final-file');
     if(!ver || !fecha || !f.files[0]) return alert("Versión Final, Fecha y Documento son obligatorios."); window.showLoading(); let fileUrl = await window.uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error al subir."); }
-    const now = new Date().toISOString(); let fileName = f.files[0].name; let chatPayload = {u: "SISTEMA (SGC)", m: `🏁 <b>SOLICITUD APROBADA FINALMENTE.</b><br>Ver: ${ver}. Obs: ${com}`, t: new Date().toLocaleString(), archivo: fileUrl};
+    const now = new Date().toISOString(); let fileName = f.files[0].name; let chatPayload = {u: "SISTEMA (SGC)", m: `🏁 <b>SOLICITUD APROBADA FINALMENTE.</b><br>Ver: ${ver}. Obs: ${com}`, t: new Date().toLocaleString(), archivo: fileUrl, archivo_nombre: fileName};
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Aprobado Final", codigo_final: codFinal, version_final: ver, fecha_final: fecha, comentario_final: com, documento_final: fileUrl, documento_final_nombre: fileName, fase_3_fin: now, chat: arrayUnion(chatPayload) });
     let dataMaestro = { estatus: "Vigente", registrado_por: "Sistema (Automático)", fecha_registro: new Date().toISOString() };
     columnasMaestro.forEach(c => { let cName = typeof c === 'string' ? c : c.nombre; let low = cName.toLowerCase(); if(low.includes('código') || low === 'codigo') dataMaestro[cName] = codFinal || selectedDocData.cod_ref || "POR_ASIGNAR"; else if(low.includes('gerencia')) dataMaestro[cName] = selectedDocData.gerencia; else if(low.includes('departamento')) dataMaestro[cName] = selectedDocData.departamento; else if(low.includes('tipo')) dataMaestro[cName] = selectedDocData.tipoDoc; else if(low.includes('nombre')) dataMaestro[cName] = selectedDocData.titulo; else if(low.includes('vers')) dataMaestro[cName] = ver; else if(low.includes('ubicaci') || low.includes('archivo') || low.includes('documento')) dataMaestro[cName] = fileUrl; else if(low.includes('fecha última') || low.includes('fecha ultima') || low === 'fecha') dataMaestro[cName] = fecha; });
@@ -740,6 +770,52 @@ window.setFilterGest = (filterText) => {
     for (let i = 0; i < trs.length; i++) { let statusCell = trs[i].getElementsByTagName('td')[3]; if (statusCell) { let text = statusCell.textContent || statusCell.innerText; if (filter === "" || text.toLowerCase().includes(filter)) { trs[i].style.display = ""; } else { trs[i].style.display = "none"; } } }
 };
 
+window.descargarExcelFiltrado = (origen = 'hist', isAdminTotal = false) => {
+    let desde = document.getElementById(`${origen}-f-desde`).value; let hasta = document.getElementById(`${origen}-f-hasta`).value; let estado = document.getElementById(`${origen}-f-estado`).value;
+    let esAdminSGC = currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
+
+    let datosFiltrados = globalSolicitudes.filter(s => {
+        if (origen !== 'all' && !esAdminSGC) {
+            let isMine = (s.uid === currentUser.usuario) || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()));
+            if (origen === 'hist' && !isMine) return false;
+            if (origen === 'gest') { const p = currentUser.permisos; let ver = p.p_ver_all || (p.p_ver_ger && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia)) || isMine; if(!ver) return false; }
+        }
+        if (desde && s.fecha < desde) return false; if (hasta && s.fecha > hasta + "T23:59:59") return false;
+        if (estado) {
+            let eStr = (s.estado || "").toUpperCase();
+            if (estado === 'Pendiente' && (eStr.includes('APROBADO FINAL') || eStr === 'ANULADO' || eStr === 'RECHAZADO')) return false;
+            if (estado === 'Aprobado Final' && !eStr.includes('APROBADO FINAL')) return false;
+            if (estado === 'Cancelado' && eStr !== 'ANULADO' && eStr !== 'RECHAZADO') return false;
+        }
+        return true;
+    });
+
+    if(datosFiltrados.length === 0) return alert("No hay datos que coincidan con estos filtros.");
+
+    const formatearDiferencia = (ini, fin) => {
+        if(!ini || !fin) return "N/A"; const ms = new Date(fin) - new Date(ini); if(ms < 0) return "N/A";
+        const m = Math.floor(ms / 60000); const h = Math.floor(m / 60); const d = Math.floor(h / 24);
+        if (d > 0) return `${d}d ${h % 24}h ${m % 60}m`; if (h > 0) return `${h}h ${m % 60}m`; return `${m}m`;
+    };
+
+    let dataExport = datosFiltrados.map(s => {
+        let p = PASOS_NOMBRES[s.idx] || ''; let estadoFormat = s.estado === 'Aprobado Final' ? 'Aprobado Final' : (s.estado === 'Anulado' || s.estado === 'Rechazado' ? s.estado : `${s.estado} (${p})`);
+        let baseObj = { "ID Solicitud": s.customId, "Solicitante": s.solicitante || '', "Email Solicitante": s.solicitante_email || '', "Gerencia": s.gerencia || '', "Departamento": s.departamento || '', "Acción": s.accion || '', "Prioridad": s.prioridad || 'Normal', "Tipo Documento": s.tipoDoc || '', "Título Documento": s.titulo || '', "Estado Actual": estadoFormat, "Fecha Límite (SLA)": s.fecha_esperada_cierre || 'No definida', "Fecha de Creación": s.fecha ? new Date(s.fecha).toLocaleString() : '', "Código Ref. Original": s.cod_ref || '', "Versión Original": s.ver_ref || '', "Código Final Asignado": s.codigo_final || '', "Versión Final Asignada": s.version_final || '', "Fecha Final": s.fecha_final || '' };
+        
+        if (esAdminSGC) { 
+            baseObj["Tiempo Fase 1 (Documentado)"] = formatearDiferencia(s.fase_0_ini, s.fase_0_fin); 
+            baseObj["Tiempo Fase 2 (Verificado)"] = formatearDiferencia(s.fase_1_ini, s.fase_1_fin); 
+            baseObj["Tiempo Fase 3 (Aprob. Gerencia)"] = formatearDiferencia(s.fase_2_ini, s.fase_2_fin); 
+            baseObj["Tiempo Fase 4 (Aprob. SGC)"] = formatearDiferencia(s.fase_3_ini, s.fase_3_fin); 
+            baseObj["TIEMPO TOTAL DEL FLUJO"] = formatearDiferencia(s.fase_0_ini, s.fecha_final || s.fase_3_fin || s.fase_2_fin || s.fase_1_fin || s.fase_0_fin); 
+        }
+        return baseObj;
+    });
+
+    let nameF = esAdminSGC ? "Reporte_SGC_Completo" : "Reporte_Solicitudes"; 
+    let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dataExport); XLSX.utils.book_append_sheet(wb, ws, "Datos_Filtrados"); XLSX.writeFile(wb, `${nameF}.xlsx`);
+};
+
 // ==========================================
 // 8. MÓDULO DE AUDITORÍAS (F-005, F-003, F-020, F-023)
 // ==========================================
@@ -771,12 +847,12 @@ window.toggleAuditHeaderForm = () => {
     const form = document.getElementById('audit-header-edit'); const view = document.getElementById('audit-header-view'); const isEditing = form.style.display === 'block';
     if(isEditing) { setDisplay('audit-header-edit', 'none'); setDisplay('audit-header-view', 'block'); } else {
         const y = document.getElementById('aud-year-select').value; document.getElementById('edit-year-label').innerText = y;
-        document.querySelectorAll('#ah-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+        document.getElementById('ah-auditor-list').selectedIndex = -1;
         if(globalAuditPlan) {
             document.getElementById('ah-obj').value = globalAuditPlan.objetivo || ''; document.getElementById('ah-alcance').value = globalAuditPlan.alcance || ''; document.getElementById('ah-tecnica').value = globalAuditPlan.tecnica || ''; document.getElementById('ah-criterios').value = globalAuditPlan.criterios || ''; document.getElementById('ah-ref').value = globalAuditPlan.referencia || ''; document.getElementById('ah-fecha').value = globalAuditPlan.fecha_elab || ''; document.getElementById('ah-tec').value = globalAuditPlan.recursos_tec || ''; document.getElementById('ah-rrhh').value = globalAuditPlan.recursos_hh || ''; document.getElementById('ah-extra-emails').value = (globalAuditPlan.extra_correos || []).join(', ');
             let liderSel = document.getElementById('ah-lider'); for(let i=0; i<liderSel.options.length; i++){ if(liderSel.options[i].value === globalAuditPlan.lider) liderSel.selectedIndex = i; }
             let auditoresGuardados = globalAuditPlan.auditor_nombres || []; 
-            document.querySelectorAll('#ah-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresGuardados.includes(cb.value); });
+            Array.from(document.getElementById('ah-auditor-list').options).forEach(opt => { opt.selected = auditoresGuardados.includes(opt.value); });
         } else {
             document.getElementById('ah-obj').value = ''; document.getElementById('ah-alcance').value = ''; document.getElementById('ah-tecnica').value = ''; document.getElementById('ah-criterios').value = ''; document.getElementById('ah-ref').value = ''; document.getElementById('ah-fecha').value = ''; document.getElementById('ah-tec').value = ''; document.getElementById('ah-rrhh').value = ''; document.getElementById('ah-extra-emails').value = ''; document.getElementById('ah-lider').selectedIndex = 0; 
         }
@@ -790,7 +866,7 @@ window.saveAuditPlan = async () => {
 
     const liderSel = document.getElementById('ah-lider'); const liderName = liderSel.options[liderSel.selectedIndex]?.value || ""; const liderEmail = liderSel.options[liderSel.selectedIndex]?.getAttribute('data-email') || "";
     const audNombres = []; const audEmails = []; 
-    document.querySelectorAll('#ah-auditor-list input:checked').forEach(cb => { audNombres.push(cb.value); audEmails.push(cb.getAttribute('data-email')); });
+    Array.from(document.getElementById('ah-auditor-list').selectedOptions).forEach(opt => { audNombres.push(opt.value); audEmails.push(opt.getAttribute('data-email')); });
     
     const extraEmails = document.getElementById('ah-extra-emails').value.split(',').map(e => e.trim().toLowerCase()).filter(e=>e.includes('@'));
     let todosLosCorreos = new Set([...audEmails, ...extraEmails]); if(liderEmail) todosLosCorreos.add(liderEmail);
@@ -833,10 +909,10 @@ window.cargarAuditoriaParaEditar = async (id) => {
     document.getElementById('aud-org').value = audit.organizacion || ''; document.getElementById('aud-dir').value = audit.direccion || ''; document.getElementById('aud-sitios').value = audit.sitios || ''; document.getElementById('aud-personal').value = audit.personal || ''; document.getElementById('aud-turnos').value = audit.turnos || ''; document.getElementById('aud-formacion').value = audit.auditores_formacion || '';
 
     let auditadosArr = audit.auditado ? audit.auditado.split(', ') : []; 
-    document.querySelectorAll('#aud-auditado-list input[type="checkbox"]').forEach(cb => { cb.checked = auditadosArr.includes(cb.value); });
+    Array.from(document.getElementById('aud-auditado-sel').options).forEach(opt => { opt.selected = auditadosArr.includes(opt.value); });
     
     let auditoresArr = audit.auditor ? audit.auditor.split(', ') : []; 
-    document.querySelectorAll('#aud-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresArr.includes(cb.value); });
+    Array.from(document.getElementById('aud-auditor-sel').options).forEach(opt => { opt.selected = auditoresArr.includes(opt.value); });
     
     document.getElementById('btn-guardar-aud').innerText = "ACTUALIZAR AUDITORÍA"; setDisplay('btn-cancelar-aud', 'block'); window.scrollTo({ top: document.getElementById('audit-admin-panel').offsetTop, behavior: 'smooth' }); setDisplay('audit-admin-panel', 'block');
 };
@@ -846,8 +922,8 @@ window.cancelarEdicionAuditoria = () => {
     document.getElementById('aud-fecha').value = ''; document.getElementById('aud-h-ini').value = ''; document.getElementById('aud-h-fin').value = ''; document.getElementById('aud-lugar').value = ''; document.getElementById('aud-proceso').value = ''; document.getElementById('aud-req').value = ''; document.getElementById('aud-obs').value = '';
     document.getElementById('aud-org').value = ''; document.getElementById('aud-dir').value = ''; document.getElementById('aud-sitios').value = ''; document.getElementById('aud-personal').value = ''; document.getElementById('aud-turnos').value = ''; document.getElementById('aud-formacion').value = '';
 
-    document.querySelectorAll('#aud-auditado-list input[type="checkbox"]').forEach(cb => cb.checked = false);
-    document.querySelectorAll('#aud-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+    document.getElementById('aud-auditado-sel').selectedIndex = -1;
+    document.getElementById('aud-auditor-sel').selectedIndex = -1;
     
     document.getElementById('btn-guardar-aud').innerText = "GENERAR AUDITORÍA Y NOTIFICAR"; setDisplay('btn-cancelar-aud', 'none');
 };
@@ -857,9 +933,9 @@ window.guardarAuditoria = async () => {
     if(!fecha || !proceso) return alert("Fecha y Proceso son obligatorios.");
     
     const auditadoNombres = []; const auditadoEmails = []; 
-    document.querySelectorAll('#aud-auditado-list input:checked').forEach(cb => { auditadoNombres.push(cb.value); auditadoEmails.push(cb.getAttribute('data-email')); });
+    Array.from(document.getElementById('aud-auditado-sel').selectedOptions).forEach(opt => { auditadoNombres.push(opt.value); auditadoEmails.push(opt.getAttribute('data-email')); });
     const auditorNombres = []; const auditorEmails = []; 
-    document.querySelectorAll('#aud-auditor-list input:checked').forEach(cb => { auditorNombres.push(cb.value); auditorEmails.push(cb.getAttribute('data-email')); });
+    Array.from(document.getElementById('aud-auditor-sel').selectedOptions).forEach(opt => { auditorNombres.push(opt.value); auditorEmails.push(opt.getAttribute('data-email')); });
 
     let data = { 
         fecha: fecha, hora_inicio: hIni, hora_fin: hFin, lugar: lugar, proceso: proceso, requisitos: req, 
@@ -981,7 +1057,14 @@ window.verModalAuditoria = async (id) => {
     setDisplay('btn-finalizar-auditoria', (canControl && estStr === 'En Progreso') ? 'inline-block' : 'none');
     
     const cb = document.getElementById('chat-box-audit'); 
-    if(cb) { cb.innerHTML = a.bitacora ? a.bitacora.map(c => `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}"><b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}${c.archivo ? `<br><a href="#" onclick="window.abrirDocumento('${window.getDownloadUrl(c.archivo)}', 'Evidencia_Auditoria'); return false;" style="font-size:10px;color:blue;font-weight:600;text-decoration:none;">📎 Ver Evidencia</a>` : ''}</div>`).join('') : ''; }
+    if(cb) { 
+        cb.innerHTML = a.bitacora ? a.bitacora.map(c => 
+            `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}">
+                <b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}
+                ${c.archivo ? `<br><a href="#" onclick="window.abrirDocumento('${window.getDownloadUrl(c.archivo)}', '${c.archivo_nombre || 'Evidencia_Auditoria'}'); return false;" style="font-size:10px;color:blue;font-weight:600;text-decoration:none;">📎 ${c.archivo_nombre || 'Ver Evidencia'}</a>` : ''}
+            </div>`
+        ).join('') : ''; 
+    }
 
     currentAuditF020 = a.lista_verificacion || []; window.renderF020();
     
@@ -1019,9 +1102,20 @@ window.comenzarAuditoria = async () => { await window.iniciarAuditoriaDirecto(se
 window.finalizarAuditoria = async () => { await window.finalizarAuditoriaDirecto(selectedAuditId); window.verModalAuditoria(selectedAuditId); };
 window.enviarComentarioAuditoria = async () => {
     const box = document.getElementById('ma-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = document.getElementById('ma-file-comentario');
-    if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta evidencia."); window.showLoading(); let fileUrl = null;
-    if (f.files[0]) { fileUrl = await window.uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error de red."); } }
-    let chatPayload = {u: currentUser.nombre, m: `💬 <b>Anotación/Hallazgo:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; if (fileUrl) chatPayload.archivo = fileUrl; 
+    if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta evidencia."); window.showLoading(); 
+    let fileUrl = null; let fileName = null;
+    
+    if (f.files[0]) { 
+        fileUrl = await window.uploadToCloudinary(f.files[0]); 
+        if (!fileUrl) { window.hideLoading(); return alert("Error de red."); } 
+        fileName = f.files[0].name;
+    }
+    
+    let chatPayload = {u: currentUser.nombre, m: `💬 <b>Anotación/Hallazgo:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; 
+    if (fileUrl) { 
+        chatPayload.archivo = fileUrl; 
+        chatPayload.archivo_nombre = fileName;
+    } 
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { bitacora: arrayUnion(chatPayload) });
     box.innerHTML = ""; f.value = ""; window.hideLoading(); window.verModalAuditoria(selectedAuditId); 
 };
