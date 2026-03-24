@@ -26,8 +26,9 @@ const EMAIL_ADMIN_SGC = "sistemadegestion@fcipty.com";
 const CLOUD_NAME = "df79cjklp"; const UPLOAD_PRESET = "fci_documentos";
 const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
 
+// VARIABLES GLOBALES (CORREGIDO: editandoMaestroId restaurado)
 let currentUser = null, selectedId = null, selectedDocData = null, tempAction = "";
-let allUsers = [], allDepartamentos = [], tiposDocumento = [], columnasMaestro = [], estatusMaestro = [], dataMaestro = [];
+let allUsers = [], allDepartamentos = [], tiposDocumento = [], columnasMaestro = [], estatusMaestro = [], dataMaestro = [], editandoMaestroId = null;
 let globalSolicitudes = [], globalAuditPlan = null, globalAllAuditorias = [], globalAuditorias = [];
 let selectedAuditId = null, selectedAuditData = null, editandoAuditoriaId = null;
 let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, currentEditingF020Ref = null;
@@ -55,8 +56,7 @@ window.abrirDocumento = async (url, nombreOriginal) => {
         
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error("Archivo no disponible");
-            
+            if (!response.ok) throw new Error("Archivo borrado de la nube");
             const blob = await response.blob(); 
             const fileObj = new File([blob], safeName, { type: blob.type });
             const blobUrl = window.URL.createObjectURL(fileObj);
@@ -64,14 +64,13 @@ window.abrirDocumento = async (url, nombreOriginal) => {
             setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
         } catch (e) { 
             nuevaPestana.close();
-            alert("⚠️ El archivo ya no se encuentra disponible en la nube. Es posible que haya sido eliminado o el enlace esté roto.");
+            alert("⚠️ El archivo ya no se encuentra disponible en la nube. Es posible que haya sido eliminado de Cloudinary o el enlace esté roto.");
         }
     } else {
         window.showLoading();
         try {
             const response = await fetch(url); 
-            if (!response.ok) throw new Error("Archivo no disponible");
-            
+            if (!response.ok) throw new Error("Archivo borrado de la nube");
             const blob = await response.blob(); 
             const blobUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a'); 
@@ -79,7 +78,7 @@ window.abrirDocumento = async (url, nombreOriginal) => {
             document.body.appendChild(a); a.click();
             window.URL.revokeObjectURL(blobUrl); document.body.removeChild(a);
         } catch (e) { 
-            alert("⚠️ El archivo ya no se encuentra disponible en la nube. Es posible que haya sido eliminado o el enlace esté roto.");
+            alert("⚠️ El archivo ya no se encuentra disponible en la nube. Es posible que haya sido eliminado de Cloudinary o el enlace esté roto.");
         }
         window.hideLoading();
     }
@@ -175,17 +174,19 @@ window.verificarAlertasAuditoria = (auditoriasArray) => {
 // ==========================================
 window.cargarDatosCentrales = () => {
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "Usuarios"), (snap) => {
-        allUsers = []; let htmlUsers = ""; let optUsers = "";
+        allUsers = []; let htmlUsers = ""; let cbUsers = "";
         snap.forEach(doc => { 
             let u = doc.data(); allUsers.push(u); 
             let gers = u.gerencias ? u.gerencias.join(', ') : (u.gerencia || 'N/A');
             htmlUsers += `<tr><td>${u.nombre} (${u.usuario})</td><td>${u.email||''}</td><td>${u.role||''} / <small>${gers}</small></td><td class="no-export"><button class="btn btn-info" style="padding:4px 8px; font-size:10px;" onclick="window.cargarUsuarioParaEditar('${u.usuario}')">Editar</button></td></tr>`;
-            optUsers += `<option value="${u.nombre}" data-email="${u.email}">${u.nombre} (${gers})</option>`;
+            
+            // Reemplazo a CHECKBOXES para auditores/auditados
+            cbUsers += `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${u.nombre}" data-email="${u.email}" style="margin:0; width:auto; flex-shrink:0;"> ${u.nombre} (${gers})</label>`;
         });
         if (document.getElementById('tbody-users')) document.getElementById('tbody-users').innerHTML = htmlUsers;
-        if (document.getElementById('aud-auditado-sel')) document.getElementById('aud-auditado-sel').innerHTML = optUsers;
-        if (document.getElementById('aud-auditor-sel')) document.getElementById('aud-auditor-sel').innerHTML = optUsers;
-        if (document.getElementById('ah-auditor-list')) document.getElementById('ah-auditor-list').innerHTML = optUsers;
+        if (document.getElementById('aud-auditado-list')) document.getElementById('aud-auditado-list').innerHTML = cbUsers;
+        if (document.getElementById('aud-auditor-list')) document.getElementById('aud-auditor-list').innerHTML = cbUsers;
+        if (document.getElementById('ah-auditor-list')) document.getElementById('ah-auditor-list').innerHTML = cbUsers;
     });
 
     onSnapshot(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), (docSnap) => {
@@ -204,7 +205,7 @@ window.cargarDatosCentrales = () => {
         if(document.getElementById('list-ger')) document.getElementById('list-ger').innerHTML = gers.map((g, idx) => `<div class="settings-item"><span>${g}</span><button class="btn-icon-danger" onclick="window.eliminarGerencia(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
         if(document.getElementById('list-dep')) document.getElementById('list-dep').innerHTML = deps.map((dep, idx) => `<div class="settings-item"><span>${dep.nombre} <small>(${dep.gerencia})</small></span><button class="btn-icon-danger" onclick="window.eliminarDepartamento(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
         
-        if(document.getElementById('u-ger-list')) document.getElementById('u-ger-list').innerHTML = gers.map(g => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${g}" style="margin:0; width:auto;"> ${g}</label>`).join('');
+        if(document.getElementById('u-ger-list')) document.getElementById('u-ger-list').innerHTML = gers.map(g => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${g}" style="margin:0; width:auto; flex-shrink:0;"> ${g}</label>`).join('');
     });
 
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), (snap) => {
@@ -671,7 +672,7 @@ window.verDetalle = async (id) => {
         cb.innerHTML = s.chat ? s.chat.map(c => 
             `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}">
                 <b style="font-size:10px">${c.u}</b> <span style="font-size:9px;color:#94a3b8">${c.t}</span><br>${c.m}
-                ${c.archivo ? `<br><a href="#" onclick="window.abrirDocumento('${window.getDownloadUrl(c.archivo)}', '${c.archivo_nombre || 'Evidencia_Adjunta'}'); return false;" style="font-size:10px;color:blue;font-weight:600;text-decoration:none;">📎 ${c.archivo_nombre || 'Ver Adjunto'}</a>` : ''}
+                ${c.archivo ? `<br><a href="#" onclick="window.abrirDocumento('${window.getDownloadUrl(c.archivo)}', '${c.archivo_nombre || 'Evidencia_Adjunta'}'); return false;" style="font-size:10px;color:blue;font-weight:600;text-decoration:none;">📎 ${c.archivo_nombre || 'Ver Evidencia'}</a>` : ''}
             </div>`
         ).join('') : ''; 
     }
@@ -847,12 +848,12 @@ window.toggleAuditHeaderForm = () => {
     const form = document.getElementById('audit-header-edit'); const view = document.getElementById('audit-header-view'); const isEditing = form.style.display === 'block';
     if(isEditing) { setDisplay('audit-header-edit', 'none'); setDisplay('audit-header-view', 'block'); } else {
         const y = document.getElementById('aud-year-select').value; document.getElementById('edit-year-label').innerText = y;
-        document.getElementById('ah-auditor-list').selectedIndex = -1;
+        document.querySelectorAll('#ah-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
         if(globalAuditPlan) {
             document.getElementById('ah-obj').value = globalAuditPlan.objetivo || ''; document.getElementById('ah-alcance').value = globalAuditPlan.alcance || ''; document.getElementById('ah-tecnica').value = globalAuditPlan.tecnica || ''; document.getElementById('ah-criterios').value = globalAuditPlan.criterios || ''; document.getElementById('ah-ref').value = globalAuditPlan.referencia || ''; document.getElementById('ah-fecha').value = globalAuditPlan.fecha_elab || ''; document.getElementById('ah-tec').value = globalAuditPlan.recursos_tec || ''; document.getElementById('ah-rrhh').value = globalAuditPlan.recursos_hh || ''; document.getElementById('ah-extra-emails').value = (globalAuditPlan.extra_correos || []).join(', ');
             let liderSel = document.getElementById('ah-lider'); for(let i=0; i<liderSel.options.length; i++){ if(liderSel.options[i].value === globalAuditPlan.lider) liderSel.selectedIndex = i; }
             let auditoresGuardados = globalAuditPlan.auditor_nombres || []; 
-            Array.from(document.getElementById('ah-auditor-list').options).forEach(opt => { opt.selected = auditoresGuardados.includes(opt.value); });
+            document.querySelectorAll('#ah-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresGuardados.includes(cb.value); });
         } else {
             document.getElementById('ah-obj').value = ''; document.getElementById('ah-alcance').value = ''; document.getElementById('ah-tecnica').value = ''; document.getElementById('ah-criterios').value = ''; document.getElementById('ah-ref').value = ''; document.getElementById('ah-fecha').value = ''; document.getElementById('ah-tec').value = ''; document.getElementById('ah-rrhh').value = ''; document.getElementById('ah-extra-emails').value = ''; document.getElementById('ah-lider').selectedIndex = 0; 
         }
@@ -866,7 +867,7 @@ window.saveAuditPlan = async () => {
 
     const liderSel = document.getElementById('ah-lider'); const liderName = liderSel.options[liderSel.selectedIndex]?.value || ""; const liderEmail = liderSel.options[liderSel.selectedIndex]?.getAttribute('data-email') || "";
     const audNombres = []; const audEmails = []; 
-    Array.from(document.getElementById('ah-auditor-list').selectedOptions).forEach(opt => { audNombres.push(opt.value); audEmails.push(opt.getAttribute('data-email')); });
+    document.querySelectorAll('#ah-auditor-list input:checked').forEach(cb => { audNombres.push(cb.value); audEmails.push(cb.getAttribute('data-email')); });
     
     const extraEmails = document.getElementById('ah-extra-emails').value.split(',').map(e => e.trim().toLowerCase()).filter(e=>e.includes('@'));
     let todosLosCorreos = new Set([...audEmails, ...extraEmails]); if(liderEmail) todosLosCorreos.add(liderEmail);
@@ -909,10 +910,10 @@ window.cargarAuditoriaParaEditar = async (id) => {
     document.getElementById('aud-org').value = audit.organizacion || ''; document.getElementById('aud-dir').value = audit.direccion || ''; document.getElementById('aud-sitios').value = audit.sitios || ''; document.getElementById('aud-personal').value = audit.personal || ''; document.getElementById('aud-turnos').value = audit.turnos || ''; document.getElementById('aud-formacion').value = audit.auditores_formacion || '';
 
     let auditadosArr = audit.auditado ? audit.auditado.split(', ') : []; 
-    Array.from(document.getElementById('aud-auditado-sel').options).forEach(opt => { opt.selected = auditadosArr.includes(opt.value); });
+    document.querySelectorAll('#aud-auditado-list input[type="checkbox"]').forEach(cb => { cb.checked = auditadosArr.includes(cb.value); });
     
     let auditoresArr = audit.auditor ? audit.auditor.split(', ') : []; 
-    Array.from(document.getElementById('aud-auditor-sel').options).forEach(opt => { opt.selected = auditoresArr.includes(opt.value); });
+    document.querySelectorAll('#aud-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresArr.includes(cb.value); });
     
     document.getElementById('btn-guardar-aud').innerText = "ACTUALIZAR AUDITORÍA"; setDisplay('btn-cancelar-aud', 'block'); window.scrollTo({ top: document.getElementById('audit-admin-panel').offsetTop, behavior: 'smooth' }); setDisplay('audit-admin-panel', 'block');
 };
@@ -922,8 +923,8 @@ window.cancelarEdicionAuditoria = () => {
     document.getElementById('aud-fecha').value = ''; document.getElementById('aud-h-ini').value = ''; document.getElementById('aud-h-fin').value = ''; document.getElementById('aud-lugar').value = ''; document.getElementById('aud-proceso').value = ''; document.getElementById('aud-req').value = ''; document.getElementById('aud-obs').value = '';
     document.getElementById('aud-org').value = ''; document.getElementById('aud-dir').value = ''; document.getElementById('aud-sitios').value = ''; document.getElementById('aud-personal').value = ''; document.getElementById('aud-turnos').value = ''; document.getElementById('aud-formacion').value = '';
 
-    document.getElementById('aud-auditado-sel').selectedIndex = -1;
-    document.getElementById('aud-auditor-sel').selectedIndex = -1;
+    document.querySelectorAll('#aud-auditado-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('#aud-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
     
     document.getElementById('btn-guardar-aud').innerText = "GENERAR AUDITORÍA Y NOTIFICAR"; setDisplay('btn-cancelar-aud', 'none');
 };
@@ -933,9 +934,9 @@ window.guardarAuditoria = async () => {
     if(!fecha || !proceso) return alert("Fecha y Proceso son obligatorios.");
     
     const auditadoNombres = []; const auditadoEmails = []; 
-    Array.from(document.getElementById('aud-auditado-sel').selectedOptions).forEach(opt => { auditadoNombres.push(opt.value); auditadoEmails.push(opt.getAttribute('data-email')); });
+    document.querySelectorAll('#aud-auditado-list input:checked').forEach(cb => { auditadoNombres.push(cb.value); auditadoEmails.push(cb.getAttribute('data-email')); });
     const auditorNombres = []; const auditorEmails = []; 
-    Array.from(document.getElementById('aud-auditor-sel').selectedOptions).forEach(opt => { auditorNombres.push(opt.value); auditorEmails.push(opt.getAttribute('data-email')); });
+    document.querySelectorAll('#aud-auditor-list input:checked').forEach(cb => { auditorNombres.push(cb.value); auditorEmails.push(cb.getAttribute('data-email')); });
 
     let data = { 
         fecha: fecha, hora_inicio: hIni, hora_fin: hFin, lugar: lugar, proceso: proceso, requisitos: req, 
