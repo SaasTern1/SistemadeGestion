@@ -40,20 +40,28 @@ const setDisplay = (id, val) => { const el = document.getElementById(id); if (el
 
 window.abrirDocumento = async (url, nombreOriginal) => {
     if (!url || url === "#") return;
+    
     let safeName = nombreOriginal ? nombreOriginal.replace(/[^a-zA-Z0-9.\-_ ]/g, '_') : 'Documento';
-    if (!safeName.includes('.')) { let extMatch = url.match(/\.([a-zA-Z0-9]+)(\?|$)/); if(extMatch) safeName += "." + extMatch[1]; }
+    if (!safeName.includes('.')) { 
+        let extMatch = url.match(/\.([a-zA-Z0-9]+)(\?|$)/); 
+        if(extMatch) safeName += "." + extMatch[1]; 
+    }
+    
     let isViewable = url.toLowerCase().match(/\.(pdf|jpg|jpeg|png|gif)(\?|$)/);
     
     if (isViewable) {
         const nuevaPestana = window.open('', '_blank');
         if (!nuevaPestana) return alert("Bloqueado por el navegador. Permite las ventanas emergentes.");
         nuevaPestana.document.write(`<html style="font-family:sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f8fafc; color:#1e40af;"><head><title>Cargando: ${safeName}</title></head><body><h2>Preparando documento...</h2></body></html>`);
+        
         try {
             const response = await fetch(url);
             if (!response.ok) throw new Error("Archivo borrado de la nube");
-            const blob = await response.blob(); const fileObj = new File([blob], safeName, { type: blob.type });
+            const blob = await response.blob(); 
+            const fileObj = new File([blob], safeName, { type: blob.type });
             const blobUrl = window.URL.createObjectURL(fileObj);
-            nuevaPestana.location.href = blobUrl; setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+            nuevaPestana.location.href = blobUrl; 
+            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
         } catch (e) { 
             nuevaPestana.close();
             alert("⚠️ El archivo ya no se encuentra disponible en la nube. Es posible que haya sido eliminado o el enlace esté roto.");
@@ -63,8 +71,11 @@ window.abrirDocumento = async (url, nombreOriginal) => {
         try {
             const response = await fetch(url); 
             if (!response.ok) throw new Error("Archivo borrado de la nube");
-            const blob = await response.blob(); const blobUrl = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.style.display = 'none'; a.href = blobUrl; a.download = safeName; document.body.appendChild(a); a.click();
+            const blob = await response.blob(); 
+            const blobUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a'); 
+            a.style.display = 'none'; a.href = blobUrl; a.download = safeName; 
+            document.body.appendChild(a); a.click();
             window.URL.revokeObjectURL(blobUrl); document.body.removeChild(a);
         } catch (e) { 
             alert("⚠️ El archivo ya no se encuentra disponible en la nube. Es posible que haya sido eliminado o el enlace esté roto.");
@@ -164,15 +175,13 @@ window.verificarAlertasAuditoria = (auditoriasArray) => {
 window.cargarDatosCentrales = () => {
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "Usuarios"), (snap) => {
         allUsers = []; let htmlUsers = ""; let cbUsers = "";
-        let optInvolucrados = '<option value="">-- Seleccionar --</option>'; // Para los selects de involucrados
+        let optInvolucrados = '<option value="">-- Seleccionar --</option>';
         
         snap.forEach(doc => { 
             let u = doc.data(); allUsers.push(u); 
             let gers = u.gerencias ? u.gerencias.join(', ') : (u.gerencia || 'N/A');
             htmlUsers += `<tr><td>${u.nombre} (${u.usuario})</td><td>${u.email||''}</td><td>${u.role||''} / <small>${gers}</small></td><td class="no-export"><button class="btn btn-info" style="padding:4px 8px; font-size:10px;" onclick="window.cargarUsuarioParaEditar('${u.usuario}')">Editar</button></td></tr>`;
-            
             cbUsers += `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${u.nombre}" data-email="${u.email}" style="margin:0; width:auto; flex-shrink:0;"> ${u.nombre} (${gers})</label>`;
-            
             if(u.email) { optInvolucrados += `<option value="${u.email}">${u.nombre} (${gers})</option>`; }
         });
         
@@ -180,7 +189,6 @@ window.cargarDatosCentrales = () => {
         if (document.getElementById('aud-auditado-list')) document.getElementById('aud-auditado-list').innerHTML = cbUsers;
         if (document.getElementById('aud-auditor-list')) document.getElementById('aud-auditor-list').innerHTML = cbUsers;
         if (document.getElementById('ah-auditor-list')) document.getElementById('ah-auditor-list').innerHTML = cbUsers;
-        
         if (document.getElementById('sol-involucrado-sel')) document.getElementById('sol-involucrado-sel').innerHTML = optInvolucrados;
         if (document.getElementById('m-new-involucrado-sel')) document.getElementById('m-new-involucrado-sel').innerHTML = optInvolucrados;
     });
@@ -200,8 +208,7 @@ window.cargarDatosCentrales = () => {
         if(document.getElementById('sol-ger')) document.getElementById('sol-ger').innerHTML = '<option value="">-- Seleccionar --</option>' + gHtml;
         if(document.getElementById('list-ger')) document.getElementById('list-ger').innerHTML = gers.map((g, idx) => `<div class="settings-item"><span>${g}</span><button class="btn-icon-danger" onclick="window.eliminarGerencia(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
         if(document.getElementById('list-dep')) document.getElementById('list-dep').innerHTML = deps.map((dep, idx) => `<div class="settings-item"><span>${dep.nombre} <small>(${dep.gerencia})</small></span><button class="btn-icon-danger" onclick="window.eliminarDepartamento(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
-        
-        if(document.getElementById('u-ger-list')) document.getElementById('u-ger-list').innerHTML = gers.map(g => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${g}" style="margin:0; width:auto;"> ${g}</label>`).join('');
+        if(document.getElementById('u-ger-list')) document.getElementById('u-ger-list').innerHTML = gers.map(g => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${g}" style="margin:0; width:auto; flex-shrink:0;"> ${g}</label>`).join('');
     });
 
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), (snap) => {
@@ -532,15 +539,12 @@ window.crearSolicitud = async () => {
     let fileName = f.files[0] ? f.files[0].name : ""; let url = null; 
     if (f.files[0]) { url = await window.uploadToCloudinary(f.files[0]); if (!url) { window.hideLoading(); return alert("Error al subir archivo."); } }
     
-    // Involucrados (ya no son select, son emails almacenados)
-    let extraEmails = [];
-    if(selectedDocData && selectedDocData.involucrados) extraEmails = selectedDocData.involucrados;
-    
+    const extraEmailsNodes = document.querySelectorAll('.involucrado-item'); const extraEmails = Array.from(extraEmailsNodes).map(el => el.dataset.email); 
     const fci = await window.getNextFCI(); const gerenteEmailVisible = document.getElementById('sol-email-gerente').value; const now = new Date().toISOString();
     
     const data = { customId: fci, titulo: tit, accion: document.getElementById('sol-accion').value, tipoDoc: document.getElementById('sol-tipo-doc').value, prioridad: document.getElementById('sol-prioridad').value, gerencia: gerTarget, departamento: document.getElementById('sol-dep').value, motivo: document.getElementById('sol-motivo').value, cod_ref: document.getElementById('sol-cod-prev').value, ver_ref: document.getElementById('sol-ver-prev').value, fecha_ref: document.getElementById('sol-fecha-prev').value, solicitante: currentUser.nombre, solicitante_email: currentUser.email, uid: currentUser.usuario, involucrados: extraEmails, idx: 0, estado: "Pendiente Documentado", fase_0_ini: now, adjunto: url, adjunto_nombre: fileName, chat: [{u: "SISTEMA", m: "Solicitud creada exitosamente.", t: new Date().toLocaleString()}], fecha: now };
     
-    await addDoc(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), data); 
+    await addDoc(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), data); document.getElementById('lista-involucrados-tags').innerHTML = ""; 
     const toEmails = new Set([EMAIL_ADMIN_SGC, currentUser.email, ...extraEmails]); const destinatarios = { to: Array.from(toEmails).join(','), cc: gerenteEmailVisible }; 
     window.sendNotification(destinatarios, "Nueva Solicitud Creada", `El usuario ${currentUser.nombre} ha creado la solicitud ${fci} con prioridad ${data.prioridad}.`);
     window.hideLoading(); alert("Solicitud Creada: " + fci); window.cambiarVista('sec-hist', document.getElementById('nav-hist'));
@@ -579,18 +583,12 @@ window.verDetalle = async (id) => {
         if(document.getElementById('m-fecha-ult')) document.getElementById('m-fecha-ult').innerText = window.formatearFechaAbreviada(s.fecha_ref); 
     } else { setDisplay('m-extra-panel', 'none'); }
 
-    for(let i=1; i<=4; i++) { 
-        const st = document.getElementById('s'+i); 
-        if(st) { st.className = 'step'; if(isCancelado) continue; if(i <= s.idx) st.classList.add('completed'); if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active'); }
-    }
-
     const esAdminSGC = p.admin || p.p_gest_sgc; 
     const esGer = p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia); 
     const activo = !isAprobadoFinalModal && !isCancelado;
     const esInvolucradoActivo = s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()); 
     const esDuenio = s.uid === currentUser.usuario || esInvolucradoActivo; 
 
-    // RENDER DE INVOLUCRADOS (Etiquetas dinámicas y eliminables)
     let invHTML = "No hay personas extras añadidas.";
     if(s.involucrados && s.involucrados.length > 0) { 
         invHTML = s.involucrados.map(email => { 
@@ -602,7 +600,11 @@ window.verDetalle = async (id) => {
     }
     if(document.getElementById('m-involucrados-list')) document.getElementById('m-involucrados-list').innerHTML = invHTML;
 
-    // RENDERIZAR TIEMPOS DE FASE CONECTADOS A FIREBASE (Sólo para SGC/Admins)
+    for(let i=1; i<=4; i++) { 
+        const st = document.getElementById('s'+i); 
+        if(st) { st.className = 'step'; if(isCancelado) continue; if(i <= s.idx) st.classList.add('completed'); if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active'); }
+    }
+
     const fDiff = (ini, fin) => {
         if(!ini || !fin) return "-";
         let ms = new Date(fin) - new Date(ini); if(ms < 0) return "-";
@@ -627,6 +629,8 @@ window.verDetalle = async (id) => {
     let puedeGestionarSGC = false;
     if(activo) { if (s.idx === 0 && (p.p_gest_sgc || p.p_paso1 || p.admin)) puedeGestionarSGC = true; if (s.idx === 1 && (p.p_gest_sgc || p.p_paso2 || p.admin)) puedeGestionarSGC = true; if (s.idx === 3 && (p.p_gest_sgc || p.p_paso4 || p.admin)) puedeGestionarSGC = true; }
     
+    let puedeGestionarGerente = esGer && s.idx === 2 && activo; 
+
     setDisplay('btn-reabrir', (esAdminSGC && !activo) ? 'inline-flex' : 'none');
     setDisplay('m-add-involucrado-section', activo ? 'flex' : 'none');
     setDisplay('m-actions', (puedeGestionarSGC || puedeGestionarGerente) ? 'block' : 'none');
@@ -754,6 +758,13 @@ window.anularSolicitud = async () => {
     if(!confirm("⚠️ ¿Estás seguro de anular esta solicitud?")) return; let motivo = prompt("Motivo de anulación:"); if(!motivo) return; window.showLoading();
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Anulado", chat: arrayUnion({u: currentUser.nombre, m: `🚫 <b>SOLICITUD ANULADA</b><br>Motivo: ${motivo}`, t: new Date().toLocaleString()}) });
     const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Cancelación: ${selectedDocData.customId}`, `ANULADA por ${currentUser.nombre}.`); window.hideLoading(); window.closeModal();
+};
+
+window.addInvolucradoList = () => {
+    const sel = document.getElementById('sol-involucrado-sel'); const email = sel.value; const name = sel.options[sel.selectedIndex].text; if(!email) return alert("Seleccione un usuario válido.");
+    const existingTags = Array.from(document.querySelectorAll('.involucrado-item')); if(existingTags.some(el => el.dataset.email === email)) { return alert("El usuario ya está en la lista."); }
+    const div = document.createElement('div'); div.className = 'involucrado-item badge badge-info'; div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '5px'; div.style.fontSize = '12px'; div.style.padding = '6px 12px'; div.dataset.email = email; div.innerHTML = `${name} <span class="material-icons-round" style="font-size:14px; cursor:pointer; color:var(--danger);" onclick="this.parentElement.remove()">close</span>`;
+    document.getElementById('lista-involucrados-tags').appendChild(div); sel.value = "";
 };
 
 window.guardarNuevoInvolucrado = async () => {
@@ -1110,7 +1121,6 @@ window.verModalAuditoria = async (id) => {
 
 window.comenzarAuditoria = async () => { await window.iniciarAuditoriaDirecto(selectedAuditId); window.verModalAuditoria(selectedAuditId); };
 window.finalizarAuditoria = async () => { await window.finalizarAuditoriaDirecto(selectedAuditId); window.verModalAuditoria(selectedAuditId); };
-
 window.enviarComentarioAuditoria = async () => {
     const box = document.getElementById('ma-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = document.getElementById('ma-file-comentario');
     if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta evidencia."); window.showLoading(); 
@@ -1125,7 +1135,7 @@ window.enviarComentarioAuditoria = async () => {
     let chatPayload = {u: currentUser.nombre, m: `💬 <b>Anotación/Hallazgo:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; 
     if (fileUrl) { 
         chatPayload.archivo = fileUrl; 
-        chatPayload.archivo_nombre = fileName; // Se añade a Firebase
+        chatPayload.archivo_nombre = fileName;
     } 
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { bitacora: arrayUnion(chatPayload) });
     box.innerHTML = ""; f.value = ""; window.hideLoading(); window.verModalAuditoria(selectedAuditId); 
