@@ -48,7 +48,7 @@
             <button class="nav-link" id="nav-all" onclick="window.cambiarVista('sec-all', this)" style="display:none;"><span class="material-icons-round">all_inbox</span> Todas las Solicitudes</button>
             <button class="nav-link" id="nav-dash" onclick="window.cambiarVista('sec-dash', this)"><span class="material-icons-round">dashboard</span> Panel Analítico</button>
             <button class="nav-link" id="nav-crear" onclick="window.cambiarVista('sec-crear', this)"><span class="material-icons-round">add_box</span> Crear Solicitud</button>
-            <button class="nav-link" id="nav-gest" onclick="window.cambiarVista('sec-gest', this)"><span class="material-icons-round">fact_check</span> Bandeja de Gestión</button>
+            <button class="nav-link" id="nav-gest" onclick="window.cambiarVista('sec-gest', this)" style="display:none;"><span class="material-icons-round">fact_check</span> Bandeja de Gestión</button>
             <button class="nav-link" id="nav-listado" onclick="window.cambiarVista('sec-listado', this)" style="display:none;"><span class="material-icons-round">library_books</span> Listado Maestro</button>
 
             <div id="nav-audit-group" style="display:none;">
@@ -247,7 +247,7 @@
                 
                 <div class="grid-2">
                     <div><label>Proceso / Área / Actividad</label><input type="text" id="aud-proceso"></div>
-                    <div><label>Requisitos (Norma/Cláusula)</label><input type="text" id="aud-req" list="oea-req-list-dl" placeholder="Seleccione o escriba..."></div>
+                    <div><label style="color:var(--primary);">Requisitos (Norma/Cláusula)</label><div id="aud-req-list" class="checkbox-list" style="height:120px;"></div></div>
                 </div>
 
                 <div class="grid-2" style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid var(--border); margin-bottom:15px;">
@@ -520,65 +520,29 @@
                 <h2 style="color:#92400e; margin:0; font-size:18px; font-weight:800;">SOLICITUD DE ACCIONES CORRECTIVAS Y MEJORAS</h2>
                 <button class="btn-icon-danger" onclick="document.getElementById('modal-sac').style.display='none'"><span class="material-icons-round">close</span></button>
             </div>
-            
             <div style="padding:30px;">
                 <div style="display:grid; grid-template-columns: 180px 1fr; border:1px solid #ccc; font-size:12px; margin-bottom:20px;">
-                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Fecha</div>
-                    <div style="padding:0; border-bottom:1px solid #ccc;"><input type="date" id="sac-fecha" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
-                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;"># de Solicitud / Estado</div>
-                    <div style="padding:8px; border-bottom:1px solid #ccc; display:flex; justify-content:space-between;"><span id="sac-num" style="font-weight:bold;"></span><span id="sac-estado-badge" class="badge"></span></div>
-                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Proceso / Actividad</div>
-                    <div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-proceso" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
-                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Acción Correctiva / Mejora</div>
-                    <div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-tipo" disabled style="border:none; margin:0; width:100%; border-radius:0; height:100%; background:transparent; font-weight:bold;"></div>
-                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Fuente de No Conformidad</div>
-                    <div style="padding:0; border-bottom:1px solid #ccc;"><select id="sac-fuente" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"><option value="Auditoría Interna">Auditoría Interna</option><option value="Auditoría Externa">Auditoría Externa</option><option value="Incidente">Incidente / Accidente</option><option value="Queja Cliente">Queja de Cliente</option><option value="Otro">Otro</option></select></div>
-                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">En el caso de otro, detalle:</div>
-                    <div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-fuente-otro" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
-                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Detalle NC / Problema</div>
-                    <div style="padding:0; border-bottom:1px solid #ccc;"><textarea id="sac-detalle" rows="3" disabled style="border:none; margin:0; width:100%; border-radius:0; background:transparent; resize:vertical; padding:8px;"></textarea></div>
-                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Beneficio Esperado</div>
-                    <div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-beneficio" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
-                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Análisis de Causa-Raíz</div>
-                    <div style="padding:0; border-bottom:1px solid #ccc;"><textarea id="sac-causa" rows="3" style="border:none; margin:0; width:100%; border-radius:0; resize:vertical; padding:8px;"></textarea></div>
-                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Acción a Implementar</div>
-                    <div style="padding:0; border-bottom:1px solid #ccc;"><textarea id="sac-accion" rows="3" style="border:none; margin:0; width:100%; border-radius:0; resize:vertical; padding:8px;"></textarea></div>
-                    <div style="padding:8px; border-right:1px solid #ccc; font-weight:bold; background:#fef3c7;">Responsable de la AC</div>
-                    <div style="padding:0; display:flex; align-items:center;"><select id="sac-dueno" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></select></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Fecha</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="date" id="sac-fecha" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;"># de Solicitud / Estado</div><div style="padding:8px; border-bottom:1px solid #ccc; display:flex; justify-content:space-between;"><span id="sac-num" style="font-weight:bold;"></span><span id="sac-estado-badge" class="badge"></span></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Proceso / Actividad</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-proceso" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Acción Correctiva / Mejora</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-tipo" disabled style="border:none; margin:0; width:100%; border-radius:0; height:100%; background:transparent; font-weight:bold;"></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Fuente de No Conformidad</div><div style="padding:0; border-bottom:1px solid #ccc;"><select id="sac-fuente" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"><option value="Auditoría Interna">Auditoría Interna</option><option value="Auditoría Externa">Auditoría Externa</option><option value="Incidente">Incidente / Accidente</option><option value="Queja Cliente">Queja de Cliente</option><option value="Otro">Otro</option></select></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">En el caso de otro, detalle:</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-fuente-otro" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Detalle NC / Problema</div><div style="padding:0; border-bottom:1px solid #ccc;"><textarea id="sac-detalle" rows="3" disabled style="border:none; margin:0; width:100%; border-radius:0; background:transparent; resize:vertical; padding:8px;"></textarea></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Beneficio Esperado</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-beneficio" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Análisis de Causa-Raíz</div><div style="padding:0; border-bottom:1px solid #ccc;"><textarea id="sac-causa" rows="3" style="border:none; margin:0; width:100%; border-radius:0; resize:vertical; padding:8px;"></textarea></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Acción a Implementar</div><div style="padding:0; border-bottom:1px solid #ccc;"><textarea id="sac-accion" rows="3" style="border:none; margin:0; width:100%; border-radius:0; resize:vertical; padding:8px;"></textarea></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; font-weight:bold; background:#fef3c7;">Responsable de la AC</div><div style="padding:0; display:flex; align-items:center;"><select id="sac-dueno" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></select></div>
                 </div>
-
                 <h4 style="color:var(--primary); margin-bottom:10px; font-size:14px;">PLAN DE ACCIÓN</h4>
-                <div class="table-responsive" style="margin-bottom:10px;">
-                    <table style="width:100%; border:1px solid #ccc; font-size:11px; text-align:left;">
-                        <thead style="background:#f1f5f9;"><tr><th style="border:1px solid #ccc; width:30px;">#</th><th style="border:1px solid #ccc;">Detalle</th><th style="border:1px solid #ccc;">Responsable</th><th style="border:1px solid #ccc;">Fecha Inicio</th><th style="border:1px solid #ccc;">Fecha Cierre</th><th style="border:1px solid #ccc; width:40px;"></th></tr></thead>
-                        <tbody id="tbody-plan-accion"></tbody>
-                    </table>
-                </div>
+                <div class="table-responsive" style="margin-bottom:10px;"><table style="width:100%; border:1px solid #ccc; font-size:11px; text-align:left;"><thead style="background:#f1f5f9;"><tr><th style="border:1px solid #ccc; width:30px;">#</th><th style="border:1px solid #ccc;">Detalle</th><th style="border:1px solid #ccc;">Responsable</th><th style="border:1px solid #ccc;">Fecha Inicio</th><th style="border:1px solid #ccc;">Fecha Cierre</th><th style="border:1px solid #ccc; width:40px;"></th></tr></thead><tbody id="tbody-plan-accion"></tbody></table></div>
                 <button class="btn btn-info" onclick="window.addPlanRow()" style="font-size:10px; padding:4px 8px; margin-bottom:20px;">+ Añadir Fila</button>
-
-                <div style="display:flex; gap:20px; align-items:center; border:1px solid #ccc; padding:10px; background:#f8fafc; margin-bottom:20px; font-size:12px;">
-                    <b style="color:var(--primary);">Aprobación del Plan de Acción:</b><input type="date" id="sac-fecha-aprob-plan" style="margin:0; width:200px; padding:6px;">
-                </div>
-
+                <div style="display:flex; gap:20px; align-items:center; border:1px solid #ccc; padding:10px; background:#f8fafc; margin-bottom:20px; font-size:12px;"><b style="color:var(--primary);">Aprobación del Plan de Acción:</b><input type="date" id="sac-fecha-aprob-plan" style="margin:0; width:200px; padding:6px;"></div>
                 <h4 style="color:var(--primary); margin-bottom:10px; font-size:14px;">ACTIVIDADES DE SEGUIMIENTO</h4>
-                <div class="table-responsive" style="margin-bottom:10px;">
-                    <table style="width:100%; border:1px solid #ccc; font-size:11px; text-align:left;">
-                        <thead style="background:#f1f5f9;"><tr><th style="border:1px solid #ccc; width:30px;">#</th><th style="border:1px solid #ccc;">Resultado Seguimiento</th><th style="border:1px solid #ccc;">Responsable</th><th style="border:1px solid #ccc;">Fecha</th><th style="border:1px solid #ccc; width:40px;"></th></tr></thead>
-                        <tbody id="tbody-seguimiento"></tbody>
-                    </table>
-                </div>
+                <div class="table-responsive" style="margin-bottom:10px;"><table style="width:100%; border:1px solid #ccc; font-size:11px; text-align:left;"><thead style="background:#f1f5f9;"><tr><th style="border:1px solid #ccc; width:30px;">#</th><th style="border:1px solid #ccc;">Resultado Seguimiento</th><th style="border:1px solid #ccc;">Responsable</th><th style="border:1px solid #ccc;">Fecha</th><th style="border:1px solid #ccc; width:40px;"></th></tr></thead><tbody id="tbody-seguimiento"></tbody></table></div>
                 <button class="btn btn-info" onclick="window.addSeguimientoRow()" style="font-size:10px; padding:4px 8px; margin-bottom:20px;">+ Añadir Fila</button>
-
-                <div id="sac-panel-cierre" style="border:2px dashed var(--success); padding:20px; border-radius:8px; margin-bottom:20px; background:#f0fdf4;">
-                    <h4 style="color:var(--success); margin-bottom:10px; font-size:14px;">Aprobación de Cierre</h4>
-                    <div class="grid-2"><div><label>Responsable</label><input type="text" id="sac-resp-cierre" disabled style="background:#e2e8f0;"></div><div><label>Fecha de Cierre</label><input type="date" id="sac-fecha-cierre" style="background:#fff;"></div></div>
-                    <div style="display:flex; align-items:center; gap:10px; margin-top:10px;"><input type="checkbox" id="sac-check-cerrar" style="width:20px; height:20px; cursor:pointer; margin:0;"> <label for="sac-check-cerrar" style="margin:0; font-size:13px; color:var(--success); cursor:pointer;"><b>CERRAR SAC</b></label></div>
-                </div>
-
-                <div style="display:flex; gap:10px; margin-top:20px;">
-                    <button class="btn btn-primary" id="btn-save-sac" onclick="window.guardarSAC()" style="flex:1; padding:15px;">Guardar SAC</button>
-                    <button class="btn btn-dark" onclick="document.getElementById('modal-sac').style.display='none'" style="padding:15px; width:150px;">Cancelar</button>
-                </div>
+                <div id="sac-panel-cierre" style="border:2px dashed var(--success); padding:20px; border-radius:8px; margin-bottom:20px; background:#f0fdf4;"><h4 style="color:var(--success); margin-bottom:10px; font-size:14px;">Aprobación de Cierre</h4><div class="grid-2"><div><label>Responsable</label><input type="text" id="sac-resp-cierre" disabled style="background:#e2e8f0;"></div><div><label>Fecha de Cierre</label><input type="date" id="sac-fecha-cierre" style="background:#fff;"></div></div><div style="display:flex; align-items:center; gap:10px; margin-top:10px;"><input type="checkbox" id="sac-check-cerrar" style="width:20px; height:20px; cursor:pointer; margin:0;"> <label for="sac-check-cerrar" style="margin:0; font-size:13px; color:var(--success); cursor:pointer;"><b>CERRAR SAC</b></label></div></div>
+                <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn btn-primary" id="btn-save-sac" onclick="window.guardarSAC()" style="flex:1; padding:15px;">Guardar SAC</button><button class="btn btn-dark" onclick="document.getElementById('modal-sac').style.display='none'" style="padding:15px; width:150px;">Cancelar</button></div>
             </div>
         </div>
     </div>
@@ -590,8 +554,6 @@
            <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn btn-primary" onclick="window.guardarRegistroMaestro()" style="flex:1;">Guardar Documento</button><button class="btn btn-dark" onclick="document.getElementById('modal-form-listado').style.display='none'" style="flex:1;">Cancelar</button></div>
         </div>
     </div>
-    
-    <datalist id="oea-req-list-dl"></datalist>
 
     <script type="module" src="app.js"></script>
 </body>
