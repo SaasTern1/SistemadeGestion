@@ -204,6 +204,7 @@ window.completarLoginUI = () => {
     setDisplay('nav-audit-group', (p.admin || p.p_audit_ver || p.p_audit_admin || p.p_audit_auditor || p.p_audit_dueno) ? 'block' : 'none');
     setDisplay('nav-listado', (p.admin || p.p_ver_listado) ? 'flex' : 'none');
     setDisplay('nav-all', (p.admin || p.p_ver_todas) ? 'flex' : 'none');
+    setDisplay('nav-gest', (p.admin || p.p_gest_sgc || p.p_ger_apr) ? 'flex' : 'none');
 
     let isAdminAudit = p.admin || p.p_audit_admin || p.p_gest_sgc;
     setDisplay('btn-config-plan', isAdminAudit ? 'inline-flex' : 'none');
@@ -265,6 +266,7 @@ window.resetUserForm = () => {
 window.guardarUsuario = async () => {
     const nom = document.getElementById('u-nom').value.trim(); const usr = document.getElementById('u-usr').value.toLowerCase().trim(); const pas = document.getElementById('u-pas').value.trim(); const rol = document.getElementById('u-rol').value.trim(); const email = document.getElementById('u-email').value.trim().toLowerCase();
     const gerenciasSel = []; document.querySelectorAll('#u-ger-list input:checked').forEach(cb => { gerenciasSel.push(cb.value); });
+    
     if(!nom || !usr || !pas || gerenciasSel.length === 0) return alert("Nombre, Usuario, Contraseña y al menos 1 Gerencia son obligatorios.");
     const permisos = { can_solicit: document.getElementById('p-solicitar').checked, p_ver_propias: document.getElementById('p-ver-propias').checked, p_ver_ger: document.getElementById('p-ver-ger').checked, p_ver_todas: document.getElementById('p-ver-todas').checked, p_paso1: document.getElementById('p-paso1').checked, p_paso2: document.getElementById('p-paso2').checked, p_paso4: document.getElementById('p-paso4').checked, p_gest_sgc: document.getElementById('p-gest-sgc').checked, p_ger_apr: document.getElementById('p-ger-apr').checked, p_users: document.getElementById('p-users').checked, p_struct: document.getElementById('p-struct').checked, p_ver_listado: document.getElementById('p-ver-listado').checked, p_audit_ver: document.getElementById('p-audit-ver').checked, p_audit_admin: document.getElementById('p-audit-admin').checked, p_audit_auditor: document.getElementById('p-audit-auditor').checked, p_audit_dueno: document.getElementById('p-audit-dueno').checked, admin: document.getElementById('p-admin').checked };
     window.showLoading();
@@ -310,10 +312,8 @@ window.renderListasConfig = () => {
         hCol += `<div class="settings-item"><span>${cName} <small style="color:#94a3b8; font-size:10px;">(${cType})</small></span><button class="btn-icon-danger" onclick="window.eliminarColumna(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; 
     });
     if(document.getElementById('list-columnas')) document.getElementById('list-columnas').innerHTML = hCol;
-    
     let hEst = ""; estatusMaestro.forEach((e, idx) => { hEst += `<div class="settings-item"><span>${e}</span><button class="btn-icon-danger" onclick="window.eliminarEstatus(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; });
     if(document.getElementById('list-estatus')) document.getElementById('list-estatus').innerHTML = hEst;
-    
     let hTipos = ""; tiposDocumento.forEach((t, idx) => { hTipos += `<div class="settings-item"><span>${t}</span><button class="btn-icon-danger" onclick="window.eliminarTipoDoc(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; });
     if(document.getElementById('list-tipos-doc')) document.getElementById('list-tipos-doc').innerHTML = hTipos;
     window.actualizarSelectTiposDoc();
@@ -347,12 +347,17 @@ window.eliminarEstatus = async (idx) => {
 window.renderNormaOEA = () => {
     const p = currentUser ? currentUser.permisos || {} : {}; let isAdminAudit = p.admin || p.p_audit_admin || p.p_gest_sgc;
     const linkCont = document.getElementById('oea-manual-link');
-    if(linkCont) linkCont.innerHTML = manualOEA.url ? `<a href="#" onclick="window.abrirDocumento('${manualOEA.url}', '${manualOEA.nombre}'); return false;" class="file-link" style="font-size:14px;">📄 ${manualOEA.nombre}</a>` : "No hay manual subido actualmente.";
-    setDisplay('oea-manual-upload-box', isAdminAudit ? 'block' : 'none'); setDisplay('oea-req-upload-box', isAdminAudit ? 'flex' : 'none');
+    if(linkCont) {
+        if(manualOEA.url) { linkCont.innerHTML = `<a href="#" onclick="window.abrirDocumento('${manualOEA.url}', '${manualOEA.nombre}'); return false;" class="btn btn-info" style="font-size:14px; text-decoration:none;"><span class="material-icons-round" style="font-size:16px; margin-right:5px;">visibility</span> Ver ${manualOEA.nombre}</a>`; }
+        else { linkCont.innerHTML = "No hay manual subido actualmente."; }
+    }
+    setDisplay('oea-manual-upload-box', isAdminAudit ? 'flex' : 'none'); setDisplay('oea-req-upload-box', isAdminAudit ? 'flex' : 'none');
+    
     const listCont = document.getElementById('oea-req-list-container');
     if(listCont) listCont.innerHTML = requisitosOEA.map((r, idx) => `<div class="settings-item"><span>${r}</span>${isAdminAudit ? `<button class="btn-icon-danger" onclick="window.eliminarRequisitoOEA(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button>` : ''}</div>`).join('');
-    const datalist = document.getElementById('oea-req-list-dl');
-    if(datalist) datalist.innerHTML = requisitosOEA.map(r => `<option value="${r}">`).join('');
+    
+    const reqList = document.getElementById('aud-req-list');
+    if(reqList) reqList.innerHTML = requisitosOEA.map(r => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${r}" style="margin:0; width:auto; flex-shrink:0;"> ${r}</label>`).join('');
 };
 
 window.subirManualOEA = async () => {
@@ -401,7 +406,8 @@ window.renderTablaMaestro = () => {
 
 window.abrirModalListadoMaestro = (docId = null) => {
     editandoMaestroId = docId; 
-    const titleEl = document.getElementById('lm-modal-title'); if (titleEl) titleEl.innerText = docId ? "Editar Documento Maestro" : "Nuevo Documento Maestro";
+    const titleEl = document.getElementById('lm-modal-title');
+    if (titleEl) titleEl.innerText = docId ? "Editar Documento Maestro" : "Nuevo Documento Maestro";
     const container = document.getElementById('dinamic-form-maestro'); let datosEdit = {};
     if(docId) { const item = dataMaestro.find(x => x.docId === docId); if(item) datosEdit = item; }
     let formHtml = "";
@@ -438,10 +444,16 @@ window.exportarExcelListado = () => {
     let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dataExport); XLSX.utils.book_append_sheet(wb, ws, "Listado_Maestro"); XLSX.writeFile(wb, "Listado_Maestro_SGC.xlsx");
 };
 
+// ==========================================
+// 7. MÓDULO DE SOLICITUDES (CREAR / GESTIONAR)
+// ==========================================
 window.actualizarGerenteSelect = (gSelected) => {
     const gerentes = allUsers.filter(u => u.gerencias && u.gerencias.includes(gSelected) && u.permisos && u.permisos.p_ger_apr === true);
-    if (gerentes && gerentes.length > 0) { document.getElementById('sol-gerente-display').value = gerentes.map(g => g.nombre).join(', '); document.getElementById('sol-email-gerente').value = gerentes.map(g => g.email || '').filter(e=>e).join(', ') || "Sin Email"; } 
-    else { document.getElementById('sol-gerente-display').value = "No asignado"; document.getElementById('sol-email-gerente').value = ""; }
+    if (gerentes && gerentes.length > 0) { 
+        document.getElementById('sol-gerente-display').value = gerentes.map(g => g.nombre).join(', '); document.getElementById('sol-email-gerente').value = gerentes.map(g => g.email || '').filter(e=>e).join(', ') || "Sin Email"; 
+    } else { 
+        document.getElementById('sol-gerente-display').value = "No asignado"; document.getElementById('sol-email-gerente').value = ""; 
+    }
     const depSelect = document.getElementById('sol-dep'); let depHtml = "<option value=''>-- Seleccionar Departamento --</option>";
     const depsFiltrados = allDepartamentos.filter(d => d.gerencia === gSelected); depsFiltrados.forEach(d => { depHtml += `<option value="${d.nombre}">${d.nombre}</option>`; });
     depSelect.innerHTML = depHtml;
@@ -449,12 +461,17 @@ window.actualizarGerenteSelect = (gSelected) => {
 
 window.crearSolicitud = async () => {
     const tit = document.getElementById('sol-tit').value; const gerTarget = document.getElementById('sol-ger').value; if(!tit) return alert("Título obligatorio"); 
-    window.showLoading(); const f = document.getElementById('sol-file'); let fileName = f.files[0] ? f.files[0].name : ""; let url = null; 
+    window.showLoading(); const f = document.getElementById('sol-file');
+    let fileName = f.files[0] ? f.files[0].name : ""; let url = null; 
     if (f.files[0]) { url = await window.uploadToCloudinary(f.files[0]); if (!url) { window.hideLoading(); return alert("Error al subir archivo."); } }
-    const extraEmailsNodes = document.querySelectorAll('.involucrado-item'); const extraEmails = Array.from(extraEmailsNodes).map(el => el.dataset.email); 
+    
+    let extraEmails = []; if(selectedDocData && selectedDocData.involucrados) extraEmails = selectedDocData.involucrados;
     const fci = await window.getNextFCI(); const gerenteEmailVisible = document.getElementById('sol-email-gerente').value; const now = new Date().toISOString();
+    
     const data = { customId: fci, titulo: tit, accion: document.getElementById('sol-accion').value, tipoDoc: document.getElementById('sol-tipo-doc').value, prioridad: document.getElementById('sol-prioridad').value, gerencia: gerTarget, departamento: document.getElementById('sol-dep').value, motivo: document.getElementById('sol-motivo').value, cod_ref: document.getElementById('sol-cod-prev').value, ver_ref: document.getElementById('sol-ver-prev').value, fecha_ref: document.getElementById('sol-fecha-prev').value, solicitante: currentUser.nombre, solicitante_email: currentUser.email, uid: currentUser.usuario, involucrados: extraEmails, idx: 0, estado: "Pendiente Documentado", fase_0_ini: now, adjunto: url, adjunto_nombre: fileName, chat: [{u: "SISTEMA", m: "Solicitud creada exitosamente.", t: new Date().toLocaleString()}], fecha: now };
-    await addDoc(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), data); document.getElementById('lista-involucrados-tags').innerHTML = ""; 
+    
+    await addDoc(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), data); 
+    if(document.getElementById('lista-involucrados-tags')) document.getElementById('lista-involucrados-tags').innerHTML = ""; 
     const toEmails = new Set([EMAIL_ADMIN_SGC, currentUser.email, ...extraEmails]); const destinatarios = { to: Array.from(toEmails).join(','), cc: gerenteEmailVisible }; 
     window.sendNotification(destinatarios, "Nueva Solicitud Creada", `El usuario ${currentUser.nombre} ha creado la solicitud ${fci} con prioridad ${data.prioridad}.`);
     window.hideLoading(); alert("Solicitud Creada: " + fci); window.cambiarVista('sec-hist', document.getElementById('nav-hist'));
@@ -464,7 +481,9 @@ window.verDetalle = async (id) => {
     selectedId = id; 
     if(document.getElementById('m-extra-input')) document.getElementById('m-extra-input').innerHTML = ""; 
     if(document.getElementById('m-comentario-libre')) document.getElementById('m-comentario-libre').innerHTML = "";
+    
     const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", id)); selectedDocData = docSnap.data(); const s = selectedDocData; const p = currentUser.permisos;
+    
     if(document.getElementById('m-id')) document.getElementById('m-id').innerText = s.customId; 
     if(document.getElementById('m-tit')) document.getElementById('m-tit').innerText = s.titulo; 
     if(document.getElementById('m-sol')) document.getElementById('m-sol').innerText = s.solicitante;
@@ -491,8 +510,13 @@ window.verDetalle = async (id) => {
         if(document.getElementById('m-fecha-ult')) document.getElementById('m-fecha-ult').innerText = window.formatearFechaAbreviada(s.fecha_ref); 
     } else { setDisplay('m-extra-panel', 'none'); }
 
-    const esAdminSGC = p.admin || p.p_gest_sgc; const esGer = p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia); const activo = !isAprobadoFinalModal && !isCancelado;
-    const esInvolucradoActivo = s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()); const esDuenio = s.uid === currentUser.usuario || esInvolucradoActivo; 
+    for(let i=1; i<=4; i++) { const st = document.getElementById('s'+i); if(st) { st.className = 'step'; if(isCancelado) continue; if(i <= s.idx) st.classList.add('completed'); if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active'); } }
+
+    const esAdminSGC = p.admin || p.p_gest_sgc; 
+    const esGer = p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia); 
+    const activo = !isAprobadoFinalModal && !isCancelado;
+    const esInvolucradoActivo = s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()); 
+    const esDuenio = s.uid === currentUser.usuario || esInvolucradoActivo; 
 
     let invHTML = "No hay personas extras añadidas.";
     if(s.involucrados && s.involucrados.length > 0) { 
@@ -505,13 +529,22 @@ window.verDetalle = async (id) => {
     }
     if(document.getElementById('m-involucrados-list')) document.getElementById('m-involucrados-list').innerHTML = invHTML;
 
-    for(let i=1; i<=4; i++) { const st = document.getElementById('s'+i); if(st) { st.className = 'step'; if(isCancelado) continue; if(i <= s.idx) st.classList.add('completed'); if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active'); } }
-
-    const fDiff = (ini, fin) => { if(!ini || !fin) return "-"; let ms = new Date(fin) - new Date(ini); if(ms < 0) return "-"; let d = Math.floor(ms / 86400000); let h = Math.floor((ms % 86400000) / 3600000); return `${d}d ${h}h`; };
+    const fDiff = (ini, fin) => {
+        if(!ini || !fin) return "-";
+        let ms = new Date(fin) - new Date(ini); if(ms < 0) return "-";
+        let d = Math.floor(ms / 86400000); let h = Math.floor((ms % 86400000) / 3600000);
+        return `${d}d ${h}h`;
+    };
+    
     if (document.getElementById('m-tiempos-panel')) {
         if(esAdminSGC) {
             setDisplay('m-tiempos-panel', 'block');
-            document.getElementById('m-tiempos-grid').innerHTML = `<div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 1 (Doc)</b><br>${fDiff(s.fase_0_ini, s.fase_0_fin)}</div><div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 2 (Verif)</b><br>${fDiff(s.fase_1_ini, s.fase_1_fin)}</div><div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 3 (Gerencia)</b><br>${fDiff(s.fase_2_ini, s.fase_2_fin)}</div><div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 4 (SGC Final)</b><br>${fDiff(s.fase_3_ini, s.fecha_final || s.fase_3_fin)}</div>`;
+            document.getElementById('m-tiempos-grid').innerHTML = `
+                <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 1 (Doc)</b><br>${fDiff(s.fase_0_ini, s.fase_0_fin)}</div>
+                <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 2 (Verif)</b><br>${fDiff(s.fase_1_ini, s.fase_1_fin)}</div>
+                <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 3 (Gerencia)</b><br>${fDiff(s.fase_2_ini, s.fase_2_fin)}</div>
+                <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 4 (SGC Final)</b><br>${fDiff(s.fase_3_ini, s.fecha_final || s.fase_3_fin)}</div>
+            `;
         } else { setDisplay('m-tiempos-panel', 'none'); }
     }
 
@@ -547,6 +580,7 @@ window.verDetalle = async (id) => {
             if(document.getElementById('m-disp-cod')) document.getElementById('m-disp-cod').innerText = s.codigo_final || s.cod_ref || "N/A"; 
             if(document.getElementById('m-disp-ver')) document.getElementById('m-disp-ver').innerText = s.version_final; 
             if(document.getElementById('m-disp-fecha')) document.getElementById('m-disp-fecha').innerText = s.fecha_final ? window.formatearFechaAbreviada(s.fecha_final) : "N/A"; 
+            
             let finName = s.documento_final_nombre || "Documento Oficial"; let finUrl = s.documento_final ? window.getDownloadUrl(s.documento_final) : "#"; 
             if(document.getElementById('m-disp-file')) document.getElementById('m-disp-file').innerHTML = s.documento_final ? `<a href="#" onclick="window.abrirDocumento('${finUrl}', '${finName}'); return false;" class="file-link">📄 ${finName}</a>` : "N/A";
         } else if (esAdminSGC || p.p_paso4) { setDisplay('m-panel-final-sgc', 'block'); if(document.getElementById('m-final-cod')) document.getElementById('m-final-cod').value = s.cod_ref || ""; }
@@ -713,6 +747,39 @@ window.descargarExcelFiltrado = (origen = 'hist', isAdminTotal = false) => {
 // ==========================================
 // 8. MÓDULO DE AUDITORÍAS Y NORMA OEA
 // ==========================================
+window.renderNormaOEA = () => {
+    const p = currentUser ? currentUser.permisos || {} : {}; let isAdminAudit = p.admin || p.p_audit_admin || p.p_gest_sgc;
+    const linkCont = document.getElementById('oea-manual-link');
+    if(linkCont) {
+        if(manualOEA.url) { linkCont.innerHTML = `<a href="#" onclick="window.abrirDocumento('${manualOEA.url}', '${manualOEA.nombre}'); return false;" class="btn btn-info" style="font-size:14px; text-decoration:none;"><span class="material-icons-round" style="font-size:16px; margin-right:5px;">visibility</span> Ver ${manualOEA.nombre}</a>`; }
+        else { linkCont.innerHTML = "No hay manual subido actualmente."; }
+    }
+    setDisplay('oea-manual-upload-box', isAdminAudit ? 'flex' : 'none'); setDisplay('oea-req-upload-box', isAdminAudit ? 'flex' : 'none');
+    
+    const listCont = document.getElementById('oea-req-list-container');
+    if(listCont) listCont.innerHTML = requisitosOEA.map((r, idx) => `<div class="settings-item"><span>${r}</span>${isAdminAudit ? `<button class="btn-icon-danger" onclick="window.eliminarRequisitoOEA(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button>` : ''}</div>`).join('');
+    
+    const reqList = document.getElementById('aud-req-list');
+    if(reqList) reqList.innerHTML = requisitosOEA.map(r => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${r}" style="margin:0; width:auto; flex-shrink:0;"> ${r}</label>`).join('');
+};
+
+window.subirManualOEA = async () => {
+    const f = document.getElementById('oea-file').files[0]; if(!f) return alert("Selecciona el documento."); window.showLoading();
+    let url = await window.uploadToCloudinary(f); if(!url) { window.hideLoading(); return alert("Error al subir el archivo."); }
+    await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { manual_url: url, manual_nombre: f.name }, {merge: true});
+    document.getElementById('oea-file').value = ""; window.hideLoading(); alert("Manual Oficial actualizado.");
+};
+
+window.agregarRequisitoOEA = async () => {
+    const v = document.getElementById('oea-req-input').value.trim(); if(!v) return; if(requisitosOEA.includes(v)) return alert("Ese requisito ya está en la lista.");
+    requisitosOEA.push(v); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { requisitos: requisitosOEA }, {merge: true}); document.getElementById('oea-req-input').value = "";
+};
+
+window.eliminarRequisitoOEA = async (idx) => {
+    if(!confirm("¿Eliminar este requisito?")) return; requisitosOEA.splice(idx, 1);
+    await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { requisitos: requisitosOEA }, {merge: true});
+};
+
 window.switchAuditTab = (tabId) => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     const btn = document.getElementById(`btn-tab-${tabId}`); if(btn) btn.classList.add('active');
@@ -799,7 +866,7 @@ window.cargarAuditoriaParaEditar = async (id) => {
     const audit = globalAllAuditorias.find(x => x.id === id); if(!audit) return; editandoAuditoriaId = id;
     document.getElementById('titulo-form-auditoria').innerText = "Editar Auditoría Programada"; 
     
-    document.getElementById('aud-fecha').value = audit.fecha || ''; document.getElementById('aud-h-ini').value = audit.hora_inicio || ''; document.getElementById('aud-h-fin').value = audit.hora_fin || ''; document.getElementById('aud-lugar').value = audit.lugar || ''; document.getElementById('aud-proceso').value = audit.proceso || ''; document.getElementById('aud-req').value = audit.requisitos || ''; document.getElementById('aud-obs').value = audit.observacion || '';
+    document.getElementById('aud-fecha').value = audit.fecha || ''; document.getElementById('aud-h-ini').value = audit.hora_inicio || ''; document.getElementById('aud-h-fin').value = audit.hora_fin || ''; document.getElementById('aud-lugar').value = audit.lugar || ''; document.getElementById('aud-proceso').value = audit.proceso || ''; document.getElementById('aud-obs').value = audit.observacion || '';
     document.getElementById('aud-org').value = audit.organizacion || ''; document.getElementById('aud-dir').value = audit.direccion || ''; document.getElementById('aud-sitios').value = audit.sitios || ''; document.getElementById('aud-personal').value = audit.personal || ''; document.getElementById('aud-turnos').value = audit.turnos || ''; document.getElementById('aud-formacion').value = audit.auditores_formacion || '';
 
     let auditadosArr = audit.auditado ? audit.auditado.split(', ') : []; 
@@ -808,28 +875,34 @@ window.cargarAuditoriaParaEditar = async (id) => {
     let auditoresArr = audit.auditor ? audit.auditor.split(', ') : []; 
     document.querySelectorAll('#aud-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresArr.includes(cb.value); });
     
+    let reqsArr = audit.requisitos ? audit.requisitos.split(', ') : []; 
+    document.querySelectorAll('#aud-req-list input[type="checkbox"]').forEach(cb => { cb.checked = reqsArr.includes(cb.value); });
+    
     document.getElementById('btn-guardar-aud').innerText = "ACTUALIZAR AUDITORÍA"; setDisplay('btn-cancelar-aud', 'block'); window.scrollTo({ top: document.getElementById('audit-admin-panel').offsetTop, behavior: 'smooth' }); setDisplay('audit-admin-panel', 'block');
 };
 
 window.cancelarEdicionAuditoria = () => {
     editandoAuditoriaId = null; document.getElementById('titulo-form-auditoria').innerText = "Programar Nueva Auditoría"; 
-    document.getElementById('aud-fecha').value = ''; document.getElementById('aud-h-ini').value = ''; document.getElementById('aud-h-fin').value = ''; document.getElementById('aud-lugar').value = ''; document.getElementById('aud-proceso').value = ''; document.getElementById('aud-req').value = ''; document.getElementById('aud-obs').value = '';
+    document.getElementById('aud-fecha').value = ''; document.getElementById('aud-h-ini').value = ''; document.getElementById('aud-h-fin').value = ''; document.getElementById('aud-lugar').value = ''; document.getElementById('aud-proceso').value = ''; document.getElementById('aud-obs').value = '';
     document.getElementById('aud-org').value = ''; document.getElementById('aud-dir').value = ''; document.getElementById('aud-sitios').value = ''; document.getElementById('aud-personal').value = ''; document.getElementById('aud-turnos').value = ''; document.getElementById('aud-formacion').value = '';
 
     document.querySelectorAll('#aud-auditado-list input[type="checkbox"]').forEach(cb => cb.checked = false);
     document.querySelectorAll('#aud-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('#aud-req-list input[type="checkbox"]').forEach(cb => cb.checked = false);
     
     document.getElementById('btn-guardar-aud').innerText = "GENERAR AUDITORÍA Y NOTIFICAR"; setDisplay('btn-cancelar-aud', 'none');
 };
 
 window.guardarAuditoria = async () => {
-    const fecha = document.getElementById('aud-fecha').value; const hIni = document.getElementById('aud-h-ini').value; const hFin = document.getElementById('aud-h-fin').value; const proceso = document.getElementById('aud-proceso').value; const lugar = document.getElementById('aud-lugar').value; const req = document.getElementById('aud-req').value; const obs = document.getElementById('aud-obs').value;
+    const fecha = document.getElementById('aud-fecha').value; const hIni = document.getElementById('aud-h-ini').value; const hFin = document.getElementById('aud-h-fin').value; const proceso = document.getElementById('aud-proceso').value; const lugar = document.getElementById('aud-lugar').value; const obs = document.getElementById('aud-obs').value;
     if(!fecha || !proceso) return alert("Fecha y Proceso son obligatorios.");
     
     const auditadoNombres = []; const auditadoEmails = []; 
     document.querySelectorAll('#aud-auditado-list input:checked').forEach(cb => { auditadoNombres.push(cb.value); auditadoEmails.push(cb.getAttribute('data-email')); });
     const auditorNombres = []; const auditorEmails = []; 
     document.querySelectorAll('#aud-auditor-list input:checked').forEach(cb => { auditorNombres.push(cb.value); auditorEmails.push(cb.getAttribute('data-email')); });
+
+    const reqNombres = []; document.querySelectorAll('#aud-req-list input:checked').forEach(cb => reqNombres.push(cb.value)); const req = reqNombres.join(', ');
 
     let data = { 
         fecha: fecha, hora_inicio: hIni, hora_fin: hFin, lugar: lugar, proceso: proceso, requisitos: req, 
@@ -1243,9 +1316,4 @@ const inicializarApp = async () => {
         } catch(e) { console.error("❌ Error al restaurar sesión:", e); window.logout(); }
         window.hideLoading();
     } else {
-        console.log("👋 Paso 3: No hay sesión. Mostrando pantalla de Login."); window.hideLoading();
-        const loginScreen = document.getElementById('login-screen'); if (loginScreen) { loginScreen.style.display = 'flex'; }
-    }
-};
-
-if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", inicializarApp); } else { inicializarApp(); }
+        console.log("👋 Paso 3: No hay sesión. Mostrando pantalla de Login."); window.
