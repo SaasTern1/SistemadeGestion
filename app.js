@@ -32,6 +32,7 @@ let allUsers = [], allDepartamentos = [], tiposDocumento = [], columnasMaestro =
 let globalSolicitudes = [], globalAuditPlan = null, globalAllAuditorias = [], globalAuditorias = [];
 let selectedAuditId = null, selectedAuditData = null, editandoAuditoriaId = null;
 let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, currentEditingF020Ref = null;
+let requisitosOEA = []; let manualOEA = { url: "", nombre: "" };
 
 // ==========================================
 // 1. UTILIDADES Y VISUALIZADOR DE ARCHIVOS
@@ -40,46 +41,30 @@ const setDisplay = (id, val) => { const el = document.getElementById(id); if (el
 
 window.abrirDocumento = async (url, nombreOriginal) => {
     if (!url || url === "#") return;
-    
     let safeName = nombreOriginal ? nombreOriginal.replace(/[^a-zA-Z0-9.\-_ ]/g, '_') : 'Documento';
-    if (!safeName.includes('.')) { 
-        let extMatch = url.match(/\.([a-zA-Z0-9]+)(\?|$)/); 
-        if(extMatch) safeName += "." + extMatch[1]; 
-    }
-    
+    if (!safeName.includes('.')) { let extMatch = url.match(/\.([a-zA-Z0-9]+)(\?|$)/); if(extMatch) safeName += "." + extMatch[1]; }
     let isViewable = url.toLowerCase().match(/\.(pdf|jpg|jpeg|png|gif)(\?|$)/);
     
     if (isViewable) {
         const nuevaPestana = window.open('', '_blank');
         if (!nuevaPestana) return alert("Bloqueado por el navegador. Permite las ventanas emergentes.");
         nuevaPestana.document.write(`<html style="font-family:sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f8fafc; color:#1e40af;"><head><title>Cargando: ${safeName}</title></head><body><h2>Preparando documento...</h2></body></html>`);
-        
         try {
             const response = await fetch(url);
             if (!response.ok) throw new Error("Archivo borrado de la nube");
-            const blob = await response.blob(); 
-            const fileObj = new File([blob], safeName, { type: blob.type });
+            const blob = await response.blob(); const fileObj = new File([blob], safeName, { type: blob.type });
             const blobUrl = window.URL.createObjectURL(fileObj);
-            nuevaPestana.location.href = blobUrl; 
-            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
-        } catch (e) { 
-            nuevaPestana.close();
-            alert("⚠️ El archivo ya no se encuentra disponible en la nube. Es posible que haya sido eliminado o el enlace esté roto.");
-        }
+            nuevaPestana.location.href = blobUrl; setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+        } catch (e) { nuevaPestana.close(); alert("⚠️ El archivo ya no se encuentra disponible en la nube. Es posible que haya sido eliminado o el enlace esté roto."); }
     } else {
         window.showLoading();
         try {
             const response = await fetch(url); 
             if (!response.ok) throw new Error("Archivo borrado de la nube");
-            const blob = await response.blob(); 
-            const blobUrl = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); 
-            a.style.display = 'none'; a.href = blobUrl; a.download = safeName; 
-            document.body.appendChild(a); a.click();
+            const blob = await response.blob(); const blobUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.style.display = 'none'; a.href = blobUrl; a.download = safeName; document.body.appendChild(a); a.click();
             window.URL.revokeObjectURL(blobUrl); document.body.removeChild(a);
-        } catch (e) { 
-            alert("⚠️ El archivo ya no se encuentra disponible en la nube. Es posible que haya sido eliminado o el enlace esté roto.");
-        }
+        } catch (e) { alert("⚠️ El archivo ya no se encuentra disponible en la nube."); }
         window.hideLoading();
     }
 };
@@ -174,7 +159,7 @@ window.verificarAlertasAuditoria = (auditoriasArray) => {
 // ==========================================
 window.cargarDatosCentrales = () => {
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "Usuarios"), (snap) => {
-        allUsers = []; let htmlUsers = ""; let cbUsers = "";
+        allUsers = []; let htmlUsers = ""; let cbUsers = ""; let optUsers = "";
         let optInvolucrados = '<option value="">-- Seleccionar --</option>';
         
         snap.forEach(doc => { 
@@ -182,6 +167,7 @@ window.cargarDatosCentrales = () => {
             let gers = u.gerencias ? u.gerencias.join(', ') : (u.gerencia || 'N/A');
             htmlUsers += `<tr><td>${u.nombre} (${u.usuario})</td><td>${u.email||''}</td><td>${u.role||''} / <small>${gers}</small></td><td class="no-export"><button class="btn btn-info" style="padding:4px 8px; font-size:10px;" onclick="window.cargarUsuarioParaEditar('${u.usuario}')">Editar</button></td></tr>`;
             cbUsers += `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${u.nombre}" data-email="${u.email}" style="margin:0; width:auto; flex-shrink:0;"> ${u.nombre} (${gers})</label>`;
+            optUsers += `<option value="${u.nombre}" data-email="${u.email}">${u.nombre} (${gers})</option>`;
             if(u.email) { optInvolucrados += `<option value="${u.email}">${u.nombre} (${gers})</option>`; }
         });
         
@@ -189,8 +175,16 @@ window.cargarDatosCentrales = () => {
         if (document.getElementById('aud-auditado-list')) document.getElementById('aud-auditado-list').innerHTML = cbUsers;
         if (document.getElementById('aud-auditor-list')) document.getElementById('aud-auditor-list').innerHTML = cbUsers;
         if (document.getElementById('ah-auditor-list')) document.getElementById('ah-auditor-list').innerHTML = cbUsers;
+        if (document.getElementById('ah-lider')) document.getElementById('ah-lider').innerHTML = '<option value="">-- Seleccione Auditor Líder --</option>' + optUsers;
         if (document.getElementById('sol-involucrado-sel')) document.getElementById('sol-involucrado-sel').innerHTML = optInvolucrados;
         if (document.getElementById('m-new-involucrado-sel')) document.getElementById('m-new-involucrado-sel').innerHTML = optInvolucrados;
+    });
+
+    onSnapshot(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), (docSnap) => {
+        if(docSnap.exists()) {
+            const d = docSnap.data(); requisitosOEA = d.requisitos || []; manualOEA = { url: d.manual_url || "", nombre: d.manual_nombre || "" };
+        } else { requisitosOEA = []; manualOEA = { url: "", nombre: "" }; }
+        window.renderNormaOEA();
     });
 
     onSnapshot(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), (docSnap) => {
@@ -208,7 +202,7 @@ window.cargarDatosCentrales = () => {
         if(document.getElementById('sol-ger')) document.getElementById('sol-ger').innerHTML = '<option value="">-- Seleccionar --</option>' + gHtml;
         if(document.getElementById('list-ger')) document.getElementById('list-ger').innerHTML = gers.map((g, idx) => `<div class="settings-item"><span>${g}</span><button class="btn-icon-danger" onclick="window.eliminarGerencia(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
         if(document.getElementById('list-dep')) document.getElementById('list-dep').innerHTML = deps.map((dep, idx) => `<div class="settings-item"><span>${dep.nombre} <small>(${dep.gerencia})</small></span><button class="btn-icon-danger" onclick="window.eliminarDepartamento(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
-        if(document.getElementById('u-ger-list')) document.getElementById('u-ger-list').innerHTML = gers.map(g => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${g}" style="margin:0; width:auto; flex-shrink:0;"> ${g}</label>`).join('');
+        if(document.getElementById('u-ger-list')) document.getElementById('u-ger-list').innerHTML = gers.map(g => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${g}" style="margin:0; width:auto;"> ${g}</label>`).join('');
     });
 
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), (snap) => {
@@ -292,10 +286,6 @@ window.completarLoginUI = () => {
     setDisplay('nav-audit-group', (p.admin || p.p_audit_ver || p.p_audit_admin || p.p_audit_auditor || p.p_audit_dueno) ? 'block' : 'none');
     setDisplay('nav-listado', (p.admin || p.p_ver_listado) ? 'flex' : 'none');
     setDisplay('nav-all', (p.admin || p.p_ver_todas) ? 'flex' : 'none');
-
-    let isAdminAudit = p.admin || p.p_audit_admin || p.p_gest_sgc;
-    setDisplay('btn-config-plan', isAdminAudit ? 'inline-flex' : 'none');
-    setDisplay('btn-nueva-aud', isAdminAudit ? 'inline-flex' : 'none');
 
     window.cargarDatosCentrales();
     const navDash = document.getElementById('nav-dash'); if(navDash) window.cambiarVista('sec-dash', navDash);
@@ -583,12 +573,18 @@ window.verDetalle = async (id) => {
         if(document.getElementById('m-fecha-ult')) document.getElementById('m-fecha-ult').innerText = window.formatearFechaAbreviada(s.fecha_ref); 
     } else { setDisplay('m-extra-panel', 'none'); }
 
+    for(let i=1; i<=4; i++) { 
+        const st = document.getElementById('s'+i); 
+        if(st) { st.className = 'step'; if(isCancelado) continue; if(i <= s.idx) st.classList.add('completed'); if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active'); }
+    }
+
     const esAdminSGC = p.admin || p.p_gest_sgc; 
     const esGer = p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia); 
     const activo = !isAprobadoFinalModal && !isCancelado;
     const esInvolucradoActivo = s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()); 
     const esDuenio = s.uid === currentUser.usuario || esInvolucradoActivo; 
 
+    // RENDER DE INVOLUCRADOS
     let invHTML = "No hay personas extras añadidas.";
     if(s.involucrados && s.involucrados.length > 0) { 
         invHTML = s.involucrados.map(email => { 
@@ -599,11 +595,6 @@ window.verDetalle = async (id) => {
         }).join(''); 
     }
     if(document.getElementById('m-involucrados-list')) document.getElementById('m-involucrados-list').innerHTML = invHTML;
-
-    for(let i=1; i<=4; i++) { 
-        const st = document.getElementById('s'+i); 
-        if(st) { st.className = 'step'; if(isCancelado) continue; if(i <= s.idx) st.classList.add('completed'); if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active'); }
-    }
 
     const fDiff = (ini, fin) => {
         if(!ini || !fin) return "-";
@@ -628,8 +619,7 @@ window.verDetalle = async (id) => {
 
     let puedeGestionarSGC = false;
     if(activo) { if (s.idx === 0 && (p.p_gest_sgc || p.p_paso1 || p.admin)) puedeGestionarSGC = true; if (s.idx === 1 && (p.p_gest_sgc || p.p_paso2 || p.admin)) puedeGestionarSGC = true; if (s.idx === 3 && (p.p_gest_sgc || p.p_paso4 || p.admin)) puedeGestionarSGC = true; }
-    
-    let puedeGestionarGerente = esGer && s.idx === 2 && activo; 
+    let puedeGestionarGerente = esGer && s.idx === 2 && activo;
 
     setDisplay('btn-reabrir', (esAdminSGC && !activo) ? 'inline-flex' : 'none');
     setDisplay('m-add-involucrado-section', activo ? 'flex' : 'none');
@@ -791,7 +781,7 @@ window.setFilterGest = (filterText) => {
     for (let i = 0; i < trs.length; i++) { let statusCell = trs[i].getElementsByTagName('td')[3]; if (statusCell) { let text = statusCell.textContent || statusCell.innerText; if (filter === "" || text.toLowerCase().includes(filter)) { trs[i].style.display = ""; } else { trs[i].style.display = "none"; } } }
 };
 
-window.descargarExcelFiltrado = (origen = 'hist', isAdminTotal = false) => {
+window.descargarExcelFiltrado = (origen = 'hist') => {
     let desde = document.getElementById(`${origen}-f-desde`).value; let hasta = document.getElementById(`${origen}-f-hasta`).value; let estado = document.getElementById(`${origen}-f-estado`).value;
     let esAdminSGC = currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
 
@@ -838,8 +828,54 @@ window.descargarExcelFiltrado = (origen = 'hist', isAdminTotal = false) => {
 };
 
 // ==========================================
-// 8. MÓDULO DE AUDITORÍAS (F-005, F-003, F-020, F-023)
+// 8. MÓDULO DE AUDITORÍAS Y NORMATIVA OEA
 // ==========================================
+window.renderNormaOEA = () => {
+    const p = currentUser ? currentUser.permisos || {} : {};
+    let isAdminAudit = p.admin || p.p_audit_admin || p.p_gest_sgc;
+
+    const linkCont = document.getElementById('oea-manual-link');
+    if(linkCont) {
+        linkCont.innerHTML = manualOEA.url ? `<a href="#" onclick="window.abrirDocumento('${manualOEA.url}', '${manualOEA.nombre}'); return false;" class="file-link" style="font-size:14px;">📄 ${manualOEA.nombre}</a>` : "No hay manual subido actualmente.";
+    }
+    
+    setDisplay('oea-manual-upload-box', isAdminAudit ? 'block' : 'none');
+    setDisplay('oea-req-upload-box', isAdminAudit ? 'flex' : 'none');
+
+    const listCont = document.getElementById('oea-req-list-container');
+    if(listCont) {
+        listCont.innerHTML = requisitosOEA.map((r, idx) => `<div class="settings-item"><span>${r}</span>${isAdminAudit ? `<button class="btn-icon-danger" onclick="window.eliminarRequisitoOEA(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button>` : ''}</div>`).join('');
+    }
+    
+    const datalist = document.getElementById('oea-req-list-dl');
+    if(datalist) { datalist.innerHTML = requisitosOEA.map(r => `<option value="${r}">`).join(''); }
+};
+
+window.subirManualOEA = async () => {
+    const f = document.getElementById('oea-file').files[0];
+    if(!f) return alert("Selecciona el documento.");
+    window.showLoading();
+    let url = await window.uploadToCloudinary(f);
+    if(!url) { window.hideLoading(); return alert("Error al subir el archivo."); }
+    await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { manual_url: url, manual_nombre: f.name }, {merge: true});
+    document.getElementById('oea-file').value = ""; window.hideLoading(); alert("Manual Oficial actualizado.");
+};
+
+window.agregarRequisitoOEA = async () => {
+    const v = document.getElementById('oea-req-input').value.trim();
+    if(!v) return;
+    if(requisitosOEA.includes(v)) return alert("Ese requisito ya está en la lista.");
+    requisitosOEA.push(v);
+    await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { requisitos: requisitosOEA }, {merge: true});
+    document.getElementById('oea-req-input').value = "";
+};
+
+window.eliminarRequisitoOEA = async (idx) => {
+    if(!confirm("¿Eliminar este requisito?")) return;
+    requisitosOEA.splice(idx, 1);
+    await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { requisitos: requisitosOEA }, {merge: true});
+};
+
 window.switchAuditTab = (tabId) => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     const btn = document.getElementById(`btn-tab-${tabId}`); if(btn) btn.classList.add('active');
@@ -1124,8 +1160,8 @@ window.finalizarAuditoria = async () => { await window.finalizarAuditoriaDirecto
 window.enviarComentarioAuditoria = async () => {
     const box = document.getElementById('ma-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = document.getElementById('ma-file-comentario');
     if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta evidencia."); window.showLoading(); 
-    
     let fileUrl = null; let fileName = null;
+    
     if (f.files[0]) { 
         fileUrl = await window.uploadToCloudinary(f.files[0]); 
         if (!fileUrl) { window.hideLoading(); return alert("Error de red."); } 
@@ -1133,10 +1169,7 @@ window.enviarComentarioAuditoria = async () => {
     }
     
     let chatPayload = {u: currentUser.nombre, m: `💬 <b>Anotación/Hallazgo:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; 
-    if (fileUrl) { 
-        chatPayload.archivo = fileUrl; 
-        chatPayload.archivo_nombre = fileName;
-    } 
+    if (fileUrl) { chatPayload.archivo = fileUrl; chatPayload.archivo_nombre = fileName; } 
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { bitacora: arrayUnion(chatPayload) });
     box.innerHTML = ""; f.value = ""; window.hideLoading(); window.verModalAuditoria(selectedAuditId); 
 };
@@ -1149,7 +1182,8 @@ window.renderF020 = () => {
     currentAuditF020.forEach((item, index) => {
         let dis = canEdit ? '' : 'disabled';
         let opts = `<option value="Conformidad" ${item.hallazgo === 'Conformidad' ? 'selected':''}>Conformidad</option><option value="NC Menor" ${item.hallazgo === 'NC Menor' ? 'selected':''}>NC Menor</option><option value="NC Mayor" ${item.hallazgo === 'NC Mayor' ? 'selected':''}>NC Mayor</option><option value="OM" ${item.hallazgo === 'OM' ? 'selected':''}>Oportunidad Mejora</option><option value="Fortaleza" ${item.hallazgo === 'Fortaleza' ? 'selected':''}>Fortaleza</option><option value="N/A" ${item.hallazgo === 'N/A' || !item.hallazgo ? 'selected':''}>N/A</option>`;
-        html += `<tr data-id="${item.id}"><td>${index + 1}</td><td><textarea class="table-input" rows="2" ${dis}>${item.pregunta || ''}</textarea></td><td><input type="text" class="table-input" value="${item.requisito || ''}" ${dis}></td><td><textarea class="table-input" rows="2" ${dis}>${item.comentarios || ''}</textarea></td><td><input type="text" class="table-input" value="${item.auditado || ''}" ${dis}></td><td><select class="table-select hallazgo-sel" ${dis}>${opts}</select></td><td class="f020-action-col">${canEdit ? `<button class="btn-icon-danger" onclick="window.eliminarF020('${item.id}')"><span class="material-icons-round">delete</span></button>` : ''}</td></tr>`;
+        // AQUÍ ESTÁ EL ENLACE AL DATALIST DE LA OEA (list="oea-req-list-dl")
+        html += `<tr data-id="${item.id}"><td>${index + 1}</td><td><textarea class="table-input" rows="2" ${dis}>${item.pregunta || ''}</textarea></td><td><input type="text" class="table-input" value="${item.requisito || ''}" list="oea-req-list-dl" placeholder="Ej: 1.1" ${dis}></td><td><textarea class="table-input" rows="2" ${dis}>${item.comentarios || ''}</textarea></td><td><input type="text" class="table-input" value="${item.auditado || ''}" ${dis}></td><td><select class="table-select hallazgo-sel" ${dis}>${opts}</select></td><td class="f020-action-col">${canEdit ? `<button class="btn-icon-danger" onclick="window.eliminarF020('${item.id}')"><span class="material-icons-round">delete</span></button>` : ''}</td></tr>`;
     });
     tbody.innerHTML = html; document.querySelectorAll('.f020-action-col').forEach(el => el.style.display = canEdit ? '' : 'none');
 };
@@ -1300,82 +1334,4 @@ window.verSAC = (sac_id) => {
 window.guardarSAC = async () => {
     window.showLoading(); 
     let planAccionArr = []; document.querySelectorAll('#tbody-plan-accion tr').forEach(tr => { let inputs = tr.querySelectorAll('input'); if(inputs[0].value.trim()) { planAccionArr.push({ detalle: inputs[0].value, resp: inputs[1].value, inicio: inputs[2].value, fin: inputs[3].value }); } });
-    let segArr = []; document.querySelectorAll('#tbody-seguimiento tr').forEach(tr => { let inputs = tr.querySelectorAll('input'); if(inputs[0].value.trim()) { segArr.push({ resultado: inputs[0].value, resp: inputs[1].value, fecha: inputs[2].value }); } });
-
-    let estado = "Abierta (En Plan)"; if(document.getElementById('sac-fecha-aprob-plan').value) estado = "En Seguimiento"; if(document.getElementById('sac-check-cerrar').checked) estado = "Cerrada";
-
-    let data = { fecha_registro: document.getElementById('sac-fecha').value, proceso: document.getElementById('sac-proceso').value, fuente_nc: document.getElementById('sac-fuente').value, fuente_otro: document.getElementById('sac-fuente-otro').value, beneficio_esperado: document.getElementById('sac-beneficio').value, causa_raiz: document.getElementById('sac-causa').value, accion_implementar: document.getElementById('sac-accion').value, dueno_uid: document.getElementById('sac-dueno').value, plan_accion: planAccionArr, fecha_aprobacion_plan: document.getElementById('sac-fecha-aprob-plan').value, seguimiento: segArr, fecha_cierre: document.getElementById('sac-fecha-cierre').value, cerrado_por: document.getElementById('sac-check-cerrar').checked ? currentUser.nombre : "", estado: estado };
-
-    if(!currentEditingSacId) {
-        let num_sac = ""; const refCont = doc(db, "artifacts", appId, "public", "data", "Contadores", "sacs");
-        await runTransaction(db, async (t) => { const snap = await t.get(refCont); let count = 1; if (snap.exists()) count = snap.data().count + 1; t.set(refCont, { count }); num_sac = `SAC-${new Date().getFullYear()}-${String(count).padStart(3, '0')}`; });
-        data.sac_num = num_sac; data.audit_id = selectedAuditId; data.f020_id = currentEditingF020Ref.id; data.tipo_hallazgo = currentEditingF020Ref.hallazgo; data.detalle_nc = document.getElementById('sac-detalle').value; data.fecha_apertura = new Date().toISOString(); data.auditor_nombre = currentUser.nombre;
-        await addDoc(collection(db, "artifacts", appId, "public", "data", "AccionesCorrectivas"), data); alert(`SAC ${num_sac} generada.`);
-    } else {
-        await updateDoc(doc(db, "artifacts", appId, "public", "data", "AccionesCorrectivas", currentEditingSacId), data); alert("SAC Actualizada."); 
-    }
-    setDisplay('modal-sac', 'none'); window.hideLoading(); if(selectedAuditId) window.verModalAuditoria(selectedAuditId);
-};
-
-window.renderF023Global = () => {
-    const tb = document.getElementById('tbody-noconf'); if(!tb) return;
-    let html = ""; let filtrados = [...globalAllSacs];
-    const selEst = document.getElementById('filter-noconf-estado');
-    if(selEst && selEst.value) { filtrados = filtrados.filter(s => s.estado === selEst.value); }
-    if(!currentUser.permisos.admin && !currentUser.permisos.p_gest_sgc && !currentUser.permisos.p_audit_admin) {
-        filtrados = filtrados.filter(s => s.dueno_uid === currentUser.usuario || s.auditor_nombre === currentUser.nombre);
-    }
-    filtrados.sort((a,b) => b.sac_num > a.sac_num ? -1 : 1);
-    filtrados.forEach(s => {
-        let est = s.estado; let bs = est.includes('Abierta') ? 'badge-danger' : (est === 'En Seguimiento' ? 'badge-warning' : 'badge-success');
-        let uDueno = allUsers.find(u => u.usuario === s.dueno_uid); let nomDueno = uDueno ? uDueno.nombre : s.dueno_uid;
-        let bColor = s.tipo_hallazgo === 'NC Mayor' ? 'color:var(--danger)' : 'color:var(--warning)';
-        html += `<tr><td><b>${s.sac_num}</b></td><td>${s.proceso}</td><td><b style="${bColor}">${s.tipo_hallazgo}</b></td><td>${nomDueno}</td><td><div style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${s.detalle_nc}">${s.detalle_nc}</div></td><td>${window.formatearFechaAbreviada(s.fecha_registro)}</td><td><span class="badge ${bs}">${est}</span></td><td>${s.fecha_cierre ? window.formatearFechaAbreviada(s.fecha_cierre) : '-'}</td><td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verSACGlobal('${s.sac_id}', '${s.audit_id}')">Revisar</button></td></tr>`;
-    });
-    tb.innerHTML = html;
-};
-
-window.setFilterGestNC = (val) => { window.renderF023Global(); };
-window.verSACGlobal = async (sac_id, audit_id) => {
-    const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", audit_id));
-    if(docSnap.exists()) { selectedAuditData = docSnap.data(); selectedAuditId = audit_id; }
-    window.verSAC(sac_id);
-};
-window.exportarExcelNoConf = () => {
-    if(globalAllSacs.length === 0) return alert("No hay registros SAC para exportar.");
-    let dataExport = globalAllSacs.map(s => {
-        let uDueno = allUsers.find(u => u.usuario === s.dueno_uid);
-        return { "N° SAC": s.sac_num, "Proceso / Auditoría": s.proceso, "Tipo de Hallazgo": s.tipo_hallazgo, "Responsable": uDueno ? uDueno.nombre : s.dueno_uid, "Detalle No Conformidad": s.detalle_nc, "Fecha Apertura": s.fecha_apertura ? new Date(s.fecha_apertura).toLocaleString() : '', "Causa Raíz": s.causa_raiz || '', "Acción Correctiva Implementada": s.accion_implementar || '', "Estado": s.estado, "Fecha Cierre": s.fecha_cierre ? new Date(s.fecha_cierre).toLocaleString() : '', "Cerrado Por": s.cerrado_por || '' };
-    });
-    let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dataExport); XLSX.utils.book_append_sheet(wb, ws, "F-023_Control_NC"); XLSX.writeFile(wb, "Reporte_F-023_Control_NC.xlsx");
-};
-
-// ==========================================
-// ARRANQUE DE LA APLICACIÓN
-// ==========================================
-const inicializarApp = async () => {
-    console.log("🚀 Paso 1: Iniciando aplicación..."); window.hideLoading(); 
-    const savedUser = localStorage.getItem('sgc_session_user');
-    console.log("👤 Paso 2: Usuario guardado en caché:", savedUser ? savedUser : "Ninguno");
-
-    if (savedUser) {
-        window.showLoading();
-        try {
-            console.log("⏳ Paso 3: Conectando con Firebase para validar sesión...");
-            const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", savedUser));
-            const snap = await getDocs(q);
-            if (!snap.empty) { 
-                console.log("✅ Paso 4: Sesión restaurada con éxito. Renderizando UI...");
-                currentUser = snap.docs[0].data(); window.completarLoginUI(); 
-            } else { 
-                console.log("⚠️ Paso 4: El usuario ya no existe en la BD. Limpiando sesión..."); window.logout();
-            }
-        } catch(e) { console.error("❌ Error al restaurar sesión:", e); window.logout(); }
-        window.hideLoading();
-    } else {
-        console.log("👋 Paso 3: No hay sesión. Mostrando pantalla de Login."); window.hideLoading();
-        const loginScreen = document.getElementById('login-screen'); if (loginScreen) { loginScreen.style.display = 'flex'; }
-    }
-};
-
-if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", inicializarApp); } else { inicializarApp(); }
+    let segArr = []; document.querySelectorAll('#tbody-seguimiento tr').forEach(tr => { let inputs = tr.querySelectorAll('input'); if(inputs[0].value.trim()) { segArr.push({ resultado: inputs[0].value, resp
