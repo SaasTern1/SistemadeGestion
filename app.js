@@ -10,19 +10,26 @@ const EMAIL_SERVICE_ID = "service_vumxptj"; const EMAIL_TEMPLATE_ID = "template_
 
 const CLOUD_NAME = "df79cjklp"; const UPLOAD_PRESET = "fci_documentos"; const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
 
+// Utilidades para acortar código y evitar cortes
+const $ = id => document.getElementById(id);
+const $$ = sel => document.querySelectorAll(sel);
+const setDisplay = (id, val) => { const el = $(id); if (el) el.style.display = val; };
+
 let currentUser = null, selectedId = null, selectedDocData = null, tempAction = "";
 let allUsers = [], allDepartamentos = [], tiposDocumento = [], columnasMaestro = [], estatusMaestro = [], dataMaestro = [], editandoMaestroId = null;
 let globalSolicitudes = [], globalAuditPlan = null, globalAllAuditorias = [], globalAuditorias = [], selectedAuditId = null, selectedAuditData = null, editandoAuditoriaId = null;
 let currentAuditF020 = [], globalAllSacs = [], currentEditingSacId = null, currentEditingF020Ref = null;
 let requisitosOEA = []; let manualOEA = { url: "", nombre: "" };
 
-const setDisplay = (id, val) => { const el = document.getElementById(id); if (el) el.style.display = val; };
-
+// ==========================================
+// 1. UTILIDADES Y VISUALIZADOR DE ARCHIVOS
+// ==========================================
 window.abrirDocumento = async (url, nombreOriginal) => {
     if (!url || url === "#") return;
     let safeName = nombreOriginal ? nombreOriginal.replace(/[^a-zA-Z0-9.\-_ ]/g, '_') : 'Documento';
     if (!safeName.includes('.')) { let extMatch = url.match(/\.([a-zA-Z0-9]+)(\?|$)/); if(extMatch) safeName += "." + extMatch[1]; }
     let isViewable = url.toLowerCase().match(/\.(pdf|jpg|jpeg|png|gif)(\?|$)/);
+    
     if (isViewable) {
         const nuevaPestana = window.open('', '_blank');
         if (!nuevaPestana) return alert("Bloqueado por el navegador. Permite las ventanas emergentes.");
@@ -31,7 +38,7 @@ window.abrirDocumento = async (url, nombreOriginal) => {
             const response = await fetch(url); if (!response.ok) throw new Error("Archivo borrado de la nube");
             const blob = await response.blob(); const fileObj = new File([blob], safeName, { type: blob.type });
             const blobUrl = window.URL.createObjectURL(fileObj); nuevaPestana.location.href = blobUrl; setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
-        } catch (e) { nuevaPestana.close(); alert("⚠️ El archivo ya no se encuentra disponible en la nube. Es posible que haya sido eliminado o el enlace esté roto."); }
+        } catch (e) { nuevaPestana.close(); alert("⚠️ El archivo ya no se encuentra disponible en la nube o el enlace está roto."); }
     } else {
         window.showLoading();
         try {
@@ -39,7 +46,7 @@ window.abrirDocumento = async (url, nombreOriginal) => {
             const blob = await response.blob(); const blobUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a'); a.style.display = 'none'; a.href = blobUrl; a.download = safeName; document.body.appendChild(a); a.click();
             window.URL.revokeObjectURL(blobUrl); document.body.removeChild(a);
-        } catch (e) { alert("⚠️ El archivo ya no se encuentra disponible en la nube. Es posible que haya sido eliminado o el enlace esté roto."); }
+        } catch (e) { alert("⚠️ El archivo ya no se encuentra disponible en la nube o el enlace está roto."); }
         window.hideLoading();
     }
 };
@@ -47,11 +54,11 @@ window.abrirDocumento = async (url, nombreOriginal) => {
 window.showLoading = () => setDisplay('loading-overlay', 'flex');
 window.hideLoading = () => setDisplay('loading-overlay', 'none');
 window.cambiarVista = (id, btn) => {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-    const section = document.getElementById(id); if(section) section.classList.add('active'); if(btn) btn.classList.add('active');
-    if(window.innerWidth <= 768) { const sidebar = document.getElementById('sidebar'); if(sidebar) sidebar.classList.remove('open'); const overlay = document.getElementById('sidebar-overlay'); if(overlay) overlay.classList.remove('active'); }
+    $$('.section').forEach(s => s.classList.remove('active')); $$('.nav-link').forEach(l => l.classList.remove('active'));
+    const section = $(id); if(section) section.classList.add('active'); if(btn) btn.classList.add('active');
+    if(window.innerWidth <= 768) { const sidebar = $('sidebar'); if(sidebar) sidebar.classList.remove('open'); const overlay = $('sidebar-overlay'); if(overlay) overlay.classList.remove('active'); }
 };
-window.toggleMenu = () => { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('active'); };
+window.toggleMenu = () => { $('sidebar').classList.toggle('open'); $('sidebar-overlay').classList.toggle('active'); };
 window.toggleModPanel = v => setDisplay('panel-mod', v === 'Creación' ? 'none' : 'grid');
 window.closeModal = () => setDisplay('modal', 'none');
 window.cerrarModalAuditoria = () => setDisplay('modal-auditoria', 'none');
@@ -101,6 +108,9 @@ window.verificarAlertasAuditoria = (auditoriasArray) => {
     });
 };
 
+// ==========================================
+// 2. CONEXIÓN Y CARGA DE DATOS EN TIEMPO REAL
+// ==========================================
 window.cargarDatosCentrales = () => {
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "Usuarios"), (snap) => {
         allUsers = []; let htmlUsers = ""; let cbUsers = ""; let optUsers = ""; let optInvolucrados = '<option value="">-- Seleccionar --</option>';
@@ -111,13 +121,13 @@ window.cargarDatosCentrales = () => {
             optUsers += `<option value="${u.nombre}" data-email="${u.email}">${u.nombre} (${gers})</option>`;
             if(u.email) { optInvolucrados += `<option value="${u.email}">${u.nombre} (${gers})</option>`; }
         });
-        if (document.getElementById('tbody-users')) document.getElementById('tbody-users').innerHTML = htmlUsers;
-        if (document.getElementById('aud-auditado-list')) document.getElementById('aud-auditado-list').innerHTML = cbUsers;
-        if (document.getElementById('aud-auditor-list')) document.getElementById('aud-auditor-list').innerHTML = cbUsers;
-        if (document.getElementById('ah-auditor-list')) document.getElementById('ah-auditor-list').innerHTML = cbUsers;
-        if (document.getElementById('ah-lider')) document.getElementById('ah-lider').innerHTML = '<option value="">-- Seleccione Auditor Líder --</option>' + optUsers;
-        if (document.getElementById('sol-involucrado-sel')) document.getElementById('sol-involucrado-sel').innerHTML = optInvolucrados;
-        if (document.getElementById('m-new-involucrado-sel')) document.getElementById('m-new-involucrado-sel').innerHTML = optInvolucrados;
+        if ($('tbody-users')) $('tbody-users').innerHTML = htmlUsers;
+        if ($('aud-auditado-list')) $('aud-auditado-list').innerHTML = cbUsers;
+        if ($('aud-auditor-list')) $('aud-auditor-list').innerHTML = cbUsers;
+        if ($('ah-auditor-list')) $('ah-auditor-list').innerHTML = cbUsers;
+        if ($('ah-lider')) $('ah-lider').innerHTML = '<option value="">-- Seleccione Auditor Líder --</option>' + optUsers;
+        if ($('sol-involucrado-sel')) $('sol-involucrado-sel').innerHTML = optInvolucrados;
+        if ($('m-new-involucrado-sel')) $('m-new-involucrado-sel').innerHTML = optInvolucrados;
     });
 
     onSnapshot(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), (docSnap) => {
@@ -133,18 +143,18 @@ window.cargarDatosCentrales = () => {
         let deps = []; let gers = [];
         if(docSnap.exists()) { const d = docSnap.data(); deps = d.departamentos || []; gers = d.gerencias || []; }
         allDepartamentos = deps; let gHtml = ""; gers.forEach(g => gHtml += `<option value="${g}">${g}</option>`);
-        if(document.getElementById('d-ger-sel')) document.getElementById('d-ger-sel').innerHTML = gHtml;
-        if(document.getElementById('sol-ger')) document.getElementById('sol-ger').innerHTML = '<option value="">-- Seleccionar --</option>' + gHtml;
-        if(document.getElementById('list-ger')) document.getElementById('list-ger').innerHTML = gers.map((g, idx) => `<div class="settings-item"><span>${g}</span><button class="btn-icon-danger" onclick="window.eliminarGerencia(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
-        if(document.getElementById('list-dep')) document.getElementById('list-dep').innerHTML = deps.map((dep, idx) => `<div class="settings-item"><span>${dep.nombre} <small>(${dep.gerencia})</small></span><button class="btn-icon-danger" onclick="window.eliminarDepartamento(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
-        if(document.getElementById('u-ger-list')) document.getElementById('u-ger-list').innerHTML = gers.map(g => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${g}" style="margin:0; width:auto;"> ${g}</label>`).join('');
+        if($('d-ger-sel')) $('d-ger-sel').innerHTML = gHtml;
+        if($('sol-ger')) $('sol-ger').innerHTML = '<option value="">-- Seleccionar --</option>' + gHtml;
+        if($('list-ger')) $('list-ger').innerHTML = gers.map((g, idx) => `<div class="settings-item"><span>${g}</span><button class="btn-icon-danger" onclick="window.eliminarGerencia(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
+        if($('list-dep')) $('list-dep').innerHTML = deps.map((dep, idx) => `<div class="settings-item"><span>${dep.nombre} <small>(${dep.gerencia})</small></span><button class="btn-icon-danger" onclick="window.eliminarDepartamento(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`).join('');
+        if($('u-ger-list')) $('u-ger-list').innerHTML = gers.map(g => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${g}" style="margin:0; width:auto;"> ${g}</label>`).join('');
     });
 
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), (snap) => { dataMaestro = []; snap.forEach(doc => { let d = doc.data(); d.docId = doc.id; dataMaestro.push(d); }); window.renderTablaMaestro(); });
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), (snap) => { globalSolicitudes = []; snap.forEach(doc => { let d = doc.data(); d.docId = doc.id; globalSolicitudes.push(d); }); window.renderTablasSolicitudes(); window.checkDailyAlerts(); });
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "Auditorias"), (snap) => {
         globalAllAuditorias = []; snap.forEach(doc => { let d = doc.data(); d.id = doc.id; globalAllAuditorias.push(d); });
-        let currentYear = new Date().getFullYear().toString(); let yearSelect = document.getElementById('aud-year-select');
+        let currentYear = new Date().getFullYear().toString(); let yearSelect = $('aud-year-select');
         if(yearSelect && yearSelect.options.length === 0) { yearSelect.innerHTML = `<option value="${currentYear}">${currentYear}</option><option value="nuevo">+ Añadir Año</option>`; }
         window.loadAuditPlan(yearSelect ? yearSelect.value : currentYear); window.renderTablaAuditorias(yearSelect ? yearSelect.value : currentYear);
     });
@@ -175,29 +185,32 @@ window.renderTablasSolicitudes = () => {
         }
     });
 
-    if(document.getElementById('tbody-historial')) document.getElementById('tbody-historial').innerHTML = htmlHist;
-    if(document.getElementById('tbody-all')) document.getElementById('tbody-all').innerHTML = htmlAll;
-    if(document.getElementById('tbody-gestionar')) document.getElementById('tbody-gestionar').innerHTML = htmlGest;
+    if($('tbody-historial')) $('tbody-historial').innerHTML = htmlHist;
+    if($('tbody-all')) $('tbody-all').innerHTML = htmlAll;
+    if($('tbody-gestionar')) $('tbody-gestionar').innerHTML = htmlGest;
 
-    if(document.getElementById('dash-mis-tot')) {
+    if($('dash-mis-tot')) {
         let misSol = sorted.filter(s => s.uid === currentUser.usuario || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase())));
-        document.getElementById('dash-mis-tot').innerText = misSol.length;
-        document.getElementById('dash-mis-pend').innerText = misSol.filter(s => !s.estado.includes('Aprobado') && s.estado !== 'Anulado' && s.estado !== 'Rechazado').length;
-        document.getElementById('dash-mis-ok').innerText = misSol.filter(s => s.estado.includes('Aprobado Final')).length;
-        document.getElementById('dash-mis-rech').innerText = misSol.filter(s => s.estado === 'Anulado' || s.estado === 'Rechazado').length;
+        $('dash-mis-tot').innerText = misSol.length;
+        $('dash-mis-pend').innerText = misSol.filter(s => !s.estado.includes('Aprobado') && s.estado !== 'Anulado' && s.estado !== 'Rechazado').length;
+        $('dash-mis-ok').innerText = misSol.filter(s => s.estado.includes('Aprobado Final')).length;
+        $('dash-mis-rech').innerText = misSol.filter(s => s.estado === 'Anulado' || s.estado === 'Rechazado').length;
     }
-    if(document.getElementById('dash-glob-tot') && currentUser.permisos && (currentUser.permisos.admin || currentUser.permisos.p_gest_sgc)) {
-        setDisplay('dash-admin-section', 'block'); document.getElementById('dash-glob-tot').innerText = sorted.length;
-        document.getElementById('dash-glob-pend').innerText = sorted.filter(s => !s.estado.includes('Aprobado') && s.estado !== 'Anulado' && s.estado !== 'Rechazado').length;
-        document.getElementById('dash-glob-ok').innerText = sorted.filter(s => s.estado.includes('Aprobado Final')).length;
-        document.getElementById('dash-glob-rech').innerText = sorted.filter(s => s.estado === 'Anulado' || s.estado === 'Rechazado').length;
+    if($('dash-glob-tot') && currentUser.permisos && (currentUser.permisos.admin || currentUser.permisos.p_gest_sgc)) {
+        setDisplay('dash-admin-section', 'block'); $('dash-glob-tot').innerText = sorted.length;
+        $('dash-glob-pend').innerText = sorted.filter(s => !s.estado.includes('Aprobado') && s.estado !== 'Anulado' && s.estado !== 'Rechazado').length;
+        $('dash-glob-ok').innerText = sorted.filter(s => s.estado.includes('Aprobado Final')).length;
+        $('dash-glob-rech').innerText = sorted.filter(s => s.estado === 'Anulado' || s.estado === 'Rechazado').length;
     }
 };
 
+// ==========================================
+// 3. AUTENTICACIÓN Y SESIÓN
+// ==========================================
 window.completarLoginUI = () => {
     setDisplay('login-screen', 'none'); setDisplay('sidebar', 'flex'); setDisplay('main', 'block');
-    const currNameEl = document.getElementById('curr-name'); if(currNameEl) currNameEl.innerText = currentUser.nombre || 'Usuario';
-    const currGerEl = document.getElementById('curr-ger'); if(currGerEl) currGerEl.innerText = currentUser.gerencias ? currentUser.gerencias.join(', ') : (currentUser.gerencia || 'Sin Gerencia');
+    const currNameEl = $('curr-name'); if(currNameEl) currNameEl.innerText = currentUser.nombre || 'Usuario';
+    const currGerEl = $('curr-ger'); if(currGerEl) currGerEl.innerText = currentUser.gerencias ? currentUser.gerencias.join(', ') : (currentUser.gerencia || 'Sin Gerencia');
 
     const p = currentUser.permisos || {};
     setDisplay('admin-only', (p.admin || p.p_users || p.p_struct) ? 'block' : 'none');
@@ -211,18 +224,18 @@ window.completarLoginUI = () => {
     setDisplay('btn-nueva-aud', isAdminAudit ? 'inline-flex' : 'none');
 
     window.cargarDatosCentrales();
-    const navDash = document.getElementById('nav-dash'); if(navDash) window.cambiarVista('sec-dash', navDash);
+    const navDash = $('nav-dash'); if(navDash) window.cambiarVista('sec-dash', navDash);
 };
 
 window.logout = () => {
     localStorage.removeItem('sgc_session_user'); currentUser = null;
     setDisplay('sidebar', 'none'); setDisplay('main', 'none'); setDisplay('login-screen', 'flex');
-    if(document.getElementById('login-user')) document.getElementById('login-user').value = '';
-    if(document.getElementById('login-pass')) document.getElementById('login-pass').value = '';
+    if($('login-user')) $('login-user').value = '';
+    if($('login-pass')) $('login-pass').value = '';
 };
 
 window.iniciarSesion = async () => {
-    const u = document.getElementById('login-user').value.toLowerCase().trim(); const p = document.getElementById('login-pass').value.trim();
+    const u = $('login-user').value.toLowerCase().trim(); const p = $('login-pass').value.trim();
     if (!u || !p) { alert("Por favor, ingresa tu usuario y contraseña."); return; }
     window.showLoading();
     try {
@@ -242,46 +255,48 @@ window.iniciarSesion = async () => {
     } catch (error) { alert("Hubo un problema al conectar con la base de datos."); } finally { window.hideLoading(); }
 };
 
+// ==========================================
+// 4. MÓDULO DE USUARIOS Y ESTRUCTURA
+// ==========================================
 window.cargarUsuarioParaEditar = (usuarioId) => {
     const u = allUsers.find(x => x.usuario === usuarioId); if(!u) return;
-    document.getElementById('user-form-title').innerText = "Editando Usuario: " + u.usuario;
-    document.getElementById('u-nom').value = u.nombre || ''; document.getElementById('u-usr').value = u.usuario || ''; document.getElementById('u-usr').disabled = true; document.getElementById('u-pas').value = u.pass || ''; document.getElementById('u-rol').value = u.role || ''; document.getElementById('u-email').value = u.email || '';
+    $('user-form-title').innerText = "Editando Usuario: " + u.usuario;
+    $('u-nom').value = u.nombre || ''; $('u-usr').value = u.usuario || ''; $('u-usr').disabled = true; $('u-pas').value = u.pass || ''; $('u-rol').value = u.role || ''; $('u-email').value = u.email || '';
     
     let gers = u.gerencias || []; if(!u.gerencias && u.gerencia) gers = [u.gerencia];
-    document.querySelectorAll('#u-ger-list input[type="checkbox"]').forEach(cb => { cb.checked = gers.includes(cb.value); });
+    $$('#u-ger-list input[type="checkbox"]').forEach(cb => { cb.checked = gers.includes(cb.value); });
     
     const p = u.permisos || {};
-    document.getElementById('p-solicitar').checked = p.can_solicit || false; document.getElementById('p-ver-propias').checked = p.p_ver_propias || false; document.getElementById('p-ver-ger').checked = p.p_ver_ger || false; document.getElementById('p-ver-todas').checked = p.p_ver_todas || false; document.getElementById('p-paso1').checked = p.p_paso1 || false; document.getElementById('p-paso2').checked = p.p_paso2 || false; document.getElementById('p-paso4').checked = p.p_paso4 || false; document.getElementById('p-gest-sgc').checked = p.p_gest_sgc || false; document.getElementById('p-ger-apr').checked = p.p_ger_apr || false; document.getElementById('p-users').checked = p.p_users || false; document.getElementById('p-struct').checked = p.p_struct || false; document.getElementById('p-ver-listado').checked = p.p_ver_listado || false; document.getElementById('p-audit-ver').checked = p.p_audit_ver || false; document.getElementById('p-audit-admin').checked = p.p_audit_admin || false; document.getElementById('p-audit-auditor').checked = p.p_audit_auditor || false; document.getElementById('p-audit-dueno').checked = p.p_audit_dueno || false; document.getElementById('p-admin').checked = p.admin || false;
-    document.getElementById('btnSaveUser').innerText = "ACTUALIZAR USUARIO"; setDisplay('btnCancelEdit', 'inline-flex'); window.scrollTo({ top: 0, behavior: 'smooth' });
+    $('p-solicitar').checked = p.can_solicit || false; $('p-ver-propias').checked = p.p_ver_propias || false; $('p-ver-ger').checked = p.p_ver_ger || false; $('p-ver-todas').checked = p.p_ver_todas || false; $('p-paso1').checked = p.p_paso1 || false; $('p-paso2').checked = p.p_paso2 || false; $('p-paso4').checked = p.p_paso4 || false; $('p-gest-sgc').checked = p.p_gest_sgc || false; $('p-ger-apr').checked = p.p_ger_apr || false; $('p-users').checked = p.p_users || false; $('p-struct').checked = p.p_struct || false; $('p-ver-listado').checked = p.p_ver_listado || false; $('p-audit-ver').checked = p.p_audit_ver || false; $('p-audit-admin').checked = p.p_audit_admin || false; $('p-audit-auditor').checked = p.p_audit_auditor || false; $('p-audit-dueno').checked = p.p_audit_dueno || false; $('p-admin').checked = p.admin || false;
+    $('btnSaveUser').innerText = "ACTUALIZAR USUARIO"; setDisplay('btnCancelEdit', 'inline-flex'); window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 window.resetUserForm = () => {
-    document.getElementById('user-form-title').innerText = "Registrar / Editar Usuario";
-    document.getElementById('u-nom').value = ""; document.getElementById('u-usr').value = ""; document.getElementById('u-usr').disabled = false; document.getElementById('u-pas').value = "123"; document.getElementById('u-rol').value = ""; document.getElementById('u-email').value = "";
-    document.querySelectorAll('#u-ger-list input[type="checkbox"]').forEach(cb => cb.checked = false);
-    document.getElementById('p-solicitar').checked = false; document.getElementById('p-ver-propias').checked = true; document.getElementById('p-ver-ger').checked = false; document.getElementById('p-ver-todas').checked = false; document.getElementById('p-paso1').checked = false; document.getElementById('p-paso2').checked = false; document.getElementById('p-paso4').checked = false; document.getElementById('p-gest-sgc').checked = false; document.getElementById('p-ger-apr').checked = false; document.getElementById('p-users').checked = false; document.getElementById('p-struct').checked = false; document.getElementById('p-ver-listado').checked = false; document.getElementById('p-audit-ver').checked = false; document.getElementById('p-audit-admin').checked = false; document.getElementById('p-audit-auditor').checked = false; document.getElementById('p-audit-dueno').checked = false; document.getElementById('p-admin').checked = false;
-    document.getElementById('btnSaveUser').innerText = "GUARDAR USUARIO"; setDisplay('btnCancelEdit', 'none');
+    $('user-form-title').innerText = "Registrar / Editar Usuario";
+    $('u-nom').value = ""; $('u-usr').value = ""; $('u-usr').disabled = false; $('u-pas').value = "123"; $('u-rol').value = ""; $('u-email').value = "";
+    $$('#u-ger-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+    $('p-solicitar').checked = false; $('p-ver-propias').checked = true; $('p-ver-ger').checked = false; $('p-ver-todas').checked = false; $('p-paso1').checked = false; $('p-paso2').checked = false; $('p-paso4').checked = false; $('p-gest-sgc').checked = false; $('p-ger-apr').checked = false; $('p-users').checked = false; $('p-struct').checked = false; $('p-ver-listado').checked = false; $('p-audit-ver').checked = false; $('p-audit-admin').checked = false; $('p-audit-auditor').checked = false; $('p-audit-dueno').checked = false; $('p-admin').checked = false;
+    $('btnSaveUser').innerText = "GUARDAR USUARIO"; setDisplay('btnCancelEdit', 'none');
 };
 
 window.guardarUsuario = async () => {
-    const nom = document.getElementById('u-nom').value.trim(); const usr = document.getElementById('u-usr').value.toLowerCase().trim(); const pas = document.getElementById('u-pas').value.trim(); const rol = document.getElementById('u-rol').value.trim(); const email = document.getElementById('u-email').value.trim().toLowerCase();
-    const gerenciasSel = []; document.querySelectorAll('#u-ger-list input:checked').forEach(cb => { gerenciasSel.push(cb.value); });
-    
+    const nom = $('u-nom').value.trim(); const usr = $('u-usr').value.toLowerCase().trim(); const pas = $('u-pas').value.trim(); const rol = $('u-rol').value.trim(); const email = $('u-email').value.trim().toLowerCase();
+    const gerenciasSel = []; $$('#u-ger-list input:checked').forEach(cb => { gerenciasSel.push(cb.value); });
     if(!nom || !usr || !pas || gerenciasSel.length === 0) return alert("Nombre, Usuario, Contraseña y al menos 1 Gerencia son obligatorios.");
-    const permisos = { can_solicit: document.getElementById('p-solicitar').checked, p_ver_propias: document.getElementById('p-ver-propias').checked, p_ver_ger: document.getElementById('p-ver-ger').checked, p_ver_todas: document.getElementById('p-ver-todas').checked, p_paso1: document.getElementById('p-paso1').checked, p_paso2: document.getElementById('p-paso2').checked, p_paso4: document.getElementById('p-paso4').checked, p_gest_sgc: document.getElementById('p-gest-sgc').checked, p_ger_apr: document.getElementById('p-ger-apr').checked, p_users: document.getElementById('p-users').checked, p_struct: document.getElementById('p-struct').checked, p_ver_listado: document.getElementById('p-ver-listado').checked, p_audit_ver: document.getElementById('p-audit-ver').checked, p_audit_admin: document.getElementById('p-audit-admin').checked, p_audit_auditor: document.getElementById('p-audit-auditor').checked, p_audit_dueno: document.getElementById('p-audit-dueno').checked, admin: document.getElementById('p-admin').checked };
+    const permisos = { can_solicit: $('p-solicitar').checked, p_ver_propias: $('p-ver-propias').checked, p_ver_ger: $('p-ver-ger').checked, p_ver_todas: $('p-ver-todas').checked, p_paso1: $('p-paso1').checked, p_paso2: $('p-paso2').checked, p_paso4: $('p-paso4').checked, p_gest_sgc: $('p-gest-sgc').checked, p_ger_apr: $('p-ger-apr').checked, p_users: $('p-users').checked, p_struct: $('p-struct').checked, p_ver_listado: $('p-ver-listado').checked, p_audit_ver: $('p-audit-ver').checked, p_audit_admin: $('p-audit-admin').checked, p_audit_auditor: $('p-audit-auditor').checked, p_audit_dueno: $('p-audit-dueno').checked, admin: $('p-admin').checked };
     window.showLoading();
     const docRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", usr); const snap = await getDoc(docRef);
-    if(snap.exists() && document.getElementById('user-form-title').innerText.includes("Registrar")) { window.hideLoading(); return alert("Ese ID de usuario ya existe. Elija otro o edítelo desde la tabla."); }
+    if(snap.exists() && $('user-form-title').innerText.includes("Registrar")) { window.hideLoading(); return alert("Ese ID de usuario ya existe. Elija otro o edítelo desde la tabla."); }
     await setDoc(docRef, { nombre: nom, usuario: usr, pass: pas, gerencias: gerenciasSel, gerencia: gerenciasSel[0], role: rol, email: email, permisos: permisos });
     window.resetUserForm(); window.hideLoading(); alert("Usuario guardado exitosamente.");
 };
 
 window.agregarGerencia = async () => {
-    let val = document.getElementById('g-nom').value.trim().toUpperCase(); if(!val) return; window.showLoading(); let gers = [];
+    let val = $('g-nom').value.trim().toUpperCase(); if(!val) return; window.showLoading(); let gers = [];
     const docRef = doc(db, "artifacts", appId, "public", "data", "Configuracion", "Estructura"); const snap = await getDoc(docRef);
     if(snap.exists() && snap.data().gerencias) gers = snap.data().gerencias;
     if(gers.includes(val)) { window.hideLoading(); return alert("Esa Gerencia ya existe."); }
-    gers.push(val); await setDoc(docRef, { gerencias: gers }, {merge: true}); document.getElementById('g-nom').value = ""; window.hideLoading();
+    gers.push(val); await setDoc(docRef, { gerencias: gers }, {merge: true}); $('g-nom').value = ""; window.hideLoading();
 };
 window.eliminarGerencia = async (idx) => {
     if(!confirm("¿Eliminar Gerencia?")) return; window.showLoading();
@@ -289,11 +304,11 @@ window.eliminarGerencia = async (idx) => {
     let gers = snap.data().gerencias; gers.splice(idx, 1); await setDoc(docRef, { gerencias: gers }, {merge: true}); window.hideLoading();
 };
 window.agregarDepartamento = async () => {
-    let ger = document.getElementById('d-ger-sel').value; let nom = document.getElementById('d-nom').value.trim();
+    let ger = $('d-ger-sel').value; let nom = $('d-nom').value.trim();
     if(!ger || !nom) return alert("Seleccione una Gerencia y escriba el nombre del Depto."); window.showLoading(); let deps = [];
     const docRef = doc(db, "artifacts", appId, "public", "data", "Configuracion", "Estructura"); const snap = await getDoc(docRef);
     if(snap.exists() && snap.data().departamentos) deps = snap.data().departamentos;
-    deps.push({ nombre: nom, gerencia: ger }); await setDoc(docRef, { departamentos: deps }, {merge: true}); document.getElementById('d-nom').value = ""; window.hideLoading();
+    deps.push({ nombre: nom, gerencia: ger }); await setDoc(docRef, { departamentos: deps }, {merge: true}); $('d-nom').value = ""; window.hideLoading();
 };
 window.eliminarDepartamento = async (idx) => {
     if(!confirm("¿Eliminar Departamento?")) return; window.showLoading();
@@ -301,43 +316,41 @@ window.eliminarDepartamento = async (idx) => {
     let deps = snap.data().departamentos; deps.splice(idx, 1); await setDoc(docRef, { departamentos: deps }, {merge: true}); window.hideLoading();
 };
 
+// ==========================================
+// 5. MÓDULO CONFIGURACIÓN DINÁMICA
+// ==========================================
 window.actualizarSelectTiposDoc = () => {
     let html = '<option value="">-- Seleccione --</option>'; tiposDocumento.forEach(t => html += `<option value="${t}">${t}</option>`);
-    if(document.getElementById('sol-tipo-doc')) document.getElementById('sol-tipo-doc').innerHTML = html;
+    if($('sol-tipo-doc')) $('sol-tipo-doc').innerHTML = html;
 };
-
 window.renderListasConfig = () => {
-    let hCol = ""; columnasMaestro.forEach((c, idx) => { 
-        let cName = typeof c === 'string' ? c : c.nombre; let cType = typeof c === 'string' ? 'text' : c.tipo;
-        hCol += `<div class="settings-item"><span>${cName} <small style="color:#94a3b8; font-size:10px;">(${cType})</small></span><button class="btn-icon-danger" onclick="window.eliminarColumna(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; 
-    });
-    if(document.getElementById('list-columnas')) document.getElementById('list-columnas').innerHTML = hCol;
+    let hCol = ""; columnasMaestro.forEach((c, idx) => { let cName = typeof c === 'string' ? c : c.nombre; let cType = typeof c === 'string' ? 'text' : c.tipo; hCol += `<div class="settings-item"><span>${cName} <small style="color:#94a3b8; font-size:10px;">(${cType})</small></span><button class="btn-icon-danger" onclick="window.eliminarColumna(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; });
+    if($('list-columnas')) $('list-columnas').innerHTML = hCol;
     let hEst = ""; estatusMaestro.forEach((e, idx) => { hEst += `<div class="settings-item"><span>${e}</span><button class="btn-icon-danger" onclick="window.eliminarEstatus(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; });
-    if(document.getElementById('list-estatus')) document.getElementById('list-estatus').innerHTML = hEst;
+    if($('list-estatus')) $('list-estatus').innerHTML = hEst;
     let hTipos = ""; tiposDocumento.forEach((t, idx) => { hTipos += `<div class="settings-item"><span>${t}</span><button class="btn-icon-danger" onclick="window.eliminarTipoDoc(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button></div>`; });
-    if(document.getElementById('list-tipos-doc')) document.getElementById('list-tipos-doc').innerHTML = hTipos;
+    if($('list-tipos-doc')) $('list-tipos-doc').innerHTML = hTipos;
     window.actualizarSelectTiposDoc();
 };
-
 window.agregarTipoDoc = async () => {
-    let val = document.getElementById('doc-tipo-nom').value.trim(); if(!val) return; if(tiposDocumento.includes(val)) return alert("Ese tipo de documento ya existe.");
-    tiposDocumento.push(val); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { tiposDoc: tiposDocumento }, {merge: true}); document.getElementById('doc-tipo-nom').value = "";
+    let val = $('doc-tipo-nom').value.trim(); if(!val) return; if(tiposDocumento.includes(val)) return alert("Ese tipo de documento ya existe.");
+    tiposDocumento.push(val); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { tiposDoc: tiposDocumento }, {merge: true}); $('doc-tipo-nom').value = "";
 };
 window.eliminarTipoDoc = async (idx) => {
     if(!confirm("¿Eliminar este tipo de documento?")) return; tiposDocumento.splice(idx, 1);
     await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { tiposDoc: tiposDocumento }, {merge: true});
 };
 window.agregarColumna = async () => {
-    let val = document.getElementById('col-nom').value.trim(); let tipo = document.getElementById('col-tipo').value; if(!val) return; if (columnasMaestro.some(c => (typeof c === 'string' ? c : c.nombre) === val)) return alert("Esa columna ya existe.");
-    columnasMaestro.push({nombre: val, tipo: tipo}); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: columnasMaestro }, {merge: true}); document.getElementById('col-nom').value = "";
+    let val = $('col-nom').value.trim(); let tipo = $('col-tipo').value; if(!val) return; if (columnasMaestro.some(c => (typeof c === 'string' ? c : c.nombre) === val)) return alert("Esa columna ya existe.");
+    columnasMaestro.push({nombre: val, tipo: tipo}); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: columnasMaestro }, {merge: true}); $('col-nom').value = "";
 };
 window.eliminarColumna = async (idx) => {
     if(!confirm("¿Eliminar columna?")) return; columnasMaestro.splice(idx, 1);
     await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { columnas: columnasMaestro }, {merge: true});
 };
 window.agregarEstatus = async () => {
-    let val = document.getElementById('est-nom').value.trim(); if(!val) return; if (estatusMaestro.includes(val)) return alert("Ese estatus ya existe.");
-    estatusMaestro.push(val); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { estatus: estatusMaestro }, {merge: true}); document.getElementById('est-nom').value = "";
+    let val = $('est-nom').value.trim(); if(!val) return; if (estatusMaestro.includes(val)) return alert("Ese estatus ya existe.");
+    estatusMaestro.push(val); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "MaestroSettings"), { estatus: estatusMaestro }, {merge: true}); $('est-nom').value = "";
 };
 window.eliminarEstatus = async (idx) => {
     if(!confirm("¿Eliminar este estatus?")) return; estatusMaestro.splice(idx, 1);
@@ -346,30 +359,30 @@ window.eliminarEstatus = async (idx) => {
 
 window.renderNormaOEA = () => {
     const p = currentUser ? currentUser.permisos || {} : {}; let isAdminAudit = p.admin || p.p_audit_admin || p.p_gest_sgc;
-    const linkCont = document.getElementById('oea-manual-link');
+    const linkCont = $('oea-manual-link');
     if(linkCont) {
         if(manualOEA.url) { linkCont.innerHTML = `<a href="#" onclick="window.abrirDocumento('${manualOEA.url}', '${manualOEA.nombre}'); return false;" class="btn btn-info" style="font-size:14px; text-decoration:none;"><span class="material-icons-round" style="font-size:16px; margin-right:5px;">visibility</span> Ver ${manualOEA.nombre}</a>`; }
         else { linkCont.innerHTML = "No hay manual subido actualmente."; }
     }
     setDisplay('oea-manual-upload-box', isAdminAudit ? 'flex' : 'none'); setDisplay('oea-req-upload-box', isAdminAudit ? 'flex' : 'none');
     
-    const listCont = document.getElementById('oea-req-list-container');
+    const listCont = $('oea-req-list-container');
     if(listCont) listCont.innerHTML = requisitosOEA.map((r, idx) => `<div class="settings-item"><span>${r}</span>${isAdminAudit ? `<button class="btn-icon-danger" onclick="window.eliminarRequisitoOEA(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button>` : ''}</div>`).join('');
     
-    const reqList = document.getElementById('aud-req-list');
+    const reqList = $('aud-req-list');
     if(reqList) reqList.innerHTML = requisitosOEA.map(r => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${r}" style="margin:0; width:auto; flex-shrink:0;"> ${r}</label>`).join('');
 };
 
 window.subirManualOEA = async () => {
-    const f = document.getElementById('oea-file').files[0]; if(!f) return alert("Selecciona el documento."); window.showLoading();
+    const f = $('oea-file').files[0]; if(!f) return alert("Selecciona el documento."); window.showLoading();
     let url = await window.uploadToCloudinary(f); if(!url) { window.hideLoading(); return alert("Error al subir el archivo."); }
     await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { manual_url: url, manual_nombre: f.name }, {merge: true});
-    document.getElementById('oea-file').value = ""; window.hideLoading(); alert("Manual Oficial actualizado.");
+    $('oea-file').value = ""; window.hideLoading(); alert("Manual Oficial actualizado.");
 };
 
 window.agregarRequisitoOEA = async () => {
-    const v = document.getElementById('oea-req-input').value.trim(); if(!v) return; if(requisitosOEA.includes(v)) return alert("Ese requisito ya está en la lista.");
-    requisitosOEA.push(v); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { requisitos: requisitosOEA }, {merge: true}); document.getElementById('oea-req-input').value = "";
+    const v = $('oea-req-input').value.trim(); if(!v) return; if(requisitosOEA.includes(v)) return alert("Ese requisito ya está en la lista.");
+    requisitosOEA.push(v); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { requisitos: requisitosOEA }, {merge: true}); $('oea-req-input').value = "";
 };
 
 window.eliminarRequisitoOEA = async (idx) => {
@@ -377,8 +390,11 @@ window.eliminarRequisitoOEA = async (idx) => {
     await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { requisitos: requisitosOEA }, {merge: true});
 };
 
+// ==========================================
+// 6. MÓDULO LISTADO MAESTRO
+// ==========================================
 window.renderTablaMaestro = () => {
-    const thead = document.getElementById("thead-listado-maestro"); const tbody = document.getElementById("tbody-listado-maestro"); if(!thead || !tbody) return;
+    const thead = $('thead-listado-maestro'); const tbody = $('tbody-listado-maestro'); if(!thead || !tbody) return;
     let headHTML = "<tr>"; 
     columnasMaestro.forEach(col => { let cName = typeof col === 'string' ? col : col.nombre; headHTML += `<th>${cName}</th>`; }); 
     if(currentUser && currentUser.permisos && (currentUser.permisos.p_gest_sgc || currentUser.permisos.admin)) { headHTML += `<th class="no-export">Acción</th>`; } headHTML += "</tr>"; thead.innerHTML = headHTML;
@@ -406,9 +422,8 @@ window.renderTablaMaestro = () => {
 
 window.abrirModalListadoMaestro = (docId = null) => {
     editandoMaestroId = docId; 
-    const titleEl = document.getElementById('lm-modal-title');
-    if (titleEl) titleEl.innerText = docId ? "Editar Documento Maestro" : "Nuevo Documento Maestro";
-    const container = document.getElementById('dinamic-form-maestro'); let datosEdit = {};
+    const titleEl = $('lm-modal-title'); if (titleEl) titleEl.innerText = docId ? "Editar Documento Maestro" : "Nuevo Documento Maestro";
+    const container = $('dinamic-form-maestro'); let datosEdit = {};
     if(docId) { const item = dataMaestro.find(x => x.docId === docId); if(item) datosEdit = item; }
     let formHtml = "";
     columnasMaestro.forEach(col => {
@@ -422,7 +437,7 @@ window.abrirModalListadoMaestro = (docId = null) => {
 };
 
 window.guardarRegistroMaestro = async () => {
-    let data = {}; columnasMaestro.forEach(col => { let cName = typeof col === 'string' ? col : col.nombre; let inEl = document.getElementById(`in_dyn_${cName}`); if(inEl) data[cName] = inEl.value; });
+    let data = {}; columnasMaestro.forEach(col => { let cName = typeof col === 'string' ? col : col.nombre; let inEl = $(`in_dyn_${cName}`); if(inEl) data[cName] = inEl.value; });
     window.showLoading();
     if(editandoMaestroId) { await updateDoc(doc(db, "artifacts", appId, "public", "data", "ListadoMaestro", editandoMaestroId), data); } 
     else { data.registrado_por = currentUser.nombre; data.fecha_registro = new Date().toISOString(); await addDoc(collection(db, "artifacts", appId, "public", "data", "ListadoMaestro"), data); }
@@ -430,12 +445,12 @@ window.guardarRegistroMaestro = async () => {
 };
 
 window.subirArchivoGenericoLM = async () => {
-    const f = document.getElementById('lm-generic-file').files[0]; if(!f) return alert("Selecciona un archivo primero.");
+    const f = $('lm-generic-file').files[0]; if(!f) return alert("Selecciona un archivo primero.");
     window.showLoading(); let url = await window.uploadToCloudinary(f); if(!url) { window.hideLoading(); return alert("Hubo un error al subir el archivo."); }
     window.hideLoading();
-    const inputs = Array.from(document.querySelectorAll("#dinamic-form-maestro input")); const targetInput = inputs.find(el => el.id.toLowerCase().includes('ubicaci') || el.id.toLowerCase().includes('archivo'));
+    const inputs = Array.from($$("#dinamic-form-maestro input")); const targetInput = inputs.find(el => el.id.toLowerCase().includes('ubicaci') || el.id.toLowerCase().includes('archivo'));
     if(targetInput) { targetInput.value = url; alert("Archivo subido y enlace colocado."); } else { alert("Archivo subido. Copia este enlace:\n" + url); }
-    document.getElementById('lm-generic-file').value = "";
+    $('lm-generic-file').value = "";
 };
 
 window.exportarExcelListado = () => {
@@ -449,68 +464,64 @@ window.exportarExcelListado = () => {
 // ==========================================
 window.actualizarGerenteSelect = (gSelected) => {
     const gerentes = allUsers.filter(u => u.gerencias && u.gerencias.includes(gSelected) && u.permisos && u.permisos.p_ger_apr === true);
-    if (gerentes && gerentes.length > 0) { 
-        document.getElementById('sol-gerente-display').value = gerentes.map(g => g.nombre).join(', '); document.getElementById('sol-email-gerente').value = gerentes.map(g => g.email || '').filter(e=>e).join(', ') || "Sin Email"; 
-    } else { 
-        document.getElementById('sol-gerente-display').value = "No asignado"; document.getElementById('sol-email-gerente').value = ""; 
-    }
-    const depSelect = document.getElementById('sol-dep'); let depHtml = "<option value=''>-- Seleccionar Departamento --</option>";
+    if (gerentes && gerentes.length > 0) { $('sol-gerente-display').value = gerentes.map(g => g.nombre).join(', '); $('sol-email-gerente').value = gerentes.map(g => g.email || '').filter(e=>e).join(', ') || "Sin Email"; } 
+    else { $('sol-gerente-display').value = "No asignado"; $('sol-email-gerente').value = ""; }
+    const depSelect = $('sol-dep'); let depHtml = "<option value=''>-- Seleccionar Departamento --</option>";
     const depsFiltrados = allDepartamentos.filter(d => d.gerencia === gSelected); depsFiltrados.forEach(d => { depHtml += `<option value="${d.nombre}">${d.nombre}</option>`; });
     depSelect.innerHTML = depHtml;
 };
 
 window.crearSolicitud = async () => {
-    const tit = document.getElementById('sol-tit').value; const gerTarget = document.getElementById('sol-ger').value; if(!tit) return alert("Título obligatorio"); 
-    window.showLoading(); const f = document.getElementById('sol-file');
-    let fileName = f.files[0] ? f.files[0].name : ""; let url = null; 
+    const tit = $('sol-tit').value; const gerTarget = $('sol-ger').value; if(!tit) return alert("Título obligatorio"); 
+    window.showLoading(); const f = $('sol-file'); let fileName = f.files[0] ? f.files[0].name : ""; let url = null; 
     if (f.files[0]) { url = await window.uploadToCloudinary(f.files[0]); if (!url) { window.hideLoading(); return alert("Error al subir archivo."); } }
-    
     let extraEmails = []; if(selectedDocData && selectedDocData.involucrados) extraEmails = selectedDocData.involucrados;
-    const fci = await window.getNextFCI(); const gerenteEmailVisible = document.getElementById('sol-email-gerente').value; const now = new Date().toISOString();
-    
-    const data = { customId: fci, titulo: tit, accion: document.getElementById('sol-accion').value, tipoDoc: document.getElementById('sol-tipo-doc').value, prioridad: document.getElementById('sol-prioridad').value, gerencia: gerTarget, departamento: document.getElementById('sol-dep').value, motivo: document.getElementById('sol-motivo').value, cod_ref: document.getElementById('sol-cod-prev').value, ver_ref: document.getElementById('sol-ver-prev').value, fecha_ref: document.getElementById('sol-fecha-prev').value, solicitante: currentUser.nombre, solicitante_email: currentUser.email, uid: currentUser.usuario, involucrados: extraEmails, idx: 0, estado: "Pendiente Documentado", fase_0_ini: now, adjunto: url, adjunto_nombre: fileName, chat: [{u: "SISTEMA", m: "Solicitud creada exitosamente.", t: new Date().toLocaleString()}], fecha: now };
-    
+    const fci = await window.getNextFCI(); const gerenteEmailVisible = $('sol-email-gerente').value; const now = new Date().toISOString();
+    const data = { customId: fci, titulo: tit, accion: $('sol-accion').value, tipoDoc: $('sol-tipo-doc').value, prioridad: $('sol-prioridad').value, gerencia: gerTarget, departamento: $('sol-dep').value, motivo: $('sol-motivo').value, cod_ref: $('sol-cod-prev').value, ver_ref: $('sol-ver-prev').value, fecha_ref: $('sol-fecha-prev').value, solicitante: currentUser.nombre, solicitante_email: currentUser.email, uid: currentUser.usuario, involucrados: extraEmails, idx: 0, estado: "Pendiente Documentado", fase_0_ini: now, adjunto: url, adjunto_nombre: fileName, chat: [{u: "SISTEMA", m: "Solicitud creada exitosamente.", t: new Date().toLocaleString()}], fecha: now };
     await addDoc(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), data); 
-    if(document.getElementById('lista-involucrados-tags')) document.getElementById('lista-involucrados-tags').innerHTML = ""; 
+    if($('lista-involucrados-tags')) $('lista-involucrados-tags').innerHTML = ""; 
     const toEmails = new Set([EMAIL_ADMIN_SGC, currentUser.email, ...extraEmails]); const destinatarios = { to: Array.from(toEmails).join(','), cc: gerenteEmailVisible }; 
     window.sendNotification(destinatarios, "Nueva Solicitud Creada", `El usuario ${currentUser.nombre} ha creado la solicitud ${fci} con prioridad ${data.prioridad}.`);
-    window.hideLoading(); alert("Solicitud Creada: " + fci); window.cambiarVista('sec-hist', document.getElementById('nav-hist'));
+    window.hideLoading(); alert("Solicitud Creada: " + fci); window.cambiarVista('sec-hist', $('nav-hist'));
 };
 
 window.verDetalle = async (id) => {
     selectedId = id; 
-    if(document.getElementById('m-extra-input')) document.getElementById('m-extra-input').innerHTML = ""; 
-    if(document.getElementById('m-comentario-libre')) document.getElementById('m-comentario-libre').innerHTML = "";
+    if($('m-extra-input')) $('m-extra-input').innerHTML = ""; 
+    if($('m-comentario-libre')) $('m-comentario-libre').innerHTML = "";
     
     const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", id)); selectedDocData = docSnap.data(); const s = selectedDocData; const p = currentUser.permisos;
     
-    if(document.getElementById('m-id')) document.getElementById('m-id').innerText = s.customId; 
-    if(document.getElementById('m-tit')) document.getElementById('m-tit').innerText = s.titulo; 
-    if(document.getElementById('m-sol')) document.getElementById('m-sol').innerText = s.solicitante;
+    if($('m-id')) $('m-id').innerText = s.customId; 
+    if($('m-tit')) $('m-tit').innerText = s.titulo; 
+    if($('m-sol')) $('m-sol').innerText = s.solicitante;
     
     let estadoStr = (s.estado || "").toUpperCase(); let isAprobadoFinalModal = estadoStr.includes('APROBADO FINAL'); let isCancelado = estadoStr === 'ANULADO' || estadoStr === 'RECHAZADO';
     let badgeClass = 'badge-info'; if(estadoStr.includes('APROBADO')) badgeClass = 'badge-success'; if(isCancelado) badgeClass = 'badge-danger'; if(estadoStr.includes('PENDIENTE')) badgeClass = 'badge-warning';
     
-    if(document.getElementById('m-est')) { document.getElementById('m-est').innerText = isAprobadoFinalModal ? 'APROBADO FINAL' : s.estado; document.getElementById('m-est').className = `badge ${badgeClass}`; }
-    if(document.getElementById('m-ger')) document.getElementById('m-ger').innerText = s.gerencia; 
-    if(document.getElementById('m-tipo')) document.getElementById('m-tipo').innerText = s.tipoDoc || "N/A"; 
+    if($('m-est')) { $('m-est').innerText = isAprobadoFinalModal ? 'APROBADO FINAL' : s.estado; $('m-est').className = `badge ${badgeClass}`; }
+    if($('m-ger')) $('m-ger').innerText = s.gerencia; 
+    if($('m-tipo')) $('m-tipo').innerText = s.tipoDoc || "N/A"; 
     
     let pr = s.prioridad || "Normal"; let bPr = pr === 'Alta' ? 'badge-danger' : (pr === 'Básica' ? 'badge-info' : 'badge-dark'); 
-    if(document.getElementById('m-prioridad')) { document.getElementById('m-prioridad').innerText = pr.toUpperCase(); document.getElementById('m-prioridad').className = `badge ${bPr}`; }
-    if(document.getElementById('m-accion')) document.getElementById('m-accion').innerText = s.accion; 
-    if(document.getElementById('m-jus')) document.getElementById('m-jus').innerText = s.motivo || s.justificacion || "Sin justificación";
+    if($('m-prioridad')) { $('m-prioridad').innerText = pr.toUpperCase(); $('m-prioridad').className = `badge ${bPr}`; }
+    if($('m-accion')) $('m-accion').innerText = s.accion; 
+    if($('m-jus')) $('m-jus').innerText = s.motivo || s.justificacion || "Sin justificación";
     
     let adjOrigName = s.adjunto_nombre || "Archivo Adjunto"; let dlUrl = s.adjunto ? window.getDownloadUrl(s.adjunto) : "#"; 
-    if(document.getElementById('m-file-link')) document.getElementById('m-file-link').innerHTML = s.adjunto ? `<a href="#" onclick="window.abrirDocumento('${dlUrl}', '${adjOrigName}'); return false;" class="file-link">📎 ${adjOrigName}</a>` : "Sin archivo";
+    if($('m-file-link')) $('m-file-link').innerHTML = s.adjunto ? `<a href="#" onclick="window.abrirDocumento('${dlUrl}', '${adjOrigName}'); return false;" class="file-link">📎 ${adjOrigName}</a>` : "Sin archivo";
     
     if(s.accion !== 'Creación') { 
         setDisplay('m-extra-panel', 'block'); 
-        if(document.getElementById('m-cod')) document.getElementById('m-cod').innerText = s.cod_ref; 
-        if(document.getElementById('m-ver')) document.getElementById('m-ver').innerText = s.ver_ref; 
-        if(document.getElementById('m-fecha-ult')) document.getElementById('m-fecha-ult').innerText = window.formatearFechaAbreviada(s.fecha_ref); 
+        if($('m-cod')) $('m-cod').innerText = s.cod_ref; 
+        if($('m-ver')) $('m-ver').innerText = s.ver_ref; 
+        if($('m-fecha-ult')) $('m-fecha-ult').innerText = window.formatearFechaAbreviada(s.fecha_ref); 
     } else { setDisplay('m-extra-panel', 'none'); }
 
-    for(let i=1; i<=4; i++) { const st = document.getElementById('s'+i); if(st) { st.className = 'step'; if(isCancelado) continue; if(i <= s.idx) st.classList.add('completed'); if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active'); } }
+    for(let i=1; i<=4; i++) { 
+        const st = $('s'+i); 
+        if(st) { st.className = 'step'; if(isCancelado) continue; if(i <= s.idx) st.classList.add('completed'); if(i === s.idx + 1 && !isAprobadoFinalModal) st.classList.add('active'); }
+    }
 
     const esAdminSGC = p.admin || p.p_gest_sgc; 
     const esGer = p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia); 
@@ -527,7 +538,7 @@ window.verDetalle = async (id) => {
             return `<div style="display:inline-flex; align-items:center; background:#e0f2fe; color:#0369a1; padding:4px 10px; border-radius:10px; font-size:11px; margin-right:5px; margin-bottom:5px;"><b>${dispName}</b> ${btnDel}</div>`;
         }).join(''); 
     }
-    if(document.getElementById('m-involucrados-list')) document.getElementById('m-involucrados-list').innerHTML = invHTML;
+    if($('m-involucrados-list')) $('m-involucrados-list').innerHTML = invHTML;
 
     const fDiff = (ini, fin) => {
         if(!ini || !fin) return "-";
@@ -536,10 +547,10 @@ window.verDetalle = async (id) => {
         return `${d}d ${h}h`;
     };
     
-    if (document.getElementById('m-tiempos-panel')) {
+    if ($('m-tiempos-panel')) {
         if(esAdminSGC) {
             setDisplay('m-tiempos-panel', 'block');
-            document.getElementById('m-tiempos-grid').innerHTML = `
+            $('m-tiempos-grid').innerHTML = `
                 <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 1 (Doc)</b><br>${fDiff(s.fase_0_ini, s.fase_0_fin)}</div>
                 <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 2 (Verif)</b><br>${fDiff(s.fase_1_ini, s.fase_1_fin)}</div>
                 <div style="background:white; padding:10px; border-radius:8px; font-size:11px; text-align:center; border:1px solid #ccc;"><b style="color:var(--primary);">Fase 3 (Gerencia)</b><br>${fDiff(s.fase_2_ini, s.fase_2_fin)}</div>
@@ -552,42 +563,56 @@ window.verDetalle = async (id) => {
     if(activo) { if (s.idx === 0 && (p.p_gest_sgc || p.p_paso1 || p.admin)) puedeGestionarSGC = true; if (s.idx === 1 && (p.p_gest_sgc || p.p_paso2 || p.admin)) puedeGestionarSGC = true; if (s.idx === 3 && (p.p_gest_sgc || p.p_paso4 || p.admin)) puedeGestionarSGC = true; }
     let puedeGestionarGerente = esGer && s.idx === 2 && activo; 
 
-    setDisplay('btn-reabrir', (esAdminSGC && !activo) ? 'inline-flex' : 'none'); setDisplay('m-add-involucrado-section', activo ? 'flex' : 'none'); setDisplay('m-actions', (puedeGestionarSGC || puedeGestionarGerente) ? 'block' : 'none'); setDisplay('applicant-actions', (esDuenio && activo) ? 'block' : 'none'); setDisplay('m-input-area', 'none'); setDisplay('general-comment-area', !isCancelado ? 'block' : 'none');
+    setDisplay('btn-reabrir', (esAdminSGC && !activo) ? 'inline-flex' : 'none');
+    setDisplay('m-add-involucrado-section', activo ? 'flex' : 'none');
+    setDisplay('m-actions', (puedeGestionarSGC || puedeGestionarGerente) ? 'block' : 'none');
+    setDisplay('applicant-actions', (esDuenio && activo) ? 'block' : 'none');
+    setDisplay('m-input-area', 'none');
+    setDisplay('general-comment-area', !isCancelado ? 'block' : 'none');
     
     const puedeDevolver = (puedeGestionarSGC || puedeGestionarGerente) && s.idx > 0 && activo; 
-    setDisplay('btn-devolver-paso', puedeDevolver ? 'inline-block' : 'none'); setDisplay('btn-anular', ((puedeGestionarSGC || esDuenio) && activo) ? 'inline-block' : 'none'); 
+    setDisplay('btn-devolver-paso', puedeDevolver ? 'inline-block' : 'none');
+    setDisplay('btn-anular', ((puedeGestionarSGC || esDuenio) && activo) ? 'inline-block' : 'none'); 
 
     if(s.fecha_esperada_cierre) { 
-        setDisplay('m-admin-sla', 'block'); if(document.getElementById('m-sla-date')) { document.getElementById('m-sla-date').value = s.fecha_esperada_cierre; document.getElementById('m-sla-date').disabled = !esAdminSGC; } setDisplay('btn-save-sla', esAdminSGC ? 'inline-block' : 'none'); 
+        setDisplay('m-admin-sla', 'block'); 
+        if($('m-sla-date')) { $('m-sla-date').value = s.fecha_esperada_cierre; $('m-sla-date').disabled = !esAdminSGC; }
+        setDisplay('btn-save-sla', esAdminSGC ? 'inline-block' : 'none'); 
     } else if (esAdminSGC && activo) { 
-        setDisplay('m-admin-sla', 'block'); if(document.getElementById('m-sla-date')) { document.getElementById('m-sla-date').value = ''; document.getElementById('m-sla-date').disabled = false; } setDisplay('btn-save-sla', 'inline-block'); 
+        setDisplay('m-admin-sla', 'block'); 
+        if($('m-sla-date')) { $('m-sla-date').value = ''; $('m-sla-date').disabled = false; }
+        setDisplay('btn-save-sla', 'inline-block'); 
     } else { setDisplay('m-admin-sla', 'none'); }
     
     setDisplay('m-panel-final-sgc', 'none'); setDisplay('m-panel-update-sgc', 'none'); setDisplay('m-display-final', 'none');
-    if(document.getElementById('m-original-data')) document.getElementById('m-original-data').classList.remove('locked-data'); setDisplay('m-orig-title', 'none');
+    if($('m-original-data')) $('m-original-data').classList.remove('locked-data'); 
+    setDisplay('m-orig-title', 'none');
 
     if ((esAdminSGC || p.p_paso2) && s.idx === 1 && activo) { 
         setDisplay('m-panel-update-sgc', 'block'); 
-        if(document.getElementById('m-upd-tit')) document.getElementById('m-upd-tit').value = s.titulo || ''; 
-        if(document.getElementById('m-upd-cod')) document.getElementById('m-upd-cod').value = s.cod_ref || ''; 
-        if(document.getElementById('m-upd-ver')) document.getElementById('m-upd-ver').value = s.ver_ref || ''; 
+        if($('m-upd-tit')) $('m-upd-tit').value = s.titulo || ''; 
+        if($('m-upd-cod')) $('m-upd-cod').value = s.cod_ref || ''; 
+        if($('m-upd-ver')) $('m-upd-ver').value = s.ver_ref || ''; 
     }
     
     if (isAprobadoFinalModal) {
         if (s.version_final) {
-            if(document.getElementById('m-original-data')) document.getElementById('m-original-data').classList.add('locked-data'); 
+            if($('m-original-data')) $('m-original-data').classList.add('locked-data'); 
             setDisplay('m-orig-title', 'flex'); setDisplay('m-display-final', 'block');
-            if(document.getElementById('m-disp-cod')) document.getElementById('m-disp-cod').innerText = s.codigo_final || s.cod_ref || "N/A"; 
-            if(document.getElementById('m-disp-ver')) document.getElementById('m-disp-ver').innerText = s.version_final; 
-            if(document.getElementById('m-disp-fecha')) document.getElementById('m-disp-fecha').innerText = s.fecha_final ? window.formatearFechaAbreviada(s.fecha_final) : "N/A"; 
+            if($('m-disp-cod')) $('m-disp-cod').innerText = s.codigo_final || s.cod_ref || "N/A"; 
+            if($('m-disp-ver')) $('m-disp-ver').innerText = s.version_final; 
+            if($('m-disp-fecha')) $('m-disp-fecha').innerText = s.fecha_final ? window.formatearFechaAbreviada(s.fecha_final) : "N/A"; 
             
             let finName = s.documento_final_nombre || "Documento Oficial"; let finUrl = s.documento_final ? window.getDownloadUrl(s.documento_final) : "#"; 
-            if(document.getElementById('m-disp-file')) document.getElementById('m-disp-file').innerHTML = s.documento_final ? `<a href="#" onclick="window.abrirDocumento('${finUrl}', '${finName}'); return false;" class="file-link">📄 ${finName}</a>` : "N/A";
-        } else if (esAdminSGC || p.p_paso4) { setDisplay('m-panel-final-sgc', 'block'); if(document.getElementById('m-final-cod')) document.getElementById('m-final-cod').value = s.cod_ref || ""; }
+            if($('m-disp-file')) $('m-disp-file').innerHTML = s.documento_final ? `<a href="#" onclick="window.abrirDocumento('${finUrl}', '${finName}'); return false;" class="file-link">📄 ${finName}</a>` : "N/A";
+        } else if (esAdminSGC || p.p_paso4) { 
+            setDisplay('m-panel-final-sgc', 'block'); 
+            if($('m-final-cod')) $('m-final-cod').value = s.cod_ref || ""; 
+        }
     }
     
-    if(activo && document.getElementById('btn-firma-next')) document.getElementById('btn-firma-next').innerText = `Aprobar Etapa (${PASOS_NOMBRES[s.idx] || 'Final'})`;
-    const cb = document.getElementById('chat-box'); 
+    if(activo && $('btn-firma-next')) $('btn-firma-next').innerText = `Aprobar Etapa (${PASOS_NOMBRES[s.idx] || 'Final'})`;
+    const cb = $('chat-box'); 
     if(cb) {
         cb.innerHTML = s.chat ? s.chat.map(c => 
             `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}">
@@ -600,7 +625,7 @@ window.verDetalle = async (id) => {
 };
 
 window.actualizarDatosSGC = async () => {
-    const tit = document.getElementById('m-upd-tit').value; const cod = document.getElementById('m-upd-cod').value; const ver = document.getElementById('m-upd-ver').value; const f = document.getElementById('m-upd-file');
+    const tit = $('m-upd-tit').value; const cod = $('m-upd-cod').value; const ver = $('m-upd-ver').value; const f = $('m-upd-file');
     if(!tit) return alert("El título es obligatorio."); window.showLoading();
     let updateData = { titulo: tit, cod_ref: cod, ver_ref: ver }; let msjChat = `SGC actualizó los datos pre-aprobación. Título: ${tit}, Cód: ${cod}, Ver: ${ver}.`;
     if(f.files[0]) { let fileUrl = await window.uploadToCloudinary(f.files[0]); if(!fileUrl) { window.hideLoading(); return alert("Error subiendo archivo."); } updateData.adjunto = fileUrl; updateData.adjunto_nombre = f.files[0].name; msjChat += ` (Nuevo adjunto subido: ${f.files[0].name})`; }
@@ -609,7 +634,7 @@ window.actualizarDatosSGC = async () => {
 };
 
 window.guardarSLA = async () => {
-    const dateSLA = document.getElementById('m-sla-date').value; if(!dateSLA) return alert("Selecciona una fecha válida."); window.showLoading();
+    const dateSLA = $('m-sla-date').value; if(!dateSLA) return alert("Selecciona una fecha válida."); window.showLoading();
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { fecha_esperada_cierre: dateSLA, chat: arrayUnion({u: currentUser.nombre, m: `⏱️ <b>FECHA LÍMITE (SLA) ESTABLECIDA:</b> ${window.formatearFechaAbreviada(dateSLA)}`, t: new Date().toLocaleString()}) });
     window.hideLoading(); alert("Fecha límite actualizada."); window.verDetalle(selectedId);
 };
@@ -629,8 +654,8 @@ window.reabrirSolicitud = async () => {
     const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Solicitud Reabierta: ${selectedDocData.customId}`, `Motivo: ${motivo}`); window.hideLoading(); alert("Solicitud reabierta."); window.closeModal();
 };
 
-window.gestionar = (tipo) => { tempAction = tipo; setDisplay('m-input-area', 'block'); if(tipo === 'Reunión') { setDisplay('reunion-container', 'block'); document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Tema de la reunión...'); } else { setDisplay('reunion-container', 'none'); document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Motivo / Consulta / Comentario...'); } };
-window.responderSolicitante = () => { tempAction = "Respuesta"; setDisplay('m-input-area', 'block'); document.getElementById('m-extra-input').setAttribute('data-placeholder', 'Detalla tu corrección...'); setDisplay('reunion-container', 'none'); };
+window.gestionar = (tipo) => { tempAction = tipo; setDisplay('m-input-area', 'block'); if(tipo === 'Reunión') { setDisplay('reunion-container', 'block'); $('m-extra-input').setAttribute('data-placeholder', 'Tema de la reunión...'); } else { setDisplay('reunion-container', 'none'); $('m-extra-input').setAttribute('data-placeholder', 'Motivo / Consulta / Comentario...'); } };
+window.responderSolicitante = () => { tempAction = "Respuesta"; setDisplay('m-input-area', 'block'); $('m-extra-input').setAttribute('data-placeholder', 'Detalla tu corrección...'); setDisplay('reunion-container', 'none'); };
 window.rechazar = () => { tempAction = 'Rechazado'; setDisplay('m-input-area', 'block'); setDisplay('reunion-container', 'none'); };
 
 window.firmarPaso = async () => {
@@ -641,7 +666,7 @@ window.firmarPaso = async () => {
 };
 
 window.enviarComentarioLibre = async () => {
-    const box = document.getElementById('m-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = document.getElementById('m-file-comentario');
+    const box = $('m-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = $('m-file-comentario');
     if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta un archivo."); window.showLoading(); let fileUrl = null; let fileName = null;
     if (f.files[0]) { fileUrl = await window.uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error de red."); } fileName = f.files[0].name; }
     let chatPayload = {u: currentUser.nombre, m: `💬 <b>Comentario:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; 
@@ -651,7 +676,7 @@ window.enviarComentarioLibre = async () => {
 };
 
 window.guardarCierreFinal = async () => {
-    const codFinal = document.getElementById('m-final-cod').value; const ver = document.getElementById('m-final-ver').value; const fecha = document.getElementById('m-final-fecha').value; const com = document.getElementById('m-final-comentario').value; const f = document.getElementById('m-final-file');
+    const codFinal = $('m-final-cod').value; const ver = $('m-final-ver').value; const fecha = $('m-final-fecha').value; const com = $('m-final-comentario').value; const f = $('m-final-file');
     if(!ver || !fecha || !f.files[0]) return alert("Versión Final, Fecha y Documento son obligatorios."); window.showLoading(); let fileUrl = await window.uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error al subir."); }
     const now = new Date().toISOString(); let fileName = f.files[0].name; let chatPayload = {u: "SISTEMA (SGC)", m: `🏁 <b>SOLICITUD APROBADA FINALMENTE.</b><br>Ver: ${ver}. Obs: ${com}`, t: new Date().toLocaleString(), archivo: fileUrl, archivo_nombre: fileName};
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Aprobado Final", codigo_final: codFinal, version_final: ver, fecha_final: fecha, comentario_final: com, documento_final: fileUrl, documento_final_nombre: fileName, fase_3_fin: now, chat: arrayUnion(chatPayload) });
@@ -668,14 +693,14 @@ window.anularSolicitud = async () => {
 };
 
 window.addInvolucradoList = () => {
-    const sel = document.getElementById('sol-involucrado-sel'); const email = sel.value; const name = sel.options[sel.selectedIndex].text; if(!email) return alert("Seleccione un usuario válido.");
-    const existingTags = Array.from(document.querySelectorAll('.involucrado-item')); if(existingTags.some(el => el.dataset.email === email)) { return alert("El usuario ya está en la lista."); }
+    const sel = $('sol-involucrado-sel'); const email = sel.value; const name = sel.options[sel.selectedIndex].text; if(!email) return alert("Seleccione un usuario válido.");
+    const existingTags = Array.from($$('.involucrado-item')); if(existingTags.some(el => el.dataset.email === email)) { return alert("El usuario ya está en la lista."); }
     const div = document.createElement('div'); div.className = 'involucrado-item badge badge-info'; div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '5px'; div.style.fontSize = '12px'; div.style.padding = '6px 12px'; div.dataset.email = email; div.innerHTML = `${name} <span class="material-icons-round" style="font-size:14px; cursor:pointer; color:var(--danger);" onclick="this.parentElement.remove()">close</span>`;
-    document.getElementById('lista-involucrados-tags').appendChild(div); sel.value = "";
+    $('lista-involucrados-tags').appendChild(div); sel.value = "";
 };
 
 window.guardarNuevoInvolucrado = async () => {
-    const sel = document.getElementById('m-new-involucrado-sel'); const newEmail = sel.value; const newName = sel.options[sel.selectedIndex].text; if(!newEmail || !newEmail.includes('@')) return alert('Selecciona un usuario válido.'); window.showLoading();
+    const sel = $('m-new-involucrado-sel'); const newEmail = sel.value; const newName = sel.options[sel.selectedIndex].text; if(!newEmail || !newEmail.includes('@')) return alert('Selecciona un usuario válido.'); window.showLoading();
     let currentInv = selectedDocData.involucrados || []; if(currentInv.includes(newEmail)) { window.hideLoading(); return alert('El usuario ya está en la lista de involucrados.'); } 
     currentInv.push(newEmail); await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { involucrados: currentInv, chat: arrayUnion({u: currentUser.nombre, m: `👥 Añadió a ${newName} a la lista de involucrados.`, t: new Date().toLocaleString()}) });
     sel.value = ''; window.hideLoading(); window.verDetalle(selectedId);
@@ -689,17 +714,17 @@ window.eliminarInvolucrado = async (emailToRemove) => {
 };
 
 window.filtrarTabla = (inputId, tbodyId) => {
-    const input = document.getElementById(inputId); if (!input) return; const filter = input.value.toLowerCase(); const tbody = document.getElementById(tbodyId); if (!tbody) return; const trs = tbody.getElementsByTagName('tr');
+    const input = $(inputId); if (!input) return; const filter = input.value.toLowerCase(); const tbody = $(tbodyId); if (!tbody) return; const trs = tbody.getElementsByTagName('tr');
     for (let i = 0; i < trs.length; i++) { let rowText = trs[i].textContent || trs[i].innerText; if (rowText.toLowerCase().indexOf(filter) > -1) { trs[i].style.display = ""; } else { trs[i].style.display = "none"; } }
 };
 
 window.setFilterGest = (filterText) => {
-    const tbody = document.getElementById('tbody-gestionar'); if (!tbody) return; const trs = tbody.getElementsByTagName('tr'); const filter = filterText.toLowerCase();
+    const tbody = $('tbody-gestionar'); if (!tbody) return; const trs = tbody.getElementsByTagName('tr'); const filter = filterText.toLowerCase();
     for (let i = 0; i < trs.length; i++) { let statusCell = trs[i].getElementsByTagName('td')[3]; if (statusCell) { let text = statusCell.textContent || statusCell.innerText; if (filter === "" || text.toLowerCase().includes(filter)) { trs[i].style.display = ""; } else { trs[i].style.display = "none"; } } }
 };
 
-window.descargarExcelFiltrado = (origen = 'hist', isAdminTotal = false) => {
-    let desde = document.getElementById(`${origen}-f-desde`).value; let hasta = document.getElementById(`${origen}-f-hasta`).value; let estado = document.getElementById(`${origen}-f-estado`).value;
+window.descargarExcelFiltrado = (origen = 'hist') => {
+    let desde = $(`${origen}-f-desde`).value; let hasta = $(`${origen}-f-hasta`).value; let estado = $(`${origen}-f-estado`).value;
     let esAdminSGC = currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
 
     let datosFiltrados = globalSolicitudes.filter(s => {
@@ -745,51 +770,17 @@ window.descargarExcelFiltrado = (origen = 'hist', isAdminTotal = false) => {
 };
 
 // ==========================================
-// 8. MÓDULO DE AUDITORÍAS Y NORMA OEA
+// 8. MÓDULO DE AUDITORÍAS (F-005, F-003, F-020, F-023)
 // ==========================================
-window.renderNormaOEA = () => {
-    const p = currentUser ? currentUser.permisos || {} : {}; let isAdminAudit = p.admin || p.p_audit_admin || p.p_gest_sgc;
-    const linkCont = document.getElementById('oea-manual-link');
-    if(linkCont) {
-        if(manualOEA.url) { linkCont.innerHTML = `<a href="#" onclick="window.abrirDocumento('${manualOEA.url}', '${manualOEA.nombre}'); return false;" class="btn btn-info" style="font-size:14px; text-decoration:none;"><span class="material-icons-round" style="font-size:16px; margin-right:5px;">visibility</span> Ver ${manualOEA.nombre}</a>`; }
-        else { linkCont.innerHTML = "No hay manual subido actualmente."; }
-    }
-    setDisplay('oea-manual-upload-box', isAdminAudit ? 'flex' : 'none'); setDisplay('oea-req-upload-box', isAdminAudit ? 'flex' : 'none');
-    
-    const listCont = document.getElementById('oea-req-list-container');
-    if(listCont) listCont.innerHTML = requisitosOEA.map((r, idx) => `<div class="settings-item"><span>${r}</span>${isAdminAudit ? `<button class="btn-icon-danger" onclick="window.eliminarRequisitoOEA(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button>` : ''}</div>`).join('');
-    
-    const reqList = document.getElementById('aud-req-list');
-    if(reqList) reqList.innerHTML = requisitosOEA.map(r => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${r}" style="margin:0; width:auto; flex-shrink:0;"> ${r}</label>`).join('');
-};
-
-window.subirManualOEA = async () => {
-    const f = document.getElementById('oea-file').files[0]; if(!f) return alert("Selecciona el documento."); window.showLoading();
-    let url = await window.uploadToCloudinary(f); if(!url) { window.hideLoading(); return alert("Error al subir el archivo."); }
-    await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { manual_url: url, manual_nombre: f.name }, {merge: true});
-    document.getElementById('oea-file').value = ""; window.hideLoading(); alert("Manual Oficial actualizado.");
-};
-
-window.agregarRequisitoOEA = async () => {
-    const v = document.getElementById('oea-req-input').value.trim(); if(!v) return; if(requisitosOEA.includes(v)) return alert("Ese requisito ya está en la lista.");
-    requisitosOEA.push(v); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { requisitos: requisitosOEA }, {merge: true}); document.getElementById('oea-req-input').value = "";
-};
-
-window.eliminarRequisitoOEA = async (idx) => {
-    if(!confirm("¿Eliminar este requisito?")) return; requisitosOEA.splice(idx, 1);
-    await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { requisitos: requisitosOEA }, {merge: true});
-};
-
 window.switchAuditTab = (tabId) => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    const btn = document.getElementById(`btn-tab-${tabId}`); if(btn) btn.classList.add('active');
-    const tab = document.getElementById(`tab-${tabId}`); if(tab) tab.classList.add('active');
+    $$('.tab-btn').forEach(b => b.classList.remove('active')); $$('.tab-content').forEach(c => c.classList.remove('active'));
+    const btn = $(`btn-tab-${tabId}`); if(btn) btn.classList.add('active');
+    const tab = $(`tab-${tabId}`); if(tab) tab.classList.add('active');
 };
 
 window.abrirNuevaAuditoria = () => {
-    window.cancelarEdicionAuditoria();
-    setDisplay('audit-admin-panel', 'block');
-    window.scrollTo({ top: document.getElementById('audit-admin-panel').offsetTop, behavior: 'smooth' });
+    window.cancelarEdicionAuditoria(); setDisplay('audit-admin-panel', 'block');
+    window.scrollTo({ top: $('audit-admin-panel').offsetTop, behavior: 'smooth' });
 };
 
 window.cambiarAnioAuditoria = (val) => {
@@ -797,42 +788,41 @@ window.cambiarAnioAuditoria = (val) => {
         let nYear = prompt("Ingrese el nuevo año a registrar (ej: 2028):");
         if(nYear && !isNaN(nYear)) {
             let opt = document.createElement('option'); opt.value = nYear; opt.text = nYear; opt.selected = true;
-            document.getElementById('aud-year-select').add(opt, document.getElementById('aud-year-select').options[1]);
-            val = nYear;
-        } else { document.getElementById('aud-year-select').value = new Date().getFullYear().toString(); return; }
+            $('aud-year-select').add(opt, $('aud-year-select').options[1]); val = nYear;
+        } else { $('aud-year-select').value = new Date().getFullYear().toString(); return; }
     }
     window.loadAuditPlan(val); window.renderTablaAuditorias(val);
 };
 
 window.toggleAuditHeaderForm = () => {
-    const form = document.getElementById('audit-header-edit'); const view = document.getElementById('audit-header-view'); const isEditing = form.style.display === 'block';
+    const isEditing = $('audit-header-edit').style.display === 'block';
     if(isEditing) { setDisplay('audit-header-edit', 'none'); setDisplay('audit-header-view', 'block'); } else {
-        const y = document.getElementById('aud-year-select').value; document.getElementById('edit-year-label').innerText = y;
-        document.querySelectorAll('#ah-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+        const y = $('aud-year-select').value; $('edit-year-label').innerText = y;
+        $$('#ah-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
         if(globalAuditPlan) {
-            document.getElementById('ah-obj').value = globalAuditPlan.objetivo || ''; document.getElementById('ah-alcance').value = globalAuditPlan.alcance || ''; document.getElementById('ah-tecnica').value = globalAuditPlan.tecnica || ''; document.getElementById('ah-criterios').value = globalAuditPlan.criterios || ''; document.getElementById('ah-ref').value = globalAuditPlan.referencia || ''; document.getElementById('ah-fecha').value = globalAuditPlan.fecha_elab || ''; document.getElementById('ah-tec').value = globalAuditPlan.recursos_tec || ''; document.getElementById('ah-rrhh').value = globalAuditPlan.recursos_hh || ''; document.getElementById('ah-extra-emails').value = (globalAuditPlan.extra_correos || []).join(', ');
-            let liderSel = document.getElementById('ah-lider'); for(let i=0; i<liderSel.options.length; i++){ if(liderSel.options[i].value === globalAuditPlan.lider) liderSel.selectedIndex = i; }
+            $('ah-obj').value = globalAuditPlan.objetivo || ''; $('ah-alcance').value = globalAuditPlan.alcance || ''; $('ah-tecnica').value = globalAuditPlan.tecnica || ''; $('ah-criterios').value = globalAuditPlan.criterios || ''; $('ah-ref').value = globalAuditPlan.referencia || ''; $('ah-fecha').value = globalAuditPlan.fecha_elab || ''; $('ah-tec').value = globalAuditPlan.recursos_tec || ''; $('ah-rrhh').value = globalAuditPlan.recursos_hh || ''; $('ah-extra-emails').value = (globalAuditPlan.extra_correos || []).join(', ');
+            let liderSel = $('ah-lider'); for(let i=0; i<liderSel.options.length; i++){ if(liderSel.options[i].value === globalAuditPlan.lider) liderSel.selectedIndex = i; }
             let auditoresGuardados = globalAuditPlan.auditor_nombres || []; 
-            document.querySelectorAll('#ah-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresGuardados.includes(cb.value); });
+            $$('#ah-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresGuardados.includes(cb.value); });
         } else {
-            document.getElementById('ah-obj').value = ''; document.getElementById('ah-alcance').value = ''; document.getElementById('ah-tecnica').value = ''; document.getElementById('ah-criterios').value = ''; document.getElementById('ah-ref').value = ''; document.getElementById('ah-fecha').value = ''; document.getElementById('ah-tec').value = ''; document.getElementById('ah-rrhh').value = ''; document.getElementById('ah-extra-emails').value = ''; document.getElementById('ah-lider').selectedIndex = 0; 
+            $('ah-obj').value = ''; $('ah-alcance').value = ''; $('ah-tecnica').value = ''; $('ah-criterios').value = ''; $('ah-ref').value = ''; $('ah-fecha').value = ''; $('ah-tec').value = ''; $('ah-rrhh').value = ''; $('ah-extra-emails').value = ''; $('ah-lider').selectedIndex = 0; 
         }
         setDisplay('audit-header-edit', 'block'); setDisplay('audit-header-view', 'none');
     }
 };
 
 window.saveAuditPlan = async () => {
-    const year = document.getElementById('aud-year-select').value; const docId = `Plan_${year}`;
+    const year = $('aud-year-select').value; const docId = `Plan_${year}`;
     let motivo = "Creación inicial"; if(globalAuditPlan) { motivo = prompt("Motivo de la modificación del Plan Anual:"); if(!motivo) return alert("El motivo es obligatorio para editar."); }
 
-    const liderSel = document.getElementById('ah-lider'); const liderName = liderSel.options[liderSel.selectedIndex]?.value || ""; const liderEmail = liderSel.options[liderSel.selectedIndex]?.getAttribute('data-email') || "";
+    const liderSel = $('ah-lider'); const liderName = liderSel.options[liderSel.selectedIndex]?.value || ""; const liderEmail = liderSel.options[liderSel.selectedIndex]?.getAttribute('data-email') || "";
     const audNombres = []; const audEmails = []; 
-    document.querySelectorAll('#ah-auditor-list input:checked').forEach(cb => { audNombres.push(cb.value); audEmails.push(cb.getAttribute('data-email')); });
+    $$('#ah-auditor-list input:checked').forEach(cb => { audNombres.push(cb.value); audEmails.push(cb.getAttribute('data-email')); });
     
-    const extraEmails = document.getElementById('ah-extra-emails').value.split(',').map(e => e.trim().toLowerCase()).filter(e=>e.includes('@'));
+    const extraEmails = $('ah-extra-emails').value.split(',').map(e => e.trim().toLowerCase()).filter(e=>e.includes('@'));
     let todosLosCorreos = new Set([...audEmails, ...extraEmails]); if(liderEmail) todosLosCorreos.add(liderEmail);
 
-    const data = { year: year, objetivo: document.getElementById('ah-obj').value, alcance: document.getElementById('ah-alcance').value, tecnica: document.getElementById('ah-tecnica').value, criterios: document.getElementById('ah-criterios').value, referencia: document.getElementById('ah-ref').value, fecha_elab: document.getElementById('ah-fecha').value, lider: liderName, auditor: audNombres.join(', '), auditor_nombres: audNombres, recursos_tec: document.getElementById('ah-tec').value, recursos_hh: document.getElementById('ah-rrhh').value, extra_correos: extraEmails, correos: Array.from(todosLosCorreos), modificado_por: currentUser.nombre, ultima_modif: new Date().toISOString() };
+    const data = { year: year, objetivo: $('ah-obj').value, alcance: $('ah-alcance').value, tecnica: $('ah-tecnica').value, criterios: $('ah-criterios').value, referencia: $('ah-ref').value, fecha_elab: $('ah-fecha').value, lider: liderName, auditor: audNombres.join(', '), auditor_nombres: audNombres, recursos_tec: $('ah-tec').value, recursos_hh: $('ah-rrhh').value, extra_correos: extraEmails, correos: Array.from(todosLosCorreos), modificado_por: currentUser.nombre, ultima_modif: new Date().toISOString() };
 
     window.showLoading();
     if(globalAuditPlan) { await updateDoc(doc(db, "artifacts", appId, "public", "data", "AuditPlans", docId), { ...data, historial: arrayUnion({ fecha: new Date().toISOString(), usuario: currentUser.nombre, motivo: motivo }) }); } 
@@ -841,74 +831,73 @@ window.saveAuditPlan = async () => {
 };
 
 window.loadAuditPlan = (year) => {
-    const docId = `Plan_${year}`; document.getElementById('view-year-label').innerText = year;
+    const docId = `Plan_${year}`; $('view-year-label').innerText = year;
     onSnapshot(doc(db, "artifacts", appId, "public", "data", "AuditPlans", docId), s => {
         if(s.exists()) {
             globalAuditPlan = s.data(); setDisplay('audit-header-view', 'block'); 
-            if(document.getElementById('view-ah-obj')) document.getElementById('view-ah-obj').innerText = globalAuditPlan.objetivo || '-'; 
-            if(document.getElementById('view-ah-alcance')) document.getElementById('view-ah-alcance').innerText = globalAuditPlan.alcance || '-'; 
-            if(document.getElementById('view-ah-tecnica')) document.getElementById('view-ah-tecnica').innerText = globalAuditPlan.tecnica || '-'; 
-            if(document.getElementById('view-ah-criterios')) document.getElementById('view-ah-criterios').innerText = globalAuditPlan.criterios || '-'; 
-            if(document.getElementById('view-ah-ref')) document.getElementById('view-ah-ref').innerText = globalAuditPlan.referencia || '-'; 
-            if(document.getElementById('view-ah-fecha')) document.getElementById('view-ah-fecha').innerText = window.formatearFechaAbreviada(globalAuditPlan.fecha_elab) || '-'; 
-            if(document.getElementById('view-ah-lider')) document.getElementById('view-ah-lider').innerText = globalAuditPlan.lider || '-'; 
-            if(document.getElementById('view-ah-auditor')) document.getElementById('view-ah-auditor').innerText = globalAuditPlan.auditor || '-'; 
-            if(document.getElementById('view-ah-tec')) document.getElementById('view-ah-tec').innerText = globalAuditPlan.recursos_tec || '-'; 
-            if(document.getElementById('view-ah-rrhh')) document.getElementById('view-ah-rrhh').innerText = globalAuditPlan.recursos_hh || '-';
+            if($('view-ah-obj')) $('view-ah-obj').innerText = globalAuditPlan.objetivo || '-'; 
+            if($('view-ah-alcance')) $('view-ah-alcance').innerText = globalAuditPlan.alcance || '-'; 
+            if($('view-ah-tecnica')) $('view-ah-tecnica').innerText = globalAuditPlan.tecnica || '-'; 
+            if($('view-ah-criterios')) $('view-ah-criterios').innerText = globalAuditPlan.criterios || '-'; 
+            if($('view-ah-ref')) $('view-ah-ref').innerText = globalAuditPlan.referencia || '-'; 
+            if($('view-ah-fecha')) $('view-ah-fecha').innerText = window.formatearFechaAbreviada(globalAuditPlan.fecha_elab) || '-'; 
+            if($('view-ah-lider')) $('view-ah-lider').innerText = globalAuditPlan.lider || '-'; 
+            if($('view-ah-auditor')) $('view-ah-auditor').innerText = globalAuditPlan.auditor || '-'; 
+            if($('view-ah-tec')) $('view-ah-tec').innerText = globalAuditPlan.recursos_tec || '-'; 
+            if($('view-ah-rrhh')) $('view-ah-rrhh').innerText = globalAuditPlan.recursos_hh || '-';
             let modInfo = `Por: ${globalAuditPlan.modificado_por || '-'} el ${window.formatearFechaAbreviada(globalAuditPlan.ultima_modif)}`;
             if(globalAuditPlan.historial && globalAuditPlan.historial.length > 0) { let ultimoMotivo = globalAuditPlan.historial[globalAuditPlan.historial.length-1].motivo; modInfo += ` (Motivo: ${ultimoMotivo})`; }
-            if(document.getElementById('view-ah-mod-info')) document.getElementById('view-ah-mod-info').innerText = modInfo;
+            if($('view-ah-mod-info')) $('view-ah-mod-info').innerText = modInfo;
         } else { globalAuditPlan = null; setDisplay('audit-header-view', 'none'); }
     });
 };
 
 window.cargarAuditoriaParaEditar = async (id) => {
     const audit = globalAllAuditorias.find(x => x.id === id); if(!audit) return; editandoAuditoriaId = id;
-    document.getElementById('titulo-form-auditoria').innerText = "Editar Auditoría Programada"; 
+    $('titulo-form-auditoria').innerText = "Editar Auditoría Programada"; 
     
-    document.getElementById('aud-fecha').value = audit.fecha || ''; document.getElementById('aud-h-ini').value = audit.hora_inicio || ''; document.getElementById('aud-h-fin').value = audit.hora_fin || ''; document.getElementById('aud-lugar').value = audit.lugar || ''; document.getElementById('aud-proceso').value = audit.proceso || ''; document.getElementById('aud-obs').value = audit.observacion || '';
-    document.getElementById('aud-org').value = audit.organizacion || ''; document.getElementById('aud-dir').value = audit.direccion || ''; document.getElementById('aud-sitios').value = audit.sitios || ''; document.getElementById('aud-personal').value = audit.personal || ''; document.getElementById('aud-turnos').value = audit.turnos || ''; document.getElementById('aud-formacion').value = audit.auditores_formacion || '';
+    $('aud-fecha').value = audit.fecha || ''; $('aud-h-ini').value = audit.hora_inicio || ''; $('aud-h-fin').value = audit.hora_fin || ''; $('aud-lugar').value = audit.lugar || ''; $('aud-proceso').value = audit.proceso || ''; $('aud-obs').value = audit.observacion || '';
+    $('aud-org').value = audit.organizacion || ''; $('aud-dir').value = audit.direccion || ''; $('aud-sitios').value = audit.sitios || ''; $('aud-personal').value = audit.personal || ''; $('aud-turnos').value = audit.turnos || ''; $('aud-formacion').value = audit.auditores_formacion || '';
 
     let auditadosArr = audit.auditado ? audit.auditado.split(', ') : []; 
-    document.querySelectorAll('#aud-auditado-list input[type="checkbox"]').forEach(cb => { cb.checked = auditadosArr.includes(cb.value); });
+    $$('#aud-auditado-list input[type="checkbox"]').forEach(cb => { cb.checked = auditadosArr.includes(cb.value); });
     
     let auditoresArr = audit.auditor ? audit.auditor.split(', ') : []; 
-    document.querySelectorAll('#aud-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresArr.includes(cb.value); });
+    $$('#aud-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresArr.includes(cb.value); });
     
     let reqsArr = audit.requisitos ? audit.requisitos.split(', ') : []; 
-    document.querySelectorAll('#aud-req-list input[type="checkbox"]').forEach(cb => { cb.checked = reqsArr.includes(cb.value); });
+    $$('#aud-req-list input[type="checkbox"]').forEach(cb => { cb.checked = reqsArr.includes(cb.value); });
     
-    document.getElementById('btn-guardar-aud').innerText = "ACTUALIZAR AUDITORÍA"; setDisplay('btn-cancelar-aud', 'block'); window.scrollTo({ top: document.getElementById('audit-admin-panel').offsetTop, behavior: 'smooth' }); setDisplay('audit-admin-panel', 'block');
+    $('btn-guardar-aud').innerText = "ACTUALIZAR AUDITORÍA"; setDisplay('btn-cancelar-aud', 'block'); window.scrollTo({ top: $('audit-admin-panel').offsetTop, behavior: 'smooth' }); setDisplay('audit-admin-panel', 'block');
 };
 
 window.cancelarEdicionAuditoria = () => {
-    editandoAuditoriaId = null; document.getElementById('titulo-form-auditoria').innerText = "Programar Nueva Auditoría"; 
-    document.getElementById('aud-fecha').value = ''; document.getElementById('aud-h-ini').value = ''; document.getElementById('aud-h-fin').value = ''; document.getElementById('aud-lugar').value = ''; document.getElementById('aud-proceso').value = ''; document.getElementById('aud-obs').value = '';
-    document.getElementById('aud-org').value = ''; document.getElementById('aud-dir').value = ''; document.getElementById('aud-sitios').value = ''; document.getElementById('aud-personal').value = ''; document.getElementById('aud-turnos').value = ''; document.getElementById('aud-formacion').value = '';
+    editandoAuditoriaId = null; $('titulo-form-auditoria').innerText = "Programar Nueva Auditoría"; 
+    $('aud-fecha').value = ''; $('aud-h-ini').value = ''; $('aud-h-fin').value = ''; $('aud-lugar').value = ''; $('aud-proceso').value = ''; $('aud-obs').value = '';
+    $('aud-org').value = ''; $('aud-dir').value = ''; $('aud-sitios').value = ''; $('aud-personal').value = ''; $('aud-turnos').value = ''; $('aud-formacion').value = '';
 
-    document.querySelectorAll('#aud-auditado-list input[type="checkbox"]').forEach(cb => cb.checked = false);
-    document.querySelectorAll('#aud-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
-    document.querySelectorAll('#aud-req-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+    $$('#aud-auditado-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+    $$('#aud-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+    $$('#aud-req-list input[type="checkbox"]').forEach(cb => cb.checked = false);
     
-    document.getElementById('btn-guardar-aud').innerText = "GENERAR AUDITORÍA Y NOTIFICAR"; setDisplay('btn-cancelar-aud', 'none');
+    $('btn-guardar-aud').innerText = "GENERAR AUDITORÍA Y NOTIFICAR"; setDisplay('btn-cancelar-aud', 'none');
 };
 
 window.guardarAuditoria = async () => {
-    const fecha = document.getElementById('aud-fecha').value; const hIni = document.getElementById('aud-h-ini').value; const hFin = document.getElementById('aud-h-fin').value; const proceso = document.getElementById('aud-proceso').value; const lugar = document.getElementById('aud-lugar').value; const obs = document.getElementById('aud-obs').value;
+    const fecha = $('aud-fecha').value; const hIni = $('aud-h-ini').value; const hFin = $('aud-h-fin').value; const proceso = $('aud-proceso').value; const lugar = $('aud-lugar').value; const obs = $('aud-obs').value;
     if(!fecha || !proceso) return alert("Fecha y Proceso son obligatorios.");
     
     const auditadoNombres = []; const auditadoEmails = []; 
-    document.querySelectorAll('#aud-auditado-list input:checked').forEach(cb => { auditadoNombres.push(cb.value); auditadoEmails.push(cb.getAttribute('data-email')); });
+    $$('#aud-auditado-list input:checked').forEach(cb => { auditadoNombres.push(cb.value); auditadoEmails.push(cb.getAttribute('data-email')); });
     const auditorNombres = []; const auditorEmails = []; 
-    document.querySelectorAll('#aud-auditor-list input:checked').forEach(cb => { auditorNombres.push(cb.value); auditorEmails.push(cb.getAttribute('data-email')); });
-
-    const reqNombres = []; document.querySelectorAll('#aud-req-list input:checked').forEach(cb => reqNombres.push(cb.value)); const req = reqNombres.join(', ');
+    $$('#aud-auditor-list input:checked').forEach(cb => { auditorNombres.push(cb.value); auditorEmails.push(cb.getAttribute('data-email')); });
+    const reqNombres = []; $$('#aud-req-list input:checked').forEach(cb => reqNombres.push(cb.value)); const req = reqNombres.join(', ');
 
     let data = { 
         fecha: fecha, hora_inicio: hIni, hora_fin: hFin, lugar: lugar, proceso: proceso, requisitos: req, 
         auditado: auditadoNombres.join(', '), auditado_emails: auditadoEmails, 
         auditor: auditorNombres.join(', '), auditor_emails: auditorEmails, observacion: obs,
-        organizacion: document.getElementById('aud-org').value, direccion: document.getElementById('aud-dir').value, sitios: document.getElementById('aud-sitios').value, personal: document.getElementById('aud-personal').value, turnos: document.getElementById('aud-turnos').value, auditores_formacion: document.getElementById('aud-formacion').value
+        organizacion: $('aud-org').value, direccion: $('aud-dir').value, sitios: $('aud-sitios').value, personal: $('aud-personal').value, turnos: $('aud-turnos').value, auditores_formacion: $('aud-formacion').value
     };
 
     window.showLoading();
@@ -940,7 +929,7 @@ window.guardarAuditoria = async () => {
 };
 
 window.renderTablaAuditorias = (yearFilter) => {
-    const tb = document.getElementById('tbody-auditorias'); if(!tb) return;
+    const tb = $('tbody-auditorias'); if(!tb) return;
     let adminView = currentUser.permisos.p_audit_admin || currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
     
     globalAuditorias = globalAllAuditorias.filter(a => { 
@@ -990,40 +979,40 @@ window.verModalAuditoria = async (id) => {
     selectedAuditId = id; const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", id)); if(!docSnap.exists()) return;
     selectedAuditData = docSnap.data(); const a = selectedAuditData;
     
-    if(document.getElementById('ma-num')) document.getElementById('ma-num').innerText = a.audit_num || 'S/N';
-    if(document.getElementById('ma-proceso')) document.getElementById('ma-proceso').innerText = a.proceso || 'Sin Proceso'; 
-    if(document.getElementById('ma-fecha')) document.getElementById('ma-fecha').innerText = window.formatearFechaAbreviada(a.fecha) || 'Sin Fecha'; 
-    if(document.getElementById('ma-hora')) document.getElementById('ma-hora').innerText = `${a.hora_inicio || '--:--'} a ${a.hora_fin || '--:--'}`; 
-    if(document.getElementById('ma-lugar')) document.getElementById('ma-lugar').innerText = a.lugar || 'N/A'; 
-    if(document.getElementById('ma-auditado')) document.getElementById('ma-auditado').innerText = a.auditado || 'N/A'; 
-    if(document.getElementById('ma-auditor')) document.getElementById('ma-auditor').innerText = a.auditor || 'N/A'; 
-    if(document.getElementById('ma-req')) document.getElementById('ma-req').innerText = a.requisitos || 'Ninguno especificado.'; 
-    if(document.getElementById('ma-obs')) document.getElementById('ma-obs').innerText = a.observacion || 'Sin observaciones.';
+    if($('ma-num')) $('ma-num').innerText = a.audit_num || 'S/N';
+    if($('ma-proceso')) $('ma-proceso').innerText = a.proceso || 'Sin Proceso'; 
+    if($('ma-fecha')) $('ma-fecha').innerText = window.formatearFechaAbreviada(a.fecha) || 'Sin Fecha'; 
+    if($('ma-hora')) $('ma-hora').innerText = `${a.hora_inicio || '--:--'} a ${a.hora_fin || '--:--'}`; 
+    if($('ma-lugar')) $('ma-lugar').innerText = a.lugar || 'N/A'; 
+    if($('ma-auditado')) $('ma-auditado').innerText = a.auditado || 'N/A'; 
+    if($('ma-auditor')) $('ma-auditor').innerText = a.auditor || 'N/A'; 
+    if($('ma-req')) $('ma-req').innerText = a.requisitos || 'Ninguno especificado.'; 
+    if($('ma-obs')) $('ma-obs').innerText = a.observacion || 'Sin observaciones.';
     
-    if(document.getElementById('rep-num')) document.getElementById('rep-num').innerText = a.audit_num || 'N/A'; 
-    if(document.getElementById('rep-org')) document.getElementById('rep-org').innerText = a.organizacion || 'FCI Logistic'; 
-    if(document.getElementById('rep-dir')) document.getElementById('rep-dir').innerText = a.direccion || 'N/A'; 
-    if(document.getElementById('rep-sitios')) document.getElementById('rep-sitios').innerText = a.sitios || a.lugar || 'N/A'; 
-    if(document.getElementById('rep-fechas')) document.getElementById('rep-fechas').innerText = window.formatearFechaAbreviada(a.fecha); 
-    if(document.getElementById('rep-personal')) document.getElementById('rep-personal').innerText = a.personal || 'N/A'; 
-    if(document.getElementById('rep-turnos')) document.getElementById('rep-turnos').innerText = a.turnos || 'N/A'; 
-    if(document.getElementById('rep-lider')) document.getElementById('rep-lider').innerText = globalAuditPlan ? globalAuditPlan.lider : 'N/A'; 
-    if(document.getElementById('rep-adicionales')) document.getElementById('rep-adicionales').innerText = a.auditor || 'N/A'; 
-    if(document.getElementById('rep-formacion')) document.getElementById('rep-formacion').innerText = a.auditores_formacion || 'Ninguno'; 
-    if(document.getElementById('rep-alcance')) document.getElementById('rep-alcance').innerText = globalAuditPlan ? `(${globalAuditPlan.alcance})` : '';
+    if($('rep-num')) $('rep-num').innerText = a.audit_num || 'N/A'; 
+    if($('rep-org')) $('rep-org').innerText = a.organizacion || 'FCI Logistic'; 
+    if($('rep-dir')) $('rep-dir').innerText = a.direccion || 'N/A'; 
+    if($('rep-sitios')) $('rep-sitios').innerText = a.sitios || a.lugar || 'N/A'; 
+    if($('rep-fechas')) $('rep-fechas').innerText = window.formatearFechaAbreviada(a.fecha); 
+    if($('rep-personal')) $('rep-personal').innerText = a.personal || 'N/A'; 
+    if($('rep-turnos')) $('rep-turnos').innerText = a.turnos || 'N/A'; 
+    if($('rep-lider')) $('rep-lider').innerText = globalAuditPlan ? globalAuditPlan.lider : 'N/A'; 
+    if($('rep-adicionales')) $('rep-adicionales').innerText = a.auditor || 'N/A'; 
+    if($('rep-formacion')) $('rep-formacion').innerText = a.auditores_formacion || 'Ninguno'; 
+    if($('rep-alcance')) $('rep-alcance').innerText = globalAuditPlan ? `(${globalAuditPlan.alcance})` : '';
 
     let estStr = a.estado || 'Programada'; let bdg = estStr === 'Completada' ? 'badge-success' : (estStr === 'En Progreso' ? 'badge-info' : 'badge-warning');
-    if(document.getElementById('ma-estado-badge')) { document.getElementById('ma-estado-badge').className = `badge ${bdg}`; document.getElementById('ma-estado-badge').innerText = estStr.toUpperCase(); }
+    if($('ma-estado-badge')) { $('ma-estado-badge').className = `badge ${bdg}`; $('ma-estado-badge').innerText = estStr.toUpperCase(); }
     
-    if(document.getElementById('ma-inicio-real')) document.getElementById('ma-inicio-real').innerText = a.hora_real_inicio ? new Date(a.hora_real_inicio).toLocaleString() : '---'; 
-    if(document.getElementById('ma-fin-real')) document.getElementById('ma-fin-real').innerText = a.hora_real_fin ? new Date(a.hora_real_fin).toLocaleString() : '---';
-    if(a.hora_real_inicio && a.hora_real_fin && document.getElementById('ma-duracion')) { let ms = new Date(a.hora_real_fin) - new Date(a.hora_real_inicio); let mins = Math.floor(ms / 60000); let hrs = Math.floor(mins / 60); let remMins = mins % 60; document.getElementById('ma-duracion').innerText = `${hrs} horas, ${remMins} minutos`; } else if(document.getElementById('ma-duracion')) { document.getElementById('ma-duracion').innerText = '---'; }
+    if($('ma-inicio-real')) $('ma-inicio-real').innerText = a.hora_real_inicio ? new Date(a.hora_real_inicio).toLocaleString() : '---'; 
+    if($('ma-fin-real')) $('ma-fin-real').innerText = a.hora_real_fin ? new Date(a.hora_real_fin).toLocaleString() : '---';
+    if(a.hora_real_inicio && a.hora_real_fin && $('ma-duracion')) { let ms = new Date(a.hora_real_fin) - new Date(a.hora_real_inicio); let mins = Math.floor(ms / 60000); let hrs = Math.floor(mins / 60); let remMins = mins % 60; $('ma-duracion').innerText = `${hrs} horas, ${remMins} minutos`; } else if($('ma-duracion')) { $('ma-duracion').innerText = '---'; }
 
     const isAdminAudit = currentUser.permisos.p_audit_admin || currentUser.permisos.admin || currentUser.permisos.p_gest_sgc; const isAuditor = a.auditor && a.auditor.includes(currentUser.nombre); const canControl = isAdminAudit || isAuditor;
     setDisplay('btn-comenzar-auditoria', (canControl && estStr === 'Programada') ? 'inline-block' : 'none'); 
     setDisplay('btn-finalizar-auditoria', (canControl && estStr === 'En Progreso') ? 'inline-block' : 'none');
     
-    const cb = document.getElementById('chat-box-audit'); 
+    const cb = $('chat-box-audit'); 
     if(cb) { 
         cb.innerHTML = a.bitacora ? a.bitacora.map(c => 
             `<div class="chat-msg" style="border-left-color:${c.u===currentUser.nombre?'var(--primary)':'#cbd5e1'}">
@@ -1037,24 +1026,24 @@ window.verModalAuditoria = async (id) => {
     
     const canEditForms = canControl && estStr !== 'Completada';
     const f003Inputs = ['f003-conclusiones', 'f003-n-proceso', 'f003-n-personal', 'f003-n-cargo', 'f003-n-req', 'f003-n-doc', 'f003-n-evidencia'];
-    f003Inputs.forEach(id => { let el = document.getElementById(id); if(el) el.disabled = !canEditForms; });
+    f003Inputs.forEach(id => { let el = $(id); if(el) el.disabled = !canEditForms; });
 
     if(a.reporte_auditoria) { 
-        if(document.getElementById('f003-conclusiones')) document.getElementById('f003-conclusiones').value = a.reporte_auditoria.conclusiones || ""; 
-        if(document.getElementById('f003-n-proceso')) document.getElementById('f003-n-proceso').value = a.reporte_auditoria.n_proceso || a.proceso || "";
-        if(document.getElementById('f003-n-personal')) document.getElementById('f003-n-personal').value = a.reporte_auditoria.n_personal || a.auditado || "";
-        if(document.getElementById('f003-n-cargo')) document.getElementById('f003-n-cargo').value = a.reporte_auditoria.n_cargo || "";
-        if(document.getElementById('f003-n-req')) document.getElementById('f003-n-req').value = a.reporte_auditoria.n_req || a.requisitos || "";
-        if(document.getElementById('f003-n-doc')) document.getElementById('f003-n-doc').value = a.reporte_auditoria.n_doc || "";
-        if(document.getElementById('f003-n-evidencia')) document.getElementById('f003-n-evidencia').value = a.reporte_auditoria.n_evidencia || "";
+        if($('f003-conclusiones')) $('f003-conclusiones').value = a.reporte_auditoria.conclusiones || ""; 
+        if($('f003-n-proceso')) $('f003-n-proceso').value = a.reporte_auditoria.n_proceso || a.proceso || "";
+        if($('f003-n-personal')) $('f003-n-personal').value = a.reporte_auditoria.n_personal || a.auditado || "";
+        if($('f003-n-cargo')) $('f003-n-cargo').value = a.reporte_auditoria.n_cargo || "";
+        if($('f003-n-req')) $('f003-n-req').value = a.reporte_auditoria.n_req || a.requisitos || "";
+        if($('f003-n-doc')) $('f003-n-doc').value = a.reporte_auditoria.n_doc || "";
+        if($('f003-n-evidencia')) $('f003-n-evidencia').value = a.reporte_auditoria.n_evidencia || "";
     } else { 
-        if(document.getElementById('f003-conclusiones')) document.getElementById('f003-conclusiones').value = ""; 
-        if(document.getElementById('f003-n-proceso')) document.getElementById('f003-n-proceso').value = a.proceso || "";
-        if(document.getElementById('f003-n-personal')) document.getElementById('f003-n-personal').value = a.auditado || ""; 
-        if(document.getElementById('f003-n-cargo')) document.getElementById('f003-n-cargo').value = ""; 
-        if(document.getElementById('f003-n-req')) document.getElementById('f003-n-req').value = a.requisitos || ""; 
-        if(document.getElementById('f003-n-doc')) document.getElementById('f003-n-doc').value = ""; 
-        if(document.getElementById('f003-n-evidencia')) document.getElementById('f003-n-evidencia').value = "";
+        if($('f003-conclusiones')) $('f003-conclusiones').value = ""; 
+        if($('f003-n-proceso')) $('f003-n-proceso').value = a.proceso || "";
+        if($('f003-n-personal')) $('f003-n-personal').value = a.auditado || ""; 
+        if($('f003-n-cargo')) $('f003-n-cargo').value = ""; 
+        if($('f003-n-req')) $('f003-n-req').value = a.requisitos || ""; 
+        if($('f003-n-doc')) $('f003-n-doc').value = ""; 
+        if($('f003-n-evidencia')) $('f003-n-evidencia').value = "";
     }
 
     window.actualizarMetricasF003(canEditForms); window.renderAuditSACs();
@@ -1068,7 +1057,7 @@ window.verModalAuditoria = async (id) => {
 window.comenzarAuditoria = async () => { await window.iniciarAuditoriaDirecto(selectedAuditId); window.verModalAuditoria(selectedAuditId); };
 window.finalizarAuditoria = async () => { await window.finalizarAuditoriaDirecto(selectedAuditId); window.verModalAuditoria(selectedAuditId); };
 window.enviarComentarioAuditoria = async () => {
-    const box = document.getElementById('ma-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = document.getElementById('ma-file-comentario');
+    const box = $('ma-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = $('ma-file-comentario');
     if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta evidencia."); window.showLoading(); 
     let fileUrl = null; let fileName = null;
     
@@ -1085,7 +1074,7 @@ window.enviarComentarioAuditoria = async () => {
 };
 
 window.renderF020 = () => {
-    const tbody = document.getElementById('tbody-f020'); if(!tbody) return; let html = "";
+    const tbody = $('tbody-f020'); if(!tbody) return; let html = "";
     let isAuditor = selectedAuditData.auditor && selectedAuditData.auditor.includes(currentUser.nombre);
     let canEdit = selectedAuditData.estado !== 'Completada' && (currentUser.permisos.admin || currentUser.permisos.p_audit_admin || isAuditor);
     
@@ -1094,14 +1083,14 @@ window.renderF020 = () => {
         let opts = `<option value="Conformidad" ${item.hallazgo === 'Conformidad' ? 'selected':''}>Conformidad</option><option value="NC Menor" ${item.hallazgo === 'NC Menor' ? 'selected':''}>NC Menor</option><option value="NC Mayor" ${item.hallazgo === 'NC Mayor' ? 'selected':''}>NC Mayor</option><option value="OM" ${item.hallazgo === 'OM' ? 'selected':''}>Oportunidad Mejora</option><option value="Fortaleza" ${item.hallazgo === 'Fortaleza' ? 'selected':''}>Fortaleza</option><option value="N/A" ${item.hallazgo === 'N/A' || !item.hallazgo ? 'selected':''}>N/A</option>`;
         html += `<tr data-id="${item.id}"><td>${index + 1}</td><td><textarea class="table-input" rows="2" ${dis}>${item.pregunta || ''}</textarea></td><td><input type="text" class="table-input" value="${item.requisito || ''}" list="oea-req-list-dl" placeholder="Ej: 1.1" ${dis}></td><td><textarea class="table-input" rows="2" ${dis}>${item.comentarios || ''}</textarea></td><td><input type="text" class="table-input" value="${item.auditado || ''}" ${dis}></td><td><select class="table-select hallazgo-sel" ${dis}>${opts}</select></td><td class="f020-action-col">${canEdit ? `<button class="btn-icon-danger" onclick="window.eliminarF020('${item.id}')"><span class="material-icons-round">delete</span></button>` : ''}</td></tr>`;
     });
-    tbody.innerHTML = html; document.querySelectorAll('.f020-action-col').forEach(el => el.style.display = canEdit ? '' : 'none');
+    tbody.innerHTML = html; $$('.f020-action-col').forEach(el => el.style.display = canEdit ? '' : 'none');
 };
 
 window.agregarFilaF020 = () => { currentAuditF020.push({ id: 'f020_' + Date.now() + Math.floor(Math.random()*1000), pregunta: '', requisito: '', comentarios: '', auditado: '', hallazgo: 'N/A' }); window.renderF020(); };
 window.eliminarF020 = (id) => { if(!confirm("¿Eliminar ítem?")) return; currentAuditF020 = currentAuditF020.filter(x => x.id !== id); window.renderF020(); };
 
 window.guardarF020 = async () => {
-    const trs = document.querySelectorAll('#tbody-f020 tr'); let dataArr = [];
+    const trs = $$('#tbody-f020 tr'); let dataArr = [];
     trs.forEach(tr => { let inputs = tr.querySelectorAll('.table-input, .table-select'); dataArr.push({ id: tr.dataset.id, pregunta: inputs[0].value, requisito: inputs[1].value, comentarios: inputs[2].value, auditado: inputs[3].value, hallazgo: inputs[4].value }); });
     window.showLoading(); await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { lista_verificacion: dataArr, bitacora: arrayUnion({u: currentUser.nombre, m: `📝 <b>Actualizó Lista de Verificación (F-020)</b>`, t: new Date().toLocaleString()}) });
     window.hideLoading(); alert("F-020 Guardado correctamente."); window.verModalAuditoria(selectedAuditId); 
@@ -1135,30 +1124,30 @@ window.actualizarMetricasF003 = (canEditForms) => {
         if(i.hallazgo === 'NC Menor') { ncMen++; hMenor += window.generarBloqueNCDinamico(i, ncMen, 'NC Menor', canEditForms); } 
         if(i.hallazgo === 'OM') { om++; hOM += window.generarBloqueNCDinamico(i, om, 'OM', canEditForms); } 
     });
-    if(document.getElementById('f003-nc-mayor')) document.getElementById('f003-nc-mayor').innerText = ncMay; 
-    if(document.getElementById('f003-nc-menor')) document.getElementById('f003-nc-menor').innerText = ncMen; 
-    if(document.getElementById('f003-om')) document.getElementById('f003-om').innerText = om;
-    if(document.getElementById('container-nc-menor')) document.getElementById('container-nc-menor').innerHTML = hMenor || "<p style='font-size:11px; color:#94a3b8;'>No se detectaron NC Menores.</p>";
-    if(document.getElementById('container-nc-mayor')) document.getElementById('container-nc-mayor').innerHTML = hMayor || "<p style='font-size:11px; color:#94a3b8;'>No se detectaron NC Mayores.</p>";
-    if(document.getElementById('container-om')) document.getElementById('container-om').innerHTML = hOM || "<p style='font-size:11px; color:#94a3b8;'>No se detectaron Oportunidades de Mejora.</p>";
+    if($('f003-nc-mayor')) $('f003-nc-mayor').innerText = ncMay; 
+    if($('f003-nc-menor')) $('f003-nc-menor').innerText = ncMen; 
+    if($('f003-om')) $('f003-om').innerText = om;
+    if($('container-nc-menor')) $('container-nc-menor').innerHTML = hMenor || "<p style='font-size:11px; color:#94a3b8;'>No se detectaron NC Menores.</p>";
+    if($('container-nc-mayor')) $('container-nc-mayor').innerHTML = hMayor || "<p style='font-size:11px; color:#94a3b8;'>No se detectaron NC Mayores.</p>";
+    if($('container-om')) $('container-om').innerHTML = hOM || "<p style='font-size:11px; color:#94a3b8;'>No se detectaron Oportunidades de Mejora.</p>";
 };
 
 window.guardarF003 = async () => {
     window.showLoading(); 
     let detalles_nc = {};
-    document.querySelectorAll('.f003-hallazgo-block').forEach(block => {
+    $$('.f003-hallazgo-block').forEach(block => {
         let id = block.dataset.id;
         detalles_nc[id] = { departamento: block.querySelector('.h-dep').value, doc_ref: block.querySelector('.h-doc').value, requisito: block.querySelector('.h-req').value, detalle: block.querySelector('.h-det').value };
     });
     let repData = { 
-        conclusiones: document.getElementById('f003-conclusiones').value, n_proceso: document.getElementById('f003-n-proceso').value, n_personal: document.getElementById('f003-n-personal').value, n_cargo: document.getElementById('f003-n-cargo').value, n_req: document.getElementById('f003-n-req').value, n_doc: document.getElementById('f003-n-doc').value, n_evidencia: document.getElementById('f003-n-evidencia').value, detalles_nc: detalles_nc
+        conclusiones: $('f003-conclusiones').value, n_proceso: $('f003-n-proceso').value, n_personal: $('f003-n-personal').value, n_cargo: $('f003-n-cargo').value, n_req: $('f003-n-req').value, n_doc: $('f003-n-doc').value, n_evidencia: $('f003-n-evidencia').value, detalles_nc: detalles_nc
     };
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", selectedAuditId), { reporte_auditoria: repData, bitacora: arrayUnion({u: currentUser.nombre, m: `📊 <b>Actualizó Reporte de Auditoría (F-003)</b>`, t: new Date().toLocaleString()}) });
     window.hideLoading(); alert("Reporte F-003 guardado.");
 };
 
 window.renderAuditSACs = () => {
-    const tb = document.getElementById('tbody-audit-sacs'); if(!tb) return; let html = ""; let hallazgosFiltrados = currentAuditF020.filter(i => i.hallazgo === 'NC Mayor' || i.hallazgo === 'NC Menor' || i.hallazgo === 'OM');
+    const tb = $('tbody-audit-sacs'); if(!tb) return; let html = ""; let hallazgosFiltrados = currentAuditF020.filter(i => i.hallazgo === 'NC Mayor' || i.hallazgo === 'NC Menor' || i.hallazgo === 'OM');
     if(hallazgosFiltrados.length === 0) { tb.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No se encontraron NC o Mejoras en la Lista de Verificación.</td></tr>"; return; }
     hallazgosFiltrados.forEach((h, idx) => {
         let sac = globalAllSacs.find(s => s.f020_id === h.id); let badge = ''; let estado = 'SIN GENERAR'; let btn = '';
@@ -1176,83 +1165,83 @@ window.renderAuditSACs = () => {
 };
 
 window.addPlanRow = (detalle="", resp="", fIni="", fFin="") => {
-    const tb = document.getElementById('tbody-plan-accion'); let rowCount = tb.children.length + 1; let tr = document.createElement('tr');
+    const tb = $('tbody-plan-accion'); let rowCount = tb.children.length + 1; let tr = document.createElement('tr');
     tr.innerHTML = `<td style="border:1px solid #ccc; padding:4px;">${rowCount}</td><td style="border:1px solid #ccc; padding:0;"><input type="text" value="${detalle}" style="width:100%; border:none; margin:0; padding:6px;"></td><td style="border:1px solid #ccc; padding:0;"><input type="text" value="${resp}" style="width:100%; border:none; margin:0; padding:6px;"></td><td style="border:1px solid #ccc; padding:0;"><input type="date" value="${fIni}" style="width:100%; border:none; margin:0; padding:6px;"></td><td style="border:1px solid #ccc; padding:0;"><input type="date" value="${fFin}" style="width:100%; border:none; margin:0; padding:6px;"></td><td style="border:1px solid #ccc; text-align:center; padding:0;"><button class="btn-icon-danger" onclick="this.parentElement.parentElement.remove()"><span class="material-icons-round" style="font-size:14px;">delete</span></button></td>`;
     tb.appendChild(tr);
 };
 
 window.addSeguimientoRow = (resultado="", resp="", fecha="") => {
-    const tb = document.getElementById('tbody-seguimiento'); let rowCount = tb.children.length + 1; let tr = document.createElement('tr');
+    const tb = $('tbody-seguimiento'); let rowCount = tb.children.length + 1; let tr = document.createElement('tr');
     tr.innerHTML = `<td style="border:1px solid #ccc; padding:4px;">${rowCount}</td><td style="border:1px solid #ccc; padding:0;"><input type="text" value="${resultado}" style="width:100%; border:none; margin:0; padding:6px;"></td><td style="border:1px solid #ccc; padding:0;"><input type="text" value="${resp}" style="width:100%; border:none; margin:0; padding:6px;"></td><td style="border:1px solid #ccc; padding:0;"><input type="date" value="${fecha}" style="width:100%; border:none; margin:0; padding:6px;"></td><td style="border:1px solid #ccc; text-align:center; padding:0;"><button class="btn-icon-danger" onclick="this.parentElement.parentElement.remove()"><span class="material-icons-round" style="font-size:14px;">delete</span></button></td>`;
     tb.appendChild(tr);
 };
 
 window.abrirCrearSAC = (f020_id) => {
     let h = currentAuditF020.find(i => i.id === f020_id); if(!h) return; currentEditingSacId = null; currentEditingF020Ref = h;
-    if(document.getElementById('sac-num')) document.getElementById('sac-num').innerText = "POR ASIGNAR"; 
-    if(document.getElementById('sac-estado-badge')) { document.getElementById('sac-estado-badge').innerText = "NUEVA"; document.getElementById('sac-estado-badge').className = "badge badge-info"; }
-    if(document.getElementById('sac-fecha')) document.getElementById('sac-fecha').value = new Date().toISOString().split('T')[0]; 
-    if(document.getElementById('sac-proceso')) document.getElementById('sac-proceso').value = h.proceso || selectedAuditData.proceso || "";
-    if(document.getElementById('sac-tipo')) document.getElementById('sac-tipo').value = h.hallazgo || ""; 
-    if(document.getElementById('sac-fuente')) document.getElementById('sac-fuente').value = "Auditoría Interna"; 
-    if(document.getElementById('sac-fuente-otro')) document.getElementById('sac-fuente-otro').value = "";
-    if(document.getElementById('sac-detalle')) document.getElementById('sac-detalle').value = h.comentarios || h.pregunta; 
-    if(document.getElementById('sac-beneficio')) document.getElementById('sac-beneficio').value = ""; 
-    if(document.getElementById('sac-causa')) document.getElementById('sac-causa').value = ""; 
-    if(document.getElementById('sac-accion')) document.getElementById('sac-accion').value = "";
-    if(document.getElementById('tbody-plan-accion')) document.getElementById('tbody-plan-accion').innerHTML = ""; 
-    if(document.getElementById('sac-fecha-aprob-plan')) document.getElementById('sac-fecha-aprob-plan').value = ""; 
-    if(document.getElementById('tbody-seguimiento')) document.getElementById('tbody-seguimiento').innerHTML = "";
-    if(document.getElementById('sac-resp-cierre')) document.getElementById('sac-resp-cierre').value = ""; 
-    if(document.getElementById('sac-fecha-cierre')) document.getElementById('sac-fecha-cierre').value = ""; 
-    if(document.getElementById('sac-check-cerrar')) document.getElementById('sac-check-cerrar').checked = false;
+    if($('sac-num')) $('sac-num').innerText = "POR ASIGNAR"; 
+    if($('sac-estado-badge')) { $('sac-estado-badge').innerText = "NUEVA"; $('sac-estado-badge').className = "badge badge-info"; }
+    if($('sac-fecha')) $('sac-fecha').value = new Date().toISOString().split('T')[0]; 
+    if($('sac-proceso')) $('sac-proceso').value = h.proceso || selectedAuditData.proceso || "";
+    if($('sac-tipo')) $('sac-tipo').value = h.hallazgo || ""; 
+    if($('sac-fuente')) $('sac-fuente').value = "Auditoría Interna"; 
+    if($('sac-fuente-otro')) $('sac-fuente-otro').value = "";
+    if($('sac-detalle')) $('sac-detalle').value = h.comentarios || h.pregunta; 
+    if($('sac-beneficio')) $('sac-beneficio').value = ""; 
+    if($('sac-causa')) $('sac-causa').value = ""; 
+    if($('sac-accion')) $('sac-accion').value = "";
+    if($('tbody-plan-accion')) $('tbody-plan-accion').innerHTML = ""; 
+    if($('sac-fecha-aprob-plan')) $('sac-fecha-aprob-plan').value = ""; 
+    if($('tbody-seguimiento')) $('tbody-seguimiento').innerHTML = "";
+    if($('sac-resp-cierre')) $('sac-resp-cierre').value = ""; 
+    if($('sac-fecha-cierre')) $('sac-fecha-cierre').value = ""; 
+    if($('sac-check-cerrar')) $('sac-check-cerrar').checked = false;
     
     let opt = '<option value="">-- Seleccione Responsable (Dueño) --</option>'; allUsers.forEach(u => { opt += `<option value="${u.usuario}">${u.nombre} (${u.gerencias ? u.gerencias[0]:''})</option>`; });
-    if(document.getElementById('sac-dueno')) document.getElementById('sac-dueno').innerHTML = opt; 
+    if($('sac-dueno')) $('sac-dueno').innerHTML = opt; 
     setDisplay('modal-sac', 'flex');
 };
 
 window.verSAC = (sac_id) => {
     let sac = globalAllSacs.find(s => s.sac_id === sac_id); if(!sac) return; currentEditingSacId = sac_id;
-    if(document.getElementById('sac-num')) document.getElementById('sac-num').innerText = sac.sac_num; 
+    if($('sac-num')) $('sac-num').innerText = sac.sac_num; 
     let est = sac.estado; let bs = est.includes('Abierta') ? 'badge-danger' : (est === 'En Seguimiento' ? 'badge-warning' : 'badge-success');
-    if(document.getElementById('sac-estado-badge')) { document.getElementById('sac-estado-badge').innerText = est.toUpperCase(); document.getElementById('sac-estado-badge').className = `badge ${bs}`; }
+    if($('sac-estado-badge')) { $('sac-estado-badge').innerText = est.toUpperCase(); $('sac-estado-badge').className = `badge ${bs}`; }
     
-    if(document.getElementById('sac-fecha')) document.getElementById('sac-fecha').value = sac.fecha_registro || sac.fecha_apertura.split('T')[0]; 
-    if(document.getElementById('sac-proceso')) document.getElementById('sac-proceso').value = sac.proceso || ""; 
-    if(document.getElementById('sac-tipo')) document.getElementById('sac-tipo').value = sac.tipo_hallazgo || "";
-    if(document.getElementById('sac-fuente')) document.getElementById('sac-fuente').value = sac.fuente_nc || "Auditoría Interna"; 
-    if(document.getElementById('sac-fuente-otro')) document.getElementById('sac-fuente-otro').value = sac.fuente_otro || ""; 
-    if(document.getElementById('sac-detalle')) document.getElementById('sac-detalle').value = sac.detalle_nc || "";
-    if(document.getElementById('sac-beneficio')) document.getElementById('sac-beneficio').value = sac.beneficio_esperado || ""; 
-    if(document.getElementById('sac-causa')) document.getElementById('sac-causa').value = sac.causa_raiz || ""; 
-    if(document.getElementById('sac-accion')) document.getElementById('sac-accion').value = sac.accion_implementar || "";
+    if($('sac-fecha')) $('sac-fecha').value = sac.fecha_registro || sac.fecha_apertura.split('T')[0]; 
+    if($('sac-proceso')) $('sac-proceso').value = sac.proceso || ""; 
+    if($('sac-tipo')) $('sac-tipo').value = sac.tipo_hallazgo || "";
+    if($('sac-fuente')) $('sac-fuente').value = sac.fuente_nc || "Auditoría Interna"; 
+    if($('sac-fuente-otro')) $('sac-fuente-otro').value = sac.fuente_otro || ""; 
+    if($('sac-detalle')) $('sac-detalle').value = sac.detalle_nc || "";
+    if($('sac-beneficio')) $('sac-beneficio').value = sac.beneficio_esperado || ""; 
+    if($('sac-causa')) $('sac-causa').value = sac.causa_raiz || ""; 
+    if($('sac-accion')) $('sac-accion').value = sac.accion_implementar || "";
     
     let opt = '<option value="">-- Seleccione Responsable (Dueño) --</option>'; allUsers.forEach(u => { opt += `<option value="${u.usuario}" ${sac.dueno_uid === u.usuario ? 'selected':''}>${u.nombre}</option>`; });
-    if(document.getElementById('sac-dueno')) document.getElementById('sac-dueno').innerHTML = opt; 
+    if($('sac-dueno')) $('sac-dueno').innerHTML = opt; 
     
-    if(document.getElementById('tbody-plan-accion')) { document.getElementById('tbody-plan-accion').innerHTML = ""; if(sac.plan_accion) { sac.plan_accion.forEach(p => window.addPlanRow(p.detalle, p.resp, p.inicio, p.fin)); } }
-    if(document.getElementById('sac-fecha-aprob-plan')) document.getElementById('sac-fecha-aprob-plan').value = sac.fecha_aprobacion_plan || "";
-    if(document.getElementById('tbody-seguimiento')) { document.getElementById('tbody-seguimiento').innerHTML = ""; if(sac.seguimiento) { sac.seguimiento.forEach(s => window.addSeguimientoRow(s.resultado, s.resp, s.fecha)); } }
-    if(document.getElementById('sac-resp-cierre')) document.getElementById('sac-resp-cierre').value = sac.cerrado_por || ""; 
-    if(document.getElementById('sac-fecha-cierre')) document.getElementById('sac-fecha-cierre').value = sac.fecha_cierre ? sac.fecha_cierre.split('T')[0] : "";
-    if(document.getElementById('sac-check-cerrar')) document.getElementById('sac-check-cerrar').checked = est === 'Cerrada'; 
+    if($('tbody-plan-accion')) { $('tbody-plan-accion').innerHTML = ""; if(sac.plan_accion) { sac.plan_accion.forEach(p => window.addPlanRow(p.detalle, p.resp, p.inicio, p.fin)); } }
+    if($('sac-fecha-aprob-plan')) $('sac-fecha-aprob-plan').value = sac.fecha_aprobacion_plan || "";
+    if($('tbody-seguimiento')) { $('tbody-seguimiento').innerHTML = ""; if(sac.seguimiento) { sac.seguimiento.forEach(s => window.addSeguimientoRow(s.resultado, s.resp, s.fecha)); } }
+    if($('sac-resp-cierre')) $('sac-resp-cierre').value = sac.cerrado_por || ""; 
+    if($('sac-fecha-cierre')) $('sac-fecha-cierre').value = sac.fecha_cierre ? sac.fecha_cierre.split('T')[0] : "";
+    if($('sac-check-cerrar')) $('sac-check-cerrar').checked = est === 'Cerrada'; 
     setDisplay('modal-sac', 'flex');
 };
 
 window.guardarSAC = async () => {
     window.showLoading(); 
-    let planAccionArr = []; document.querySelectorAll('#tbody-plan-accion tr').forEach(tr => { let inputs = tr.querySelectorAll('input'); if(inputs[0].value.trim()) { planAccionArr.push({ detalle: inputs[0].value, resp: inputs[1].value, inicio: inputs[2].value, fin: inputs[3].value }); } });
-    let segArr = []; document.querySelectorAll('#tbody-seguimiento tr').forEach(tr => { let inputs = tr.querySelectorAll('input'); if(inputs[0].value.trim()) { segArr.push({ resultado: inputs[0].value, resp: inputs[1].value, fecha: inputs[2].value }); } });
+    let planAccionArr = []; $$('#tbody-plan-accion tr').forEach(tr => { let inputs = tr.querySelectorAll('input'); if(inputs[0].value.trim()) { planAccionArr.push({ detalle: inputs[0].value, resp: inputs[1].value, inicio: inputs[2].value, fin: inputs[3].value }); } });
+    let segArr = []; $$('#tbody-seguimiento tr').forEach(tr => { let inputs = tr.querySelectorAll('input'); if(inputs[0].value.trim()) { segArr.push({ resultado: inputs[0].value, resp: inputs[1].value, fecha: inputs[2].value }); } });
 
-    let estado = "Abierta (En Plan)"; if(document.getElementById('sac-fecha-aprob-plan').value) estado = "En Seguimiento"; if(document.getElementById('sac-check-cerrar').checked) estado = "Cerrada";
+    let estado = "Abierta (En Plan)"; if($('sac-fecha-aprob-plan').value) estado = "En Seguimiento"; if($('sac-check-cerrar').checked) estado = "Cerrada";
 
-    let data = { fecha_registro: document.getElementById('sac-fecha').value, proceso: document.getElementById('sac-proceso').value, fuente_nc: document.getElementById('sac-fuente').value, fuente_otro: document.getElementById('sac-fuente-otro').value, beneficio_esperado: document.getElementById('sac-beneficio').value, causa_raiz: document.getElementById('sac-causa').value, accion_implementar: document.getElementById('sac-accion').value, dueno_uid: document.getElementById('sac-dueno').value, plan_accion: planAccionArr, fecha_aprobacion_plan: document.getElementById('sac-fecha-aprob-plan').value, seguimiento: segArr, fecha_cierre: document.getElementById('sac-fecha-cierre').value, cerrado_por: document.getElementById('sac-check-cerrar').checked ? currentUser.nombre : "", estado: estado };
+    let data = { fecha_registro: $('sac-fecha').value, proceso: $('sac-proceso').value, fuente_nc: $('sac-fuente').value, fuente_otro: $('sac-fuente-otro').value, beneficio_esperado: $('sac-beneficio').value, causa_raiz: $('sac-causa').value, accion_implementar: $('sac-accion').value, dueno_uid: $('sac-dueno').value, plan_accion: planAccionArr, fecha_aprobacion_plan: $('sac-fecha-aprob-plan').value, seguimiento: segArr, fecha_cierre: $('sac-fecha-cierre').value, cerrado_por: $('sac-check-cerrar').checked ? currentUser.nombre : "", estado: estado };
 
     if(!currentEditingSacId) {
         let num_sac = ""; const refCont = doc(db, "artifacts", appId, "public", "data", "Contadores", "sacs");
         await runTransaction(db, async (t) => { const snap = await t.get(refCont); let count = 1; if (snap.exists()) count = snap.data().count + 1; t.set(refCont, { count }); num_sac = `SAC-${new Date().getFullYear()}-${String(count).padStart(3, '0')}`; });
-        data.sac_num = num_sac; data.audit_id = selectedAuditId; data.f020_id = currentEditingF020Ref.id; data.tipo_hallazgo = currentEditingF020Ref.hallazgo; data.detalle_nc = document.getElementById('sac-detalle').value; data.fecha_apertura = new Date().toISOString(); data.auditor_nombre = currentUser.nombre;
+        data.sac_num = num_sac; data.audit_id = selectedAuditId; data.f020_id = currentEditingF020Ref.id; data.tipo_hallazgo = currentEditingF020Ref.hallazgo; data.detalle_nc = $('sac-detalle').value; data.fecha_apertura = new Date().toISOString(); data.auditor_nombre = currentUser.nombre;
         await addDoc(collection(db, "artifacts", appId, "public", "data", "AccionesCorrectivas"), data); alert(`SAC ${num_sac} generada.`);
     } else {
         await updateDoc(doc(db, "artifacts", appId, "public", "data", "AccionesCorrectivas", currentEditingSacId), data); alert("SAC Actualizada."); 
@@ -1261,9 +1250,9 @@ window.guardarSAC = async () => {
 };
 
 window.renderF023Global = () => {
-    const tb = document.getElementById('tbody-noconf'); if(!tb) return;
+    const tb = $('tbody-noconf'); if(!tb) return;
     let html = ""; let filtrados = [...globalAllSacs];
-    const selEst = document.getElementById('filter-noconf-estado');
+    const selEst = $('filter-noconf-estado');
     if(selEst && selEst.value) { filtrados = filtrados.filter(s => s.estado === selEst.value); }
     if(!currentUser.permisos.admin && !currentUser.permisos.p_gest_sgc && !currentUser.permisos.p_audit_admin) {
         filtrados = filtrados.filter(s => s.dueno_uid === currentUser.usuario || s.auditor_nombre === currentUser.nombre);
@@ -1297,23 +1286,18 @@ window.exportarExcelNoConf = () => {
 // ARRANQUE DE LA APLICACIÓN
 // ==========================================
 const inicializarApp = async () => {
-    console.log("🚀 Paso 1: Iniciando aplicación..."); window.hideLoading(); 
+    window.hideLoading(); 
     const savedUser = localStorage.getItem('sgc_session_user');
-    console.log("👤 Paso 2: Usuario guardado en caché:", savedUser ? savedUser : "Ninguno");
-
     if (savedUser) {
         window.showLoading();
         try {
-            console.log("⏳ Paso 3: Conectando con Firebase para validar sesión...");
             const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", savedUser));
             const snap = await getDocs(q);
-            if (!snap.empty) { 
-                console.log("✅ Paso 4: Sesión restaurada con éxito. Renderizando UI...");
-                currentUser = snap.docs[0].data(); window.completarLoginUI(); 
-            } else { 
-                console.log("⚠️ Paso 4: El usuario ya no existe en la BD. Limpiando sesión..."); window.logout();
-            }
-        } catch(e) { console.error("❌ Error al restaurar sesión:", e); window.logout(); }
+            if (!snap.empty) { currentUser = snap.docs[0].data(); window.completarLoginUI(); } 
+            else { window.logout(); }
+        } catch(e) { window.logout(); }
         window.hideLoading();
-    } else {
-        console.log("👋 Paso 3: No hay sesión. Mostrando pantalla de Login."); window.
+    } else { window.hideLoading(); setDisplay('login-screen', 'flex'); }
+};
+
+if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", inicializarApp); } else { inicializarApp(); }
