@@ -244,10 +244,10 @@
                     <div><label>Fecha Estimada</label><input type="date" id="aud-fecha"></div><div><label>Hora Inicio</label><input type="time" id="aud-h-ini"></div>
                     <div><label>Hora Final</label><input type="time" id="aud-h-fin"></div><div><label>Lugar / Modalidad</label><input type="text" id="aud-lugar"></div>
                 </div>
-                
-                <div class="grid-2">
-                    <div><label>Proceso / Área / Actividad</label><input type="text" id="aud-proceso"></div>
-                    <div><label style="color:var(--primary);">Requisitos (Norma/Cláusula)</label><div id="aud-req-list" class="checkbox-list" style="height:120px;"></div></div>
+
+                <div style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid var(--border); margin-bottom:15px;">
+                    <label style="color:var(--primary);">Puntos / Requisitos OEA a Evaluar</label>
+                    <div id="aud-req-list" class="checkbox-list" style="height:120px;"></div>
                 </div>
 
                 <div class="grid-2" style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid var(--border); margin-bottom:15px;">
@@ -268,7 +268,12 @@
             </div>
 
             <div class="card" style="padding:0; overflow:hidden;">
-                <div class="table-responsive"><table id="tabla-auditorias"><thead><tr><th>N° Auditoría</th><th>Fecha / Hora</th><th>Proceso / Área</th><th>Auditado(s)</th><th>Auditor(es)</th><th>Estado</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-auditorias"></tbody></table></div>
+                <div class="table-responsive">
+                    <table id="tabla-auditorias">
+                        <thead><tr><th>N° Auditoría</th><th>Fecha / Hora</th><th>Requisitos OEA</th><th>Auditado(s)</th><th>Auditor(es)</th><th>Estado</th><th class="no-export">Acción</th></tr></thead>
+                        <tbody id="tbody-auditorias"></tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -278,10 +283,10 @@
             </div>
             <div class="card" style="padding:0; padding-top:15px; margin-top:20px;">
                 <div style="padding: 0 15px; margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
-                    <input type="text" id="search-noconf" class="search-bar" placeholder="🔍 Buscar por Proceso, NC, o Estado..." onkeyup="window.filtrarTabla('search-noconf', 'tbody-noconf')" style="flex:1;">
+                    <input type="text" id="search-noconf" class="search-bar" placeholder="🔍 Buscar por Requisito, NC, o Estado..." onkeyup="window.filtrarTabla('search-noconf', 'tbody-noconf')" style="flex:1;">
                     <select id="filter-noconf-estado" class="search-bar" style="width:200px;" onchange="window.setFilterGestNC(this.value)"><option value="">Todos los Estados</option><option value="Abierta">Abierta (En Plan)</option><option value="En Seguimiento">En Seguimiento</option><option value="Cerrada">Cerrada</option></select>
                 </div>
-                <div class="table-responsive"><table id="tabla-noconf" style="white-space:nowrap;"><thead><tr><th>SAC N°</th><th>Proceso / Auditoría</th><th>Tipo</th><th>Responsable</th><th>Detalle</th><th>Apertura</th><th>Estado</th><th>Cierre</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-noconf"></tbody></table></div>
+                <div class="table-responsive"><table id="tabla-noconf" style="white-space:nowrap;"><thead><tr><th>SAC N°</th><th>Requisito Evaluado</th><th>Tipo</th><th>Responsable</th><th>Detalle</th><th>Apertura</th><th>Estado</th><th>Cierre</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-noconf"></tbody></table></div>
             </div>
         </section>
 
@@ -367,7 +372,7 @@
         <div class="grid-4" id="m-tiempos-grid" style="gap:10px;"></div>
     </div>
 
-    <div id="m-display-final" style="display:none; margin-bottom:20px; background:#f0fdf4; padding:20px; border-radius:12px; border: 1px solid #bbf7d0;"><div class="grid-3"><div><label>Código</label><p id="m-disp-cod" style="font-weight:bold;"></p></div><div><label>Versión</label><p id="m-disp-ver" style="font-weight:bold;"></p></div><div><label>Fecha</label><p id="m-disp-fecha" style="font-weight:bold; margin:0;"></p></div><div style="grid-column: span 3;"><label>Doc Oficial</label><div id="m-disp-file"></div></div></div></div><div id="m-panel-update-sgc" style="display:none; margin-bottom:20px; background:#f8fafc; padding:20px; border-radius:12px; border: 1px dashed var(--info);"><div class="grid-2"><div><label>Título</label><input type="text" id="m-upd-tit"></div><div><label>Código</label><input type="text" id="m-upd-cod"></div><div><label>Versión</label><input type="text" id="m-upd-ver"></div><div><label>Adjunto</label><input type="file" id="m-upd-file"></div></div><button class="btn btn-info" onclick="window.actualizarDatosSGC()" style="width:100%;">Actualizar</button></div><div id="m-panel-final-sgc" style="display:none; margin-bottom:20px; background:#eff6ff; padding:20px; border-radius:12px; border: 1px dashed var(--primary);"><div class="grid-3"><div><label>Cod. Final</label><input type="text" id="m-final-cod"></div><div><label>Ver. Final</label><input type="text" id="m-final-ver"></div><div><label>Fecha</label><input type="date" id="m-final-fecha"></div></div><input type="file" id="m-final-file"><input type="text" id="m-final-comentario" placeholder="Obs final..."><button class="btn btn-primary" onclick="window.guardarCierreFinal()" style="width:100%;">Publicar</button></div><div id="m-original-data"><div class="grid-3"><div><label>Solicitante</label><p id="m-sol"></p></div><div><label>Gerencia</label><p id="m-ger"></p></div><div><label>Estado</label><span id="m-est" class="badge"></span></div><div><label>Tipo</label><p id="m-tipo"></p></div><div><label>Prioridad</label><span id="m-prioridad" class="badge badge-dark"></span></div><div><label>Acción</label><p id="m-accion"></p></div><div style="grid-column: span 3;"><label>Adjunto</label><div id="m-file-link"></div></div></div><div id="m-extra-panel" style="display:none;"><div class="grid-3"><div><label>Cód. Original</label><p id="m-cod"></p></div><div><label>Ver. Anterior</label><p id="m-ver"></p></div><div><label>Fecha Ult.</label><p id="m-fecha-ult"></p></div></div></div><div style="margin-top:20px;"><label>Justificación</label><p id="m-jus"></p></div><div id="m-involucrados-container" style="margin-top:15px;"><label>Involucrados</label><p id="m-involucrados-list"></p><div id="m-add-involucrado-section" style="display:flex; gap:10px;"><select id="m-new-involucrado-sel" style="flex:1;"><option value="">-- Seleccionar --</option></select><button class="btn btn-info" onclick="window.guardarNuevoInvolucrado()">Añadir</button></div></div></div><div id="m-actions" style="margin-top:30px; display:none;"><div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="btn btn-info" onclick="window.gestionar('Consulta')">Consultar</button><button class="btn btn-warning" onclick="window.gestionar('Reunión')">Reunión</button><button class="btn btn-primary" id="btn-firma-next" onclick="window.firmarPaso()">Firmar</button><button class="btn btn-warning" id="btn-devolver-paso" onclick="window.devolverPaso()" style="display:none; background-color:#d97706;">Devolver</button><button class="btn btn-danger" onclick="window.rechazar()">Rechazar</button></div></div><div id="applicant-actions" style="margin-top:20px; display:none;"><button class="btn btn-info" style="background:var(--accent);" onclick="window.responderSolicitante()"> Responder</button></div><div id="m-input-area" style="display:none; margin-top:15px;"><div id="reunion-container" style="display:none;"><input type="datetime-local" id="m-date-meeting"></div><div id="m-extra-input" contenteditable="true" style="min-height:50px; border:1px solid #ccc; padding:10px; background:white;"></div><input type="file" id="m-file-gestion" style="margin-top:10px;"><button class="btn btn-success" id="btnConfirmAction" style="width:100%; margin-top:10px;">Confirmar</button><button class="btn btn-ghost" onclick="document.getElementById('m-input-area').style.display='none'" style="width:100%; margin-top:5px;">Cancelar</button></div><div id="general-comment-area" style="margin-top:30px;"><div id="m-comentario-libre" contenteditable="true" style="min-height:60px; border:1px solid #ccc; padding:10px; background:white;"></div><div style="display:flex; gap:10px; align-items:center; margin-top:10px;"><input type="file" id="m-file-comentario"><button class="btn btn-success" onclick="window.enviarComentarioLibre()">Enviar</button></div></div></div><div class="modal-side"><div id="chat-box"></div></div></div></div>
+    <div id="m-display-final" style="display:none; margin-bottom:20px; background:#f0fdf4; padding:20px; border-radius:12px; border: 1px solid #bbf7d0;"><div class="grid-3"><div><label>Código</label><p id="m-disp-cod" style="font-weight:bold;"></p></div><div><label>Versión</label><p id="m-disp-ver" style="font-weight:bold;"></p></div><div><label>Fecha</label><p id="m-disp-fecha" style="font-weight:bold; margin:0;"></p></div><div style="grid-column: span 3;"><label>Doc Oficial</label><div id="m-disp-file"></div></div></div></div><div id="m-panel-update-sgc" style="display:none; margin-bottom:20px; background:#f8fafc; padding:20px; border-radius:12px; border: 1px dashed var(--info);"><div class="grid-2"><div><label>Título</label><input type="text" id="m-upd-tit"></div><div><label>Código</label><input type="text" id="m-upd-cod"></div><div><label>Versión</label><input type="text" id="m-upd-ver"></div><div><label>Adjunto</label><input type="file" id="m-upd-file"></div></div><button class="btn btn-info" onclick="window.actualizarDatosSGC()" style="width:100%;">Actualizar</button></div><div id="m-panel-final-sgc" style="display:none; margin-bottom:20px; background:#eff6ff; padding:20px; border-radius:12px; border: 1px dashed var(--primary);"><div class="grid-3"><div><label>Cod. Final</label><input type="text" id="m-final-cod"></div><div><label>Ver. Final</label><input type="text" id="m-final-ver"></div><div><label>Fecha</label><input type="date" id="m-final-fecha"></div></div><input type="file" id="m-final-file"><input type="text" id="m-final-comentario" placeholder="Obs final..."><button class="btn btn-primary" onclick="window.guardarCierreFinal()" style="width:100%;">Publicar</button></div><div id="m-original-data"><div class="grid-3"><div><label>Solicitante</label><p id="m-sol"></p></div><div><label>Gerencia</label><p id="m-ger"></p></div><div><label>Estado</label><span id="m-est" class="badge"></span></div><div><label>Tipo</label><p id="m-tipo"></p></div><div><label>Prioridad</label><span id="m-prioridad" class="badge badge-dark"></span></div><div><label>Acción</label><p id="m-accion"></p></div><div style="grid-column: span 3;"><label>Adjunto</label><div id="m-file-link"></div></div></div><div id="m-extra-panel" style="display:none;"><div class="grid-3"><div><label>Cód. Original</label><p id="m-cod"></p></div><div><label>Ver. Anterior</label><p id="m-ver"></p></div><div><label>Fecha Ult.</label><p id="m-fecha-ult"></p></div></div></div><div style="margin-top:20px;"><label>Justificación</label><p id="m-jus"></p></div><div id="m-involucrados-container" style="margin-top:15px;"><label>Involucrados</label><p id="m-involucrados-list"></p><div id="m-add-involucrado-section" style="display:flex; gap:10px;"><select id="m-new-involucrado-sel" style="flex:1;"><option value="">-- Seleccionar --</option></select><button class="btn btn-info" onclick="window.guardarNuevoInvolucrado()">Añadir</button></div></div></div><div id="m-actions" style="margin-top:30px; display:none;"><div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="btn btn-info" onclick="window.gestionar('Consulta')">Consultar</button><button class="btn btn-warning" onclick="window.gestionar('Reunión')">Reunión</button><button class="btn btn-primary" id="btn-firma-next" onclick="window.firmarPaso()">Firmar</button><button class="btn btn-warning" id="btn-devolver-paso" onclick="window.devolverPaso()" style="display:none; background-color:#d97706;">Devolver</button><button class="btn btn-danger" onclick="window.rechazar()">Rechazar</button></div></div><div id="applicant-actions" style="margin-top:20px; display:none;"><button class="btn btn-info" style="background:var(--accent);" onclick="window.responderSolicitante()"> Responder</button></div><div id="m-input-area" style="display:none; margin-top:15px;"><div id="reunion-container" style="display:none;"><input type="datetime-local" id="m-date-meeting"></div><div id="m-extra-input" contenteditable="true" style="min-height:50px; border:1px solid #ccc; padding:10px; background:white;"></div><input type="file" id="m-file-gestion" style="margin-top:10px;"><button class="btn btn-success" id="btnConfirmAction" style="width:100%; margin-top:10px;">Confirmar</button><button class="btn btn-ghost" onclick="window.closeModal()" style="width:100%; margin-top:5px;">Cancelar</button></div><div id="general-comment-area" style="margin-top:30px;"><div id="m-comentario-libre" contenteditable="true" style="min-height:60px; border:1px solid #ccc; padding:10px; background:white;"></div><div style="display:flex; gap:10px; align-items:center; margin-top:10px;"><input type="file" id="m-file-comentario"><button class="btn btn-success" onclick="window.enviarComentarioLibre()">Enviar</button></div></div></div><div class="modal-side"><div id="chat-box"></div></div></div></div>
 
     <div class="modal-overlay" id="modal-auditoria">
         <div class="modal-content modal-full">
@@ -382,8 +387,8 @@
             </div>
 
             <div class="tab-container">
-                <button class="tab-btn active" id="btn-tab-info" onclick="window.switchAuditTab('info')">Detalles</button>
-                <button class="tab-btn" id="btn-tab-f020" onclick="window.switchAuditTab('f020')">Lista Verif. (F-020)</button>
+                <button class="tab-btn active" id="btn-tab-info" onclick="window.switchAuditTab('info')">Detalles Generales</button>
+                <button class="tab-btn" id="btn-tab-f020" onclick="window.switchAuditTab('f020')" style="display:none;">Lista Verif. (F-020)</button>
                 <button class="tab-btn" id="btn-tab-f003" onclick="window.switchAuditTab('f003')">Reporte (F-003)</button>
                 <button class="tab-btn" id="btn-tab-sac" onclick="window.switchAuditTab('sac')">Acciones (SAC F-002)</button>
             </div>
@@ -397,7 +402,7 @@
                         <div><label>Auditor(es)</label><p id="ma-auditor" style="color:var(--info); font-weight:600;"></p></div>
                     </div>
                     <div style="background:#f8fafc; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid var(--border);">
-                        <label>Requisitos (Norma/Cláusula)</label><p id="ma-req"></p>
+                        <label>Requisitos / Puntos a Evaluar</label><p id="ma-req"></p>
                         <label style="margin-top:10px;">Observaciones / Enfoque</label><p id="ma-obs"></p>
                     </div>
 
@@ -436,8 +441,21 @@
                         <button class="btn btn-info" id="btn-add-f020" onclick="window.agregarFilaF020()" style="display:none;">+ Añadir Ítem</button>
                     </div>
                     <div class="table-responsive" style="border:1px solid var(--border); border-radius:8px;">
-                        <table style="width:100%; min-width:800px;">
-                            <thead style="background:#f1f5f9;"><tr><th>#</th><th>Pregunta / Actividad</th><th style="width:100px;">Requisito</th><th>Comentarios / Evidencia</th><th style="width:120px;">Auditado</th><th style="width:130px;">Hallazgo</th><th style="width:50px;" class="f020-action-col">Acción</th></tr></thead>
+                        <table style="width:100%; min-width:1000px;">
+                            <thead style="background:#f1f5f9;">
+                                <tr>
+                                    <th style="width:30px;">#</th>
+                                    <th>Actividad / Proceso</th>
+                                    <th>Pregunta</th>
+                                    <th style="width:120px;">Requisito OEA</th>
+                                    <th>Comentarios</th>
+                                    <th style="width:100px;">Auditado</th>
+                                    <th style="width:100px;">NC / Hallazgo</th>
+                                    <th>Observación</th>
+                                    <th style="width:80px;">Fortaleza</th>
+                                    <th style="width:50px;" class="f020-action-col">Acción</th>
+                                </tr>
+                            </thead>
                             <tbody id="tbody-f020"></tbody>
                         </table>
                     </div>
@@ -524,7 +542,7 @@
                 <div style="display:grid; grid-template-columns: 180px 1fr; border:1px solid #ccc; font-size:12px; margin-bottom:20px;">
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Fecha</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="date" id="sac-fecha" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;"># de Solicitud / Estado</div><div style="padding:8px; border-bottom:1px solid #ccc; display:flex; justify-content:space-between;"><span id="sac-num" style="font-weight:bold;"></span><span id="sac-estado-badge" class="badge"></span></div>
-                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Proceso / Actividad</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-proceso" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Actividad / Requisito</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-proceso" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Acción Correctiva / Mejora</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-tipo" disabled style="border:none; margin:0; width:100%; border-radius:0; height:100%; background:transparent; font-weight:bold;"></div>
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Fuente de No Conformidad</div><div style="padding:0; border-bottom:1px solid #ccc;"><select id="sac-fuente" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"><option value="Auditoría Interna">Auditoría Interna</option><option value="Auditoría Externa">Auditoría Externa</option><option value="Incidente">Incidente / Accidente</option><option value="Queja Cliente">Queja de Cliente</option><option value="Otro">Otro</option></select></div>
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">En el caso de otro, detalle:</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-fuente-otro" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
@@ -554,6 +572,8 @@
            <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn btn-primary" onclick="window.guardarRegistroMaestro()" style="flex:1;">Guardar Documento</button><button class="btn btn-dark" onclick="document.getElementById('modal-form-listado').style.display='none'" style="flex:1;">Cancelar</button></div>
         </div>
     </div>
+    
+    <datalist id="oea-req-list-dl"></datalist>
 
     <script type="module" src="app.js"></script>
 </body>
