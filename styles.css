@@ -1,14 +1,7 @@
 :root {
-    --primary: #1e40af; 
-    --accent: #3b82f6; 
-    --bg: #f8fafc;
-    --success: #059669; 
-    --warning: #d97706; 
-    --danger: #dc2626;
-    --info: #0891b2; 
-    --white: #ffffff; 
-    --border: #e2e8f0; 
-    --sidebar: #0f172a;
+    --primary: #1e40af; --accent: #3b82f6; --bg: #f8fafc;
+    --success: #059669; --warning: #d97706; --danger: #dc2626;
+    --info: #0891b2; --white: #ffffff; --border: #e2e8f0; --sidebar: #0f172a;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
@@ -91,7 +84,6 @@ input:checked + .slider:before { transform: translateX(16px); }
 .modal-content { background: white; width: 100%; max-width: 1200px; height: 90vh; border-radius: 24px; display: grid; grid-template-columns: 1fr 380px; overflow: hidden; }
 .modal-full { width: 100%; max-width: 1400px; display: flex; flex-direction: column; overflow: hidden; }
 
-/* CORRECCIÓN DE SCROLL EN MODALES */
 .modal-main { overflow-y: auto; max-height: 90vh; position: relative; }
 .modal-side { overflow-y: auto; max-height: 90vh; background:#f8fafc; border-left:1px solid #e2e8f0; }
 
@@ -127,9 +119,11 @@ input:checked + .slider:before { transform: translateX(16px); }
 .tab-content { display: none; background: white; border: 1px solid var(--border); border-top: none; padding: 20px; border-radius: 0 0 10px 10px; }
 .tab-content.active { display: block; }
 
-.table-input { width: 100%; border: none; background: transparent; padding: 5px; outline: none; font-size: 12px; }
-.table-input:focus { border-bottom: 1px solid var(--accent); }
-.table-select { border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px; font-size: 11px; width: 100%; outline:none;}
+/* MODIFICACIÓN: BORDES NEGROS FUERTES PARA LA LISTA DE VERIFICACIÓN (F-020) */
+.table-input { width: 100%; border: 1px solid #000; background: #fff; padding: 6px; outline: none; font-size: 12px; border-radius: 4px; color: #000; }
+.table-input:focus { border: 1px solid var(--accent); box-shadow: 0 0 3px var(--accent); }
+.table-select { border: 1px solid #000; border-radius: 4px; padding: 6px; font-size: 11px; width: 100%; outline:none; background: #fff; color: #000; }
+.table-select:focus { border: 1px solid var(--accent); box-shadow: 0 0 3px var(--accent); }
 
 /* Agrupación Permisos */
 .permisos-group { border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 15px; background: #fff; }
