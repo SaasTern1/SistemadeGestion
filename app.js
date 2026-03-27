@@ -9,7 +9,10 @@ const EMAIL_SERVICE_ID = "service_vumxptj"; const EMAIL_TEMPLATE_ID = "template_
 (function() { emailjs.init(EMAIL_PUBLIC_KEY); })();
 
 const CLOUD_NAME = "df79cjklp"; const UPLOAD_PRESET = "fci_documentos"; const PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
-const $ = id => document.getElementById(id); const $$ = sel => document.querySelectorAll(sel); const setDisplay = (id, val) => { const el = $(id); if (el) el.style.display = val; };
+
+const $ = id => document.getElementById(id);
+const $$ = sel => document.querySelectorAll(sel);
+const setDisplay = (id, val) => { const el = $(id); if (el) el.style.display = val; };
 
 let currentUser = null, selectedId = null, selectedDocData = null, tempAction = "";
 let allUsers = [], allDepartamentos = [], tiposDocumento = [], columnasMaestro = [], estatusMaestro = [], dataMaestro = [], editandoMaestroId = null;
@@ -22,6 +25,7 @@ window.abrirDocumento = async (url, nombreOriginal) => {
     let safeName = nombreOriginal ? nombreOriginal.replace(/[^a-zA-Z0-9.\-_ ]/g, '_') : 'Documento';
     if (!safeName.includes('.')) { let extMatch = url.match(/\.([a-zA-Z0-9]+)(\?|$)/); if(extMatch) safeName += "." + extMatch[1]; }
     let isViewable = url.toLowerCase().match(/\.(pdf|jpg|jpeg|png|gif)(\?|$)/);
+    
     if (isViewable) {
         const nuevaPestana = window.open('', '_blank');
         if (!nuevaPestana) return alert("Bloqueado por el navegador. Permite las ventanas emergentes.");
@@ -43,21 +47,67 @@ window.abrirDocumento = async (url, nombreOriginal) => {
     }
 };
 
-window.showLoading = () => setDisplay('loading-overlay', 'flex'); window.hideLoading = () => setDisplay('loading-overlay', 'none');
-window.cambiarVista = (id, btn) => { $$('.section').forEach(s => s.classList.remove('active')); $$('.nav-link').forEach(l => l.classList.remove('active')); const section = $(id); if(section) section.classList.add('active'); if(btn) btn.classList.add('active'); if(window.innerWidth <= 768) { const sidebar = $('sidebar'); if(sidebar) sidebar.classList.remove('open'); const overlay = $('sidebar-overlay'); if(overlay) overlay.classList.remove('active'); } };
+window.showLoading = () => setDisplay('loading-overlay', 'flex');
+window.hideLoading = () => setDisplay('loading-overlay', 'none');
+window.cambiarVista = (id, btn) => {
+    $$('.section').forEach(s => s.classList.remove('active')); $$('.nav-link').forEach(l => l.classList.remove('active'));
+    const section = $(id); if(section) section.classList.add('active'); if(btn) btn.classList.add('active');
+    if(window.innerWidth <= 768) { const sidebar = $('sidebar'); if(sidebar) sidebar.classList.remove('open'); const overlay = $('sidebar-overlay'); if(overlay) overlay.classList.remove('active'); }
+};
 window.toggleMenu = () => { $('sidebar').classList.toggle('open'); $('sidebar-overlay').classList.toggle('active'); };
-window.toggleModPanel = v => setDisplay('panel-mod', v === 'Creación' ? 'none' : 'grid'); window.closeModal = () => setDisplay('modal', 'none'); window.cerrarModalAuditoria = () => setDisplay('modal-auditoria', 'none');
-window.abrirModalUsuario = () => { window.resetUserForm(); setDisplay('modal-usuario', 'flex'); }; window.cerrarModalUsuario = () => { setDisplay('modal-usuario', 'none'); };
+window.toggleModPanel = v => setDisplay('panel-mod', v === 'Creación' ? 'none' : 'grid');
+window.closeModal = () => setDisplay('modal', 'none');
+window.cerrarModalAuditoria = () => setDisplay('modal-auditoria', 'none');
+window.abrirModalUsuario = () => { window.resetUserForm(); setDisplay('modal-usuario', 'flex'); };
+window.cerrarModalUsuario = () => { setDisplay('modal-usuario', 'none'); };
+
 window.del = async (c, id) => { if(confirm("¿Eliminar este registro?")) { window.showLoading(); await deleteDoc(doc(db, "artifacts", appId, "public", "data", c, id)); window.hideLoading(); } };
 window.getDownloadUrl = (url) => url ? url : "#";
-window.formatearFechaAbreviada = (fechaISO) => { if (!fechaISO) return ''; let f = fechaISO; if(f.length === 10) f += 'T12:00:00'; const fecha = new Date(f); if (isNaN(fecha)) return fechaISO; const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]; return `${fecha.getDate()}-${meses[fecha.getMonth()]}-${fecha.getFullYear()}`; };
+window.formatearFechaAbreviada = (fechaISO) => {
+    if (!fechaISO) return ''; let f = fechaISO; if(f.length === 10) f += 'T12:00:00'; const fecha = new Date(f); if (isNaN(fecha)) return fechaISO; 
+    const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]; return `${fecha.getDate()}-${meses[fecha.getMonth()]}-${fecha.getFullYear()}`;
+};
 window.getGCalFormat = (fechaStr, horaStr) => { let d = new Date(`${fechaStr}T${horaStr}:00`); return d.toISOString().replace(/-|:|\.\d+/g, ''); };
-window.sendNotification = (destinatarios, subject, message) => { if (!destinatarios.to && !destinatarios.cc) return; const templateParams = { to_email: destinatarios.to, cc_email: destinatarios.cc || "", subject: subject, message: message }; emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, templateParams).catch((error) => console.error('Error enviando notificación', error)); };
-window.getDatosEnvio = async (solicitudData) => { let managerEmail = ""; if(solicitudData.gerencia) { try { const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("gerencias", "array-contains", solicitudData.gerencia), where("permisos.p_ger_apr", "==", true)); const snap = await getDocs(q); if(!snap.empty) managerEmail = snap.docs[0].data().email || ""; } catch(e) {} } const toEmails = new Set([EMAIL_ADMIN_SGC, solicitudData.solicitante_email]); if(solicitudData.involucrados) { solicitudData.involucrados.forEach(e => toEmails.add(e)); } return { to: Array.from(toEmails).join(','), cc: managerEmail }; };
-window.uploadToCloudinary = async (file) => { const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET); try { const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData }); const data = await response.json(); return data.secure_url; } catch (error) { return null; } };
-window.getNextFCI = async () => { const ref = doc(db, "artifacts", appId, "public", "data", "Contadores", "solicitudes"); let id = ""; await runTransaction(db, async (t) => { const snap = await t.get(ref); let count = 1; if (snap.exists()) count = snap.data().count + 1; t.set(ref, { count }); id = `FCI-SOL-${String(count).padStart(4, '0')}`; }); return id; };
-window.checkDailyAlerts = async () => { if(!currentUser || (!currentUser.permisos.p_gest_sgc && !currentUser.permisos.admin)) return; const ref = doc(db, "artifacts", appId, "public", "data", "Configuracion", "EstadoAlertas"); const snap = await getDoc(ref); const today = new Date().toISOString().split('T')[0]; if(!snap.exists() || snap.data().ultimaAlerta !== today) { let pendientes = globalSolicitudes.filter(s => { let est = (s.estado || "").toUpperCase(); return !est.includes('APROBADO FINAL') && est !== 'ANULADO' && est !== 'RECHAZADO'; }); if(pendientes.length > 0) { window.sendNotification({to: EMAIL_ADMIN_SGC, cc: ""}, "🔔 Alerta Diaria SGC: Solicitudes Pendientes", `Hola Equipo SGC.\n\nActualmente hay ${pendientes.length} solicitudes pendientes en diferentes etapas del sistema que requieren atención.`); if(!snap.exists()) { await setDoc(ref, { ultimaAlerta: today }); } else { await updateDoc(ref, { ultimaAlerta: today }); } } } };
-window.verificarAlertasAuditoria = (auditoriasArray) => { if(!globalAuditPlan || !globalAuditPlan.correos || globalAuditPlan.correos.length === 0) return; const today = new Date(); today.setHours(0,0,0,0); auditoriasArray.forEach(a => { if(a.estado === "Completada" || !a.fecha) return; let f = a.fecha; if(f.length === 10) f += 'T12:00:00'; const auditDate = new Date(f); auditDate.setHours(0,0,0,0); const diffTime = auditDate - today; const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); let asunto = ""; if(diffDays === 30) asunto = "🚨 Recordatorio: 1 Mes para Auditoría"; if(diffDays === 14) asunto = "⚠️ Recordatorio Urgente: 2 Semanas para Auditoría"; if(asunto) { window.sendNotification({to: globalAuditPlan.correos.join(',')}, asunto, `Se aproxima una auditoría para el ${window.formatearFechaAbreviada(a.fecha)} en ${a.lugar}.\n\nRequisitos a evaluar: ${a.requisitos}\nAuditados: ${a.auditado}\nAuditores: ${a.auditor}.`); } }); };
+window.sendNotification = (destinatarios, subject, message) => {
+    if (!destinatarios.to && !destinatarios.cc) return; const templateParams = { to_email: destinatarios.to, cc_email: destinatarios.cc || "", subject: subject, message: message };
+    emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, templateParams).catch((error) => console.error('Error enviando notificación', error));
+};
+window.getDatosEnvio = async (solicitudData) => {
+    let managerEmail = "";
+    if(solicitudData.gerencia) { try { const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("gerencias", "array-contains", solicitudData.gerencia), where("permisos.p_ger_apr", "==", true)); const snap = await getDocs(q); if(!snap.empty) managerEmail = snap.docs[0].data().email || ""; } catch(e) {} }
+    const toEmails = new Set([EMAIL_ADMIN_SGC, solicitudData.solicitante_email]); if(solicitudData.involucrados) { solicitudData.involucrados.forEach(e => toEmails.add(e)); }
+    return { to: Array.from(toEmails).join(','), cc: managerEmail };
+};
+window.uploadToCloudinary = async (file) => {
+    const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET);
+    try { const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData }); const data = await response.json(); return data.secure_url; } catch (error) { return null; }
+};
+window.getNextFCI = async () => {
+    const ref = doc(db, "artifacts", appId, "public", "data", "Contadores", "solicitudes"); let id = "";
+    await runTransaction(db, async (t) => { const snap = await t.get(ref); let count = 1; if (snap.exists()) count = snap.data().count + 1; t.set(ref, { count }); id = `FCI-SOL-${String(count).padStart(4, '0')}`; }); return id;
+};
+
+window.checkDailyAlerts = async () => {
+    if(!currentUser || (!currentUser.permisos.p_gest_sgc && !currentUser.permisos.admin)) return;
+    const ref = doc(db, "artifacts", appId, "public", "data", "Configuracion", "EstadoAlertas"); const snap = await getDoc(ref); const today = new Date().toISOString().split('T')[0];
+    if(!snap.exists() || snap.data().ultimaAlerta !== today) {
+        let pendientes = globalSolicitudes.filter(s => { let est = (s.estado || "").toUpperCase(); return !est.includes('APROBADO FINAL') && est !== 'ANULADO' && est !== 'RECHAZADO'; });
+        if(pendientes.length > 0) { window.sendNotification({to: EMAIL_ADMIN_SGC, cc: ""}, "🔔 Alerta Diaria SGC: Solicitudes Pendientes", `Hola Equipo SGC.\n\nActualmente hay ${pendientes.length} solicitudes pendientes en diferentes etapas del sistema que requieren atención.`); if(!snap.exists()) { await setDoc(ref, { ultimaAlerta: today }); } else { await updateDoc(ref, { ultimaAlerta: today }); } }
+    }
+};
+
+window.verificarAlertasAuditoria = (auditoriasArray) => {
+    if(!globalAuditPlan || !globalAuditPlan.correos || globalAuditPlan.correos.length === 0) return;
+    const today = new Date(); today.setHours(0,0,0,0);
+    auditoriasArray.forEach(a => {
+        if(a.estado === "Completada" || !a.fecha) return;
+        let f = a.fecha; if(f.length === 10) f += 'T12:00:00'; const auditDate = new Date(f); auditDate.setHours(0,0,0,0);
+        const diffTime = auditDate - today; const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); let asunto = "";
+        if(diffDays === 30) asunto = "🚨 Recordatorio: 1 Mes para Auditoría";
+        if(diffDays === 14) asunto = "⚠️ Recordatorio Urgente: 2 Semanas para Auditoría";
+        if(asunto) { window.sendNotification({to: globalAuditPlan.correos.join(',')}, asunto, `Se aproxima una auditoría para el ${window.formatearFechaAbreviada(a.fecha)} en ${a.lugar}.\n\nRequisitos a evaluar: ${a.requisitos}\nAuditados: ${a.auditado}\nAuditores: ${a.auditor}.`); }
+    });
+};
 
 window.cargarDatosCentrales = () => {
     onSnapshot(collection(db, "artifacts", appId, "public", "data", "Usuarios"), (snap) => {
@@ -110,30 +160,45 @@ window.cargarDatosCentrales = () => {
 };
 
 window.renderTablasSolicitudes = () => {
-    let htmlHist = "", htmlAll = "", htmlGest = ""; let sorted = [...globalSolicitudes].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+    let htmlHist = "", htmlAll = "", htmlGest = "";
+    let sorted = [...globalSolicitudes].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
     sorted.forEach(s => {
         let estadoStr = s.estado || ""; let isCancelado = estadoStr === 'Anulado' || estadoStr === 'Rechazado'; let isAprobado = estadoStr.includes('Aprobado Final');
         let badgeClass = isAprobado ? 'badge-success' : (isCancelado ? 'badge-danger' : 'badge-warning');
-        let pStr = s.prioridad || "Normal"; let bPr = pStr === 'Alta' ? 'badge-danger' : (pStr === 'Básica' ? 'badge-info' : 'badge-dark'); let etapa = PASOS_NOMBRES[s.idx] || '';
+        let pStr = s.prioridad || "Normal"; let bPr = pStr === 'Alta' ? 'badge-danger' : (pStr === 'Básica' ? 'badge-info' : 'badge-dark');
+        let etapa = PASOS_NOMBRES[s.idx] || '';
+
         let isMine = (s.uid === currentUser.usuario) || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()));
         if(isMine) { htmlHist += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}</td><td>${s.titulo}<br><span class="badge ${bPr}">${pStr}</span></td><td><span class="badge ${badgeClass}">${estadoStr}</span></td><td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Ver / Gestionar</button></td></tr>`; }
         htmlAll += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}<br><small>${s.gerencia}</small></td><td>${s.titulo}</td><td><span class="badge ${bPr}">${pStr}</span></td><td><span class="badge ${badgeClass}">${estadoStr}</span><br><small>${etapa}</small></td><td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Ver Detalle</button></td></tr>`;
+
         let activo = !isAprobado && !isCancelado;
         let esAdminSGC = currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
         let puedeGestionarSGC = activo && ((s.idx === 0 && (esAdminSGC || currentUser.permisos.p_paso1)) || (s.idx === 1 && (esAdminSGC || currentUser.permisos.p_paso2)) || (s.idx === 3 && (esAdminSGC || currentUser.permisos.p_paso4)));
         let puedeGestionarGerente = activo && s.idx === 2 && currentUser.permisos.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia);
-        if(puedeGestionarSGC || puedeGestionarGerente) { htmlGest += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}<br><small>${s.gerencia}</small></td><td>${s.titulo}<br><span class="badge ${bPr}">${pStr}</span></td><td><span class="badge badge-info">${etapa}</span></td><td class="no-export"><button class="btn btn-warning" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Revisar / Firmar</button></td></tr>`; }
+
+        if(puedeGestionarSGC || puedeGestionarGerente) {
+            htmlGest += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}<br><small>${s.gerencia}</small></td><td>${s.titulo}<br><span class="badge ${bPr}">${pStr}</span></td><td><span class="badge badge-info">${etapa}</span></td><td class="no-export"><button class="btn btn-warning" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Revisar / Firmar</button></td></tr>`;
+        }
     });
-    if($('tbody-historial')) $('tbody-historial').innerHTML = htmlHist; if($('tbody-all')) $('tbody-all').innerHTML = htmlAll; if($('tbody-gestionar')) $('tbody-gestionar').innerHTML = htmlGest;
+
+    if($('tbody-historial')) $('tbody-historial').innerHTML = htmlHist;
+    if($('tbody-all')) $('tbody-all').innerHTML = htmlAll;
+    if($('tbody-gestionar')) $('tbody-gestionar').innerHTML = htmlGest;
 
     if($('dash-mis-tot')) {
         let misSol = sorted.filter(s => s.uid === currentUser.usuario || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase())));
-        $('dash-mis-tot').innerText = misSol.length; $('dash-mis-pend').innerText = misSol.filter(s => !s.estado.includes('Aprobado') && s.estado !== 'Anulado' && s.estado !== 'Rechazado').length;
-        $('dash-mis-ok').innerText = misSol.filter(s => s.estado.includes('Aprobado Final')).length; $('dash-mis-rech').innerText = misSol.filter(s => s.estado === 'Anulado' || s.estado === 'Rechazado').length;
+        $('dash-mis-tot').innerText = misSol.length;
+        $('dash-mis-pend').innerText = misSol.filter(s => !s.estado.includes('Aprobado') && s.estado !== 'Anulado' && s.estado !== 'Rechazado').length;
+        $('dash-mis-ok').innerText = misSol.filter(s => s.estado.includes('Aprobado Final')).length;
+        $('dash-mis-rech').innerText = misSol.filter(s => s.estado === 'Anulado' || s.estado === 'Rechazado').length;
     }
     if($('dash-glob-tot') && currentUser.permisos && (currentUser.permisos.admin || currentUser.permisos.p_gest_sgc)) {
-        setDisplay('dash-admin-section', 'block'); $('dash-glob-tot').innerText = sorted.length; $('dash-glob-pend').innerText = sorted.filter(s => !s.estado.includes('Aprobado') && s.estado !== 'Anulado' && s.estado !== 'Rechazado').length;
-        $('dash-glob-ok').innerText = sorted.filter(s => s.estado.includes('Aprobado Final')).length; $('dash-glob-rech').innerText = sorted.filter(s => s.estado === 'Anulado' || s.estado === 'Rechazado').length;
+        setDisplay('dash-admin-section', 'block'); $('dash-glob-tot').innerText = sorted.length;
+        $('dash-glob-pend').innerText = sorted.filter(s => !s.estado.includes('Aprobado') && s.estado !== 'Anulado' && s.estado !== 'Rechazado').length;
+        $('dash-glob-ok').innerText = sorted.filter(s => s.estado.includes('Aprobado Final')).length;
+        $('dash-glob-rech').innerText = sorted.filter(s => s.estado === 'Anulado' || s.estado === 'Rechazado').length;
     }
 };
 
@@ -141,40 +206,70 @@ window.completarLoginUI = () => {
     setDisplay('login-screen', 'none'); setDisplay('sidebar', 'flex'); setDisplay('main', 'block');
     const currNameEl = $('curr-name'); if(currNameEl) currNameEl.innerText = currentUser.nombre || 'Usuario';
     const currGerEl = $('curr-ger'); if(currGerEl) currGerEl.innerText = currentUser.gerencias ? currentUser.gerencias.join(', ') : (currentUser.gerencia || 'Sin Gerencia');
+
     const p = currentUser.permisos || {};
     setDisplay('admin-only', (p.admin || p.p_users || p.p_struct) ? 'block' : 'none');
     setDisplay('nav-audit-group', (p.admin || p.p_audit_ver || p.p_audit_admin || p.p_audit_auditor || p.p_audit_dueno) ? 'block' : 'none');
-    setDisplay('nav-listado', (p.admin || p.p_ver_listado) ? 'flex' : 'none'); setDisplay('nav-all', (p.admin || p.p_ver_todas) ? 'flex' : 'none');
-    setDisplay('nav-noconf', (p.admin || p.p_gest_sgc) ? 'flex' : 'none'); setDisplay('nav-gest', (p.admin || p.p_gest_sgc || p.p_ger_apr) ? 'flex' : 'none');
-    setDisplay('btn-config-plan', (p.admin || p.p_audit_admin || p.p_gest_sgc) ? 'inline-flex' : 'none'); setDisplay('btn-nueva-aud', (p.admin || p.p_audit_admin || p.p_gest_sgc) ? 'inline-flex' : 'none');
-    window.cargarDatosCentrales(); const navDash = $('nav-dash'); if(navDash) window.cambiarVista('sec-dash', navDash);
+    setDisplay('nav-listado', (p.admin || p.p_ver_listado) ? 'flex' : 'none');
+    setDisplay('nav-all', (p.admin || p.p_ver_todas) ? 'flex' : 'none');
+    
+    setDisplay('nav-noconf', (p.admin || p.p_gest_sgc) ? 'flex' : 'none');
+    setDisplay('nav-gest', (p.admin || p.p_gest_sgc || p.p_ger_apr) ? 'flex' : 'none');
+
+    let isAdminAudit = p.admin || p.p_audit_admin || p.p_gest_sgc;
+    setDisplay('btn-config-plan', isAdminAudit ? 'inline-flex' : 'none');
+    setDisplay('btn-nueva-aud', isAdminAudit ? 'inline-flex' : 'none');
+
+    window.cargarDatosCentrales();
+    const navDash = $('nav-dash'); if(navDash) window.cambiarVista('sec-dash', navDash);
 };
 
-window.logout = () => { localStorage.removeItem('sgc_session_user'); currentUser = null; setDisplay('sidebar', 'none'); setDisplay('main', 'none'); setDisplay('login-screen', 'flex'); if($('login-user')) $('login-user').value = ''; if($('login-pass')) $('login-pass').value = ''; };
+window.logout = () => {
+    localStorage.removeItem('sgc_session_user'); currentUser = null;
+    setDisplay('sidebar', 'none'); setDisplay('main', 'none'); setDisplay('login-screen', 'flex');
+    if($('login-user')) $('login-user').value = '';
+    if($('login-pass')) $('login-pass').value = '';
+};
 
 window.iniciarSesion = async () => {
-    const u = $('login-user').value.toLowerCase().trim(); const p = $('login-pass').value.trim(); if (!u || !p) { alert("Ingresa usuario y contraseña."); return; } window.showLoading();
+    const u = $('login-user').value.toLowerCase().trim(); const p = $('login-pass').value.trim();
+    if (!u || !p) { alert("Por favor, ingresa tu usuario y contraseña."); return; }
+    window.showLoading();
     try {
         if(u === 'admin' && p === '1130') {
             const adminRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", "admin"); const snapAdmin = await getDoc(adminRef);
-            if(!snapAdmin.exists()) { await setDoc(adminRef, { nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencias: ["SGC"], gerencia: "SGC", email: EMAIL_ADMIN_SGC, permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_ver_todas:true, p_users:true, p_struct:true, p_ver_listado:true, p_audit_admin:true, p_audit_ver:true, admin:true, p_paso1:true, p_paso2:true, p_paso4:true } }); }
+            if(!snapAdmin.exists()) {
+                await setDoc(adminRef, {
+                    nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencias: ["SGC"], gerencia: "SGC", email: EMAIL_ADMIN_SGC,
+                    permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_ver_todas:true, p_users:true, p_struct:true, p_ver_listado:true, p_audit_admin:true, p_audit_ver:true, admin:true, p_paso1:true, p_paso2:true, p_paso4:true }
+                });
+            }
         }
-        const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", u), where("pass", "==", p)); const querySnapshot = await getDocs(q);
-        if(!querySnapshot.empty) { localStorage.setItem('sgc_session_user', u); currentUser = querySnapshot.docs[0].data(); window.completarLoginUI(); } else { alert("Credenciales incorrectas."); }
-    } catch (error) { alert("Error al conectar con BD."); } finally { window.hideLoading(); }
+        const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", u), where("pass", "==", p));
+        const querySnapshot = await getDocs(q);
+        if(!querySnapshot.empty) { localStorage.setItem('sgc_session_user', u); currentUser = querySnapshot.docs[0].data(); window.completarLoginUI(); } 
+        else { alert("Credenciales incorrectas."); }
+    } catch (error) { alert("Error al conectar con la base de datos."); } finally { window.hideLoading(); }
 };
 
 window.cargarUsuarioParaEditar = (usuarioId) => {
-    const u = allUsers.find(x => x.usuario === usuarioId); if(!u) return; $('user-form-title').innerHTML = `<span class="material-icons-round">edit</span> Editando Usuario: ${u.usuario}`;
+    const u = allUsers.find(x => x.usuario === usuarioId); if(!u) return;
+    $('user-form-title').innerHTML = `<span class="material-icons-round">edit</span> Editando Usuario: ${u.usuario}`;
     $('u-nom').value = u.nombre || ''; $('u-usr').value = u.usuario || ''; $('u-usr').disabled = true; $('u-pas').value = u.pass || ''; $('u-rol').value = u.role || ''; $('u-email').value = u.email || '';
-    let gers = u.gerencias || []; if(!u.gerencias && u.gerencia) gers = [u.gerencia]; $$('#u-ger-list input[type="checkbox"]').forEach(cb => { cb.checked = gers.includes(cb.value); });
-    const p = u.permisos || {}; $('p-solicitar').checked = p.can_solicit || false; $('p-ver-propias').checked = p.p_ver_propias || false; $('p-ver-ger').checked = p.p_ver_ger || false; $('p-ver-todas').checked = p.p_ver_todas || false; $('p-paso1').checked = p.p_paso1 || false; $('p-paso2').checked = p.p_paso2 || false; $('p-paso4').checked = p.p_paso4 || false; $('p-gest-sgc').checked = p.p_gest_sgc || false; $('p-ger-apr').checked = p.p_ger_apr || false; $('p-users').checked = p.p_users || false; $('p-struct').checked = p.p_struct || false; $('p-ver-listado').checked = p.p_ver_listado || false; $('p-audit-ver').checked = p.p_audit_ver || false; $('p-audit-admin').checked = p.p_audit_admin || false; $('p-audit-auditor').checked = p.p_audit_auditor || false; $('p-audit-dueno').checked = p.p_audit_dueno || false; $('p-admin').checked = p.admin || false;
+    
+    let gers = u.gerencias || []; if(!u.gerencias && u.gerencia) gers = [u.gerencia];
+    $$('#u-ger-list input[type="checkbox"]').forEach(cb => { cb.checked = gers.includes(cb.value); });
+    
+    const p = u.permisos || {};
+    $('p-solicitar').checked = p.can_solicit || false; $('p-ver-propias').checked = p.p_ver_propias || false; $('p-ver-ger').checked = p.p_ver_ger || false; $('p-ver-todas').checked = p.p_ver_todas || false; $('p-paso1').checked = p.p_paso1 || false; $('p-paso2').checked = p.p_paso2 || false; $('p-paso4').checked = p.p_paso4 || false; $('p-gest-sgc').checked = p.p_gest_sgc || false; $('p-ger-apr').checked = p.p_ger_apr || false; $('p-users').checked = p.p_users || false; $('p-struct').checked = p.p_struct || false; $('p-ver-listado').checked = p.p_ver_listado || false; $('p-audit-ver').checked = p.p_audit_ver || false; $('p-audit-admin').checked = p.p_audit_admin || false; $('p-audit-auditor').checked = p.p_audit_auditor || false; $('p-audit-dueno').checked = p.p_audit_dueno || false; $('p-admin').checked = p.admin || false;
     $('btnSaveUser').innerText = "ACTUALIZAR USUARIO"; setDisplay('modal-usuario', 'flex');
 };
 
 window.resetUserForm = () => {
-    $('user-form-title').innerHTML = `<span class="material-icons-round">person_add</span> Registrar / Editar Usuario`; $('u-nom').value = ""; $('u-usr').value = ""; $('u-usr').disabled = false; $('u-pas').value = "123"; $('u-rol').value = ""; $('u-email').value = "";
-    $$('#u-ger-list input[type="checkbox"]').forEach(cb => cb.checked = false); $('p-solicitar').checked = false; $('p-ver-propias').checked = true; $('p-ver-ger').checked = false; $('p-ver-todas').checked = false; $('p-paso1').checked = false; $('p-paso2').checked = false; $('p-paso4').checked = false; $('p-gest-sgc').checked = false; $('p-ger-apr').checked = false; $('p-users').checked = false; $('p-struct').checked = false; $('p-ver-listado').checked = false; $('p-audit-ver').checked = false; $('p-audit-admin').checked = false; $('p-audit-auditor').checked = false; $('p-audit-dueno').checked = false; $('p-admin').checked = false;
+    $('user-form-title').innerHTML = `<span class="material-icons-round">person_add</span> Registrar / Editar Usuario`;
+    $('u-nom').value = ""; $('u-usr').value = ""; $('u-usr').disabled = false; $('u-pas').value = "123"; $('u-rol').value = ""; $('u-email').value = "";
+    $$('#u-ger-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+    $('p-solicitar').checked = false; $('p-ver-propias').checked = true; $('p-ver-ger').checked = false; $('p-ver-todas').checked = false; $('p-paso1').checked = false; $('p-paso2').checked = false; $('p-paso4').checked = false; $('p-gest-sgc').checked = false; $('p-ger-apr').checked = false; $('p-users').checked = false; $('p-struct').checked = false; $('p-ver-listado').checked = false; $('p-audit-ver').checked = false; $('p-audit-admin').checked = false; $('p-audit-auditor').checked = false; $('p-audit-dueno').checked = false; $('p-admin').checked = false;
     $('btnSaveUser').innerText = "GUARDAR USUARIO"; 
 };
 
@@ -183,10 +278,17 @@ window.guardarUsuario = async () => {
     const gerenciasSel = []; $$('#u-ger-list input:checked').forEach(cb => { gerenciasSel.push(cb.value); });
     if(!nom || !usr || !pas || gerenciasSel.length === 0) return alert("Nombre, Usuario, Contraseña y al menos 1 Gerencia son obligatorios.");
     const permisos = { can_solicit: $('p-solicitar').checked, p_ver_propias: $('p-ver-propias').checked, p_ver_ger: $('p-ver-ger').checked, p_ver_todas: $('p-ver-todas').checked, p_paso1: $('p-paso1').checked, p_paso2: $('p-paso2').checked, p_paso4: $('p-paso4').checked, p_gest_sgc: $('p-gest-sgc').checked, p_ger_apr: $('p-ger-apr').checked, p_users: $('p-users').checked, p_struct: $('p-struct').checked, p_ver_listado: $('p-ver-listado').checked, p_audit_ver: $('p-audit-ver').checked, p_audit_admin: $('p-audit-admin').checked, p_audit_auditor: $('p-audit-auditor').checked, p_audit_dueno: $('p-audit-dueno').checked, admin: $('p-admin').checked };
-    window.showLoading(); const docRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", usr); const snap = await getDoc(docRef);
+    window.showLoading();
+    const docRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", usr); const snap = await getDoc(docRef);
     if(snap.exists() && $('user-form-title').innerText.includes("Registrar")) { window.hideLoading(); return alert("Ese ID de usuario ya existe."); }
     await setDoc(docRef, { nombre: nom, usuario: usr, pass: pas, gerencias: gerenciasSel, gerencia: gerenciasSel[0], role: rol, email: email, permisos: permisos });
     window.cerrarModalUsuario(); window.hideLoading(); alert("Usuario guardado exitosamente.");
+};
+
+window.exportarExcelUsuarios = () => {
+    if(allUsers.length === 0) return alert("No hay usuarios para exportar.");
+    let dataExport = allUsers.map(u => { return { "Nombre": u.nombre, "Usuario ID": u.usuario, "Email": u.email || '', "Rol": u.role || '', "Gerencias": u.gerencias ? u.gerencias.join(', ') : (u.gerencia || ''), "Permiso Admin": u.permisos.admin ? 'Sí' : 'No', "Permiso Gestor SGC": u.permisos.p_gest_sgc ? 'Sí' : 'No', "Permiso Auditor": u.permisos.p_audit_auditor ? 'Sí' : 'No' }; });
+    let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dataExport); XLSX.utils.book_append_sheet(wb, ws, "Usuarios_Registrados"); XLSX.writeFile(wb, "Reporte_Usuarios_SGC.xlsx");
 };
 
 window.agregarGerencia = async () => { let val = $('g-nom').value.trim().toUpperCase(); if(!val) return; window.showLoading(); let gers = []; const docRef = doc(db, "artifacts", appId, "public", "data", "Configuracion", "Estructura"); const snap = await getDoc(docRef); if(snap.exists() && snap.data().gerencias) gers = snap.data().gerencias; if(gers.includes(val)) { window.hideLoading(); return alert("Ya existe."); } gers.push(val); await setDoc(docRef, { gerencias: gers }, {merge: true}); $('g-nom').value = ""; window.hideLoading(); };
@@ -217,22 +319,42 @@ window.eliminarEstatus = async (idx) => { if(!confirm("¿Eliminar?")) return; es
 window.renderNormaOEA = () => {
     const p = currentUser ? currentUser.permisos || {} : {}; let isAdminAudit = p.admin || p.p_audit_admin || p.p_gest_sgc;
     const linkCont = $('oea-manual-link');
-    if(linkCont) { if(manualOEA.url) { linkCont.innerHTML = `<a href="#" onclick="window.abrirDocumento('${manualOEA.url}', '${manualOEA.nombre}'); return false;" class="btn btn-info" style="font-size:14px; text-decoration:none;"><span class="material-icons-round" style="font-size:16px; margin-right:5px;">visibility</span> Ver ${manualOEA.nombre}</a>`; } else { linkCont.innerHTML = "No hay manual subido actualmente."; } }
+    if(linkCont) {
+        if(manualOEA.url) { linkCont.innerHTML = `<a href="#" onclick="window.abrirDocumento('${manualOEA.url}', '${manualOEA.nombre}'); return false;" class="btn btn-info" style="font-size:14px; text-decoration:none;"><span class="material-icons-round" style="font-size:16px; margin-right:5px;">visibility</span> Ver ${manualOEA.nombre}</a>`; }
+        else { linkCont.innerHTML = "No hay manual subido actualmente."; }
+    }
     setDisplay('oea-manual-upload-box', isAdminAudit ? 'flex' : 'none'); setDisplay('oea-req-upload-box', isAdminAudit ? 'flex' : 'none');
-    const listCont = $('oea-req-list-container'); if(listCont) listCont.innerHTML = requisitosOEA.map((r, idx) => `<div class="settings-item"><span>${r}</span>${isAdminAudit ? `<button class="btn-icon-danger" onclick="window.eliminarRequisitoOEA(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button>` : ''}</div>`).join('');
-    const reqList = $('aud-req-list'); if(reqList) reqList.innerHTML = requisitosOEA.map(r => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${r}" style="margin:0; width:auto; flex-shrink:0;"> ${r}</label>`).join('');
-    const dl = $('oea-req-list-dl'); if(dl) dl.innerHTML = requisitosOEA.map(r => `<option value="${r}">`).join('');
+    
+    const listCont = $('oea-req-list-container');
+    if(listCont) listCont.innerHTML = requisitosOEA.map((r, idx) => `<div class="settings-item"><span>${r}</span>${isAdminAudit ? `<button class="btn-icon-danger" onclick="window.eliminarRequisitoOEA(${idx})"><span class="material-icons-round" style="font-size:16px;">delete</span></button>` : ''}</div>`).join('');
+    
+    const reqList = $('aud-req-list');
+    if(reqList) reqList.innerHTML = requisitosOEA.map(r => `<label style="display:flex; align-items:center; justify-content:flex-start; gap:8px; font-size:13px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" value="${r}" style="margin:0; width:auto; flex-shrink:0;"> ${r}</label>`).join('');
+    const dl = $('oea-req-list-dl');
+    if(dl) dl.innerHTML = requisitosOEA.map(r => `<option value="${r}">`).join('');
 };
 
-window.subirManualOEA = async () => { const f = $('oea-file').files[0]; if(!f) return alert("Selecciona el documento."); window.showLoading(); let url = await window.uploadToCloudinary(f); if(!url) { window.hideLoading(); return alert("Error al subir."); } await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { manual_url: url, manual_nombre: f.name }, {merge: true}); $('oea-file').value = ""; window.hideLoading(); alert("Manual Oficial actualizado."); };
-window.agregarRequisitoOEA = async () => { const v = $('oea-req-input').value.trim(); if(!v) return; if(requisitosOEA.includes(v)) return alert("Ese requisito ya está en la lista."); requisitosOEA.push(v); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { requisitos: requisitosOEA }, {merge: true}); $('oea-req-input').value = ""; };
-window.eliminarRequisitoOEA = async (idx) => { if(!confirm("¿Eliminar este requisito?")) return; requisitosOEA.splice(idx, 1); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { requisitos: requisitosOEA }, {merge: true}); };
+window.subirManualOEA = async () => {
+    const f = $('oea-file').files[0]; if(!f) return alert("Selecciona el documento."); window.showLoading();
+    let url = await window.uploadToCloudinary(f); if(!url) { window.hideLoading(); return alert("Error al subir el archivo."); }
+    await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { manual_url: url, manual_nombre: f.name }, {merge: true});
+    $('oea-file').value = ""; window.hideLoading(); alert("Manual Oficial actualizado.");
+};
+window.agregarRequisitoOEA = async () => {
+    const v = $('oea-req-input').value.trim(); if(!v) return; if(requisitosOEA.includes(v)) return alert("Ese requisito ya está en la lista.");
+    requisitosOEA.push(v); await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { requisitos: requisitosOEA }, {merge: true}); $('oea-req-input').value = "";
+};
+window.eliminarRequisitoOEA = async (idx) => {
+    if(!confirm("¿Eliminar este requisito?")) return; requisitosOEA.splice(idx, 1);
+    await setDoc(doc(db, "artifacts", appId, "public", "data", "Configuracion", "NormaOEA"), { requisitos: requisitosOEA }, {merge: true});
+};
 
 window.renderTablaMaestro = () => {
     const thead = $('thead-listado-maestro'); const tbody = $('tbody-listado-maestro'); if(!thead || !tbody) return;
     let headHTML = "<tr>"; columnasMaestro.forEach(col => { let cName = typeof col === 'string' ? col : col.nombre; headHTML += `<th>${cName}</th>`; }); 
     if(currentUser && currentUser.permisos && (currentUser.permisos.p_gest_sgc || currentUser.permisos.admin)) { headHTML += `<th class="no-export">Acción</th>`; } headHTML += "</tr>"; thead.innerHTML = headHTML;
-    let dataSort = [...dataMaestro]; if(columnasMaestro.length > 0) { let firstCol = typeof columnasMaestro[0] === 'string' ? columnasMaestro[0] : columnasMaestro[0].nombre; dataSort.sort((a,b) => (a[firstCol]||"").toString().localeCompare((b[firstCol]||"").toString())); }
+    let dataSort = [...dataMaestro]; 
+    if(columnasMaestro.length > 0) { let firstCol = typeof columnasMaestro[0] === 'string' ? columnasMaestro[0] : columnasMaestro[0].nombre; dataSort.sort((a,b) => (a[firstCol]||"").toString().localeCompare((b[firstCol]||"").toString())); }
     let tbodyHtml = "";
     dataSort.forEach(item => {
         let rowHTML = "<tr>";
@@ -242,15 +364,19 @@ window.renderTablaMaestro = () => {
             else if(cName.toLowerCase().includes('estatus') || cName.toLowerCase().includes('estado')) { let badge = val.toLowerCase().includes('vigente') || val.toLowerCase().includes('activo') ? 'badge-success' : (val.toLowerCase().includes('obsoleto') || val.toLowerCase().includes('inactivo') ? 'badge-danger' : 'badge-warning'); rowHTML += `<td><span class="badge ${badge}">${val}</span></td>`; } 
             else if(cType === 'date' || cName.toLowerCase().includes('fecha')) { rowHTML += `<td>${window.formatearFechaAbreviada(val)}</td>`; } else { rowHTML += `<td>${val}</td>`; }
         });
-        if(currentUser && currentUser.permisos && (currentUser.permisos.p_gest_sgc || currentUser.permisos.admin)) { let btnAcciones = `<button class="btn btn-info" style="padding:5px; font-size:10px; margin-right:5px;" onclick="window.abrirModalListadoMaestro('${item.docId}')">EDITAR</button>`; btnAcciones += `<button class="btn btn-danger" style="padding:5px 8px; font-size:10px;" onclick="window.del('ListadoMaestro','${item.docId}')">X</button>`; rowHTML += `<td class="no-export">${btnAcciones}</td>`; }
+        if(currentUser && currentUser.permisos && (currentUser.permisos.p_gest_sgc || currentUser.permisos.admin)) {
+            let btnAcciones = `<button class="btn btn-info" style="padding:5px; font-size:10px; margin-right:5px;" onclick="window.abrirModalListadoMaestro('${item.docId}')">EDITAR</button>`; btnAcciones += `<button class="btn btn-danger" style="padding:5px 8px; font-size:10px;" onclick="window.del('ListadoMaestro','${item.docId}')">X</button>`; rowHTML += `<td class="no-export">${btnAcciones}</td>`;
+        }
         rowHTML += "</tr>"; tbodyHtml += rowHTML;
     });
     tbody.innerHTML = tbodyHtml;
 };
 
 window.abrirModalListadoMaestro = (docId = null) => {
-    editandoMaestroId = docId; const titleEl = $('lm-modal-title'); if (titleEl) titleEl.innerText = docId ? "Editar Documento Maestro" : "Nuevo Documento Maestro";
-    const container = $('dinamic-form-maestro'); let datosEdit = {}; if(docId) { const item = dataMaestro.find(x => x.docId === docId); if(item) datosEdit = item; }
+    editandoMaestroId = docId; 
+    const titleEl = $('lm-modal-title'); if (titleEl) titleEl.innerText = docId ? "Editar Documento Maestro" : "Nuevo Documento Maestro";
+    const container = $('dinamic-form-maestro'); let datosEdit = {};
+    if(docId) { const item = dataMaestro.find(x => x.docId === docId); if(item) datosEdit = item; }
     let formHtml = "";
     columnasMaestro.forEach(col => {
         let cName = typeof col === 'string' ? col : col.nombre; let cType = typeof col === 'string' ? 'text' : col.tipo; let val = datosEdit[cName] || ""; let html = `<div><label>${cName}</label>`;
@@ -270,7 +396,8 @@ window.guardarRegistroMaestro = async () => {
 };
 
 window.subirArchivoGenericoLM = async () => {
-    const f = $('lm-generic-file').files[0]; if(!f) return alert("Selecciona un archivo primero."); window.showLoading(); let url = await window.uploadToCloudinary(f); if(!url) { window.hideLoading(); return alert("Hubo un error al subir el archivo."); } window.hideLoading();
+    const f = $('lm-generic-file').files[0]; if(!f) return alert("Selecciona un archivo primero.");
+    window.showLoading(); let url = await window.uploadToCloudinary(f); if(!url) { window.hideLoading(); return alert("Hubo un error al subir el archivo."); } window.hideLoading();
     const inputs = Array.from($$("#dinamic-form-maestro input")); const targetInput = inputs.find(el => el.id.toLowerCase().includes('ubicaci') || el.id.toLowerCase().includes('archivo'));
     if(targetInput) { targetInput.value = url; alert("Archivo subido y enlace colocado."); } else { alert("Archivo subido. Copia este enlace:\n" + url); } $('lm-generic-file').value = "";
 };
@@ -292,7 +419,8 @@ window.actualizarGerenteSelect = (gSelected) => {
 window.crearSolicitud = async () => {
     const tit = $('sol-tit').value; const gerTarget = $('sol-ger').value; if(!tit) return alert("Título obligatorio"); window.showLoading(); const f = $('sol-file'); let fileName = f.files[0] ? f.files[0].name : ""; let url = null; 
     if (f.files[0]) { url = await window.uploadToCloudinary(f.files[0]); if (!url) { window.hideLoading(); return alert("Error al subir archivo."); } }
-    let extraEmails = []; if(selectedDocData && selectedDocData.involucrados) extraEmails = selectedDocData.involucrados; const fci = await window.getNextFCI(); const gerenteEmailVisible = $('sol-email-gerente').value; const now = new Date().toISOString();
+    let extraEmails = []; if(selectedDocData && selectedDocData.involucrados) extraEmails = selectedDocData.involucrados;
+    const fci = await window.getNextFCI(); const gerenteEmailVisible = $('sol-email-gerente').value; const now = new Date().toISOString();
     const data = { customId: fci, titulo: tit, accion: $('sol-accion').value, tipoDoc: $('sol-tipo-doc').value, prioridad: $('sol-prioridad').value, gerencia: gerTarget, departamento: $('sol-dep').value, motivo: $('sol-motivo').value, cod_ref: $('sol-cod-prev').value, ver_ref: $('sol-ver-prev').value, fecha_ref: $('sol-fecha-prev').value, solicitante: currentUser.nombre, solicitante_email: currentUser.email, uid: currentUser.usuario, involucrados: extraEmails, idx: 0, estado: "Pendiente Documentado", fase_0_ini: now, adjunto: url, adjunto_nombre: fileName, chat: [{u: "SISTEMA", m: "Solicitud creada exitosamente.", t: new Date().toLocaleString()}], fecha: now };
     await addDoc(collection(db, "artifacts", appId, "public", "data", "Solicitudes"), data); 
     if($('lista-involucrados-tags')) $('lista-involucrados-tags').innerHTML = ""; 
@@ -302,7 +430,8 @@ window.crearSolicitud = async () => {
 };
 
 window.verDetalle = async (id) => {
-    selectedId = id; if($('m-extra-input')) $('m-extra-input').innerHTML = ""; if($('m-comentario-libre')) $('m-comentario-libre').innerHTML = "";
+    selectedId = id; 
+    if($('m-extra-input')) $('m-extra-input').innerHTML = ""; if($('m-comentario-libre')) $('m-comentario-libre').innerHTML = "";
     const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", id)); selectedDocData = docSnap.data(); const s = selectedDocData; const p = currentUser.permisos;
     if($('m-id')) $('m-id').innerText = s.customId; if($('m-tit')) $('m-tit').innerText = s.titulo; if($('m-sol')) $('m-sol').innerText = s.solicitante;
     
@@ -413,7 +542,8 @@ window.enviarComentarioLibre = async () => {
     const box = $('m-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = $('m-file-comentario');
     if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta un archivo."); window.showLoading(); let fileUrl = null; let fileName = null;
     if (f.files[0]) { fileUrl = await window.uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error de red."); } fileName = f.files[0].name; }
-    let chatPayload = {u: currentUser.nombre, m: `💬 <b>Comentario:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; if (fileUrl) { chatPayload.archivo = fileUrl; chatPayload.archivo_nombre = fileName; } 
+    let chatPayload = {u: currentUser.nombre, m: `💬 <b>Comentario:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; 
+    if (fileUrl) { chatPayload.archivo = fileUrl; chatPayload.archivo_nombre = fileName; } 
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { chat: arrayUnion(chatPayload) });
     const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Nuevo Comentario: ${selectedDocData.customId}`, `${currentUser.nombre} dejó un comentario.`); box.innerHTML = ""; f.value = ""; window.hideLoading(); window.closeModal();
 };
@@ -486,31 +616,40 @@ window.descargarExcelFiltrado = (origen = 'hist', isAdminTotal = false) => {
 };
 
 // ==========================================
-// 8. MÓDULO DE AUDITORÍAS Y NORMA OEA
+// 8. MÓDULO DE AUDITORÍAS (MODALES Y EVENTOS CORREGIDOS)
 // ==========================================
 window.switchAuditTab = (tabId) => { $$('.tab-btn').forEach(b => b.classList.remove('active')); $$('.tab-content').forEach(c => c.classList.remove('active')); const btn = $(`btn-tab-${tabId}`); if(btn) btn.classList.add('active'); const tab = $(`tab-${tabId}`); if(tab) tab.classList.add('active'); };
-window.abrirNuevaAuditoria = () => { window.cancelarEdicionAuditoria(); setDisplay('audit-admin-panel', 'block'); window.scrollTo({ top: $('audit-admin-panel').offsetTop, behavior: 'smooth' }); };
-window.cambiarAnioAuditoria = (val) => { if(val === 'nuevo') { let nYear = prompt("Ingrese el nuevo año a registrar (ej: 2028):"); if(nYear && !isNaN(nYear)) { let opt = document.createElement('option'); opt.value = nYear; opt.text = nYear; opt.selected = true; $('aud-year-select').add(opt, $('aud-year-select').options[1]); val = nYear; } else { $('aud-year-select').value = new Date().getFullYear().toString(); return; } } window.loadAuditPlan(val); window.renderTablaAuditorias(val); };
 
-window.toggleAuditHeaderForm = () => {
-    const isEditing = $('audit-header-edit').style.display === 'block';
-    if(isEditing) { setDisplay('audit-header-edit', 'none'); setDisplay('audit-header-view', 'block'); } else {
-        const y = $('aud-year-select').value; $('edit-year-label').innerText = y; $$('#ah-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
-        if(globalAuditPlan) { $('ah-obj').value = globalAuditPlan.objetivo || ''; $('ah-alcance').value = globalAuditPlan.alcance || ''; $('ah-tecnica').value = globalAuditPlan.tecnica || ''; $('ah-criterios').value = globalAuditPlan.criterios || ''; $('ah-ref').value = globalAuditPlan.referencia || ''; $('ah-fecha').value = globalAuditPlan.fecha_elab || ''; $('ah-tec').value = globalAuditPlan.recursos_tec || ''; $('ah-rrhh').value = globalAuditPlan.recursos_hh || ''; $('ah-extra-emails').value = (globalAuditPlan.extra_correos || []).join(', '); let liderSel = $('ah-lider'); for(let i=0; i<liderSel.options.length; i++){ if(liderSel.options[i].value === globalAuditPlan.lider) liderSel.selectedIndex = i; } let auditoresGuardados = globalAuditPlan.auditor_nombres || []; $$('#ah-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresGuardados.includes(cb.value); });
-        } else { $('ah-obj').value = ''; $('ah-alcance').value = ''; $('ah-tecnica').value = ''; $('ah-criterios').value = ''; $('ah-ref').value = ''; $('ah-fecha').value = ''; $('ah-tec').value = ''; $('ah-rrhh').value = ''; $('ah-extra-emails').value = ''; $('ah-lider').selectedIndex = 0; }
-        setDisplay('audit-header-edit', 'block'); setDisplay('audit-header-view', 'none');
+// MODAL PLAN ANUAL
+window.abrirModalPlan = () => {
+    const y = $('aud-year-select').value; $('edit-year-label').innerText = y; $$('#ah-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+    if(globalAuditPlan) {
+        $('ah-obj').value = globalAuditPlan.objetivo || ''; $('ah-alcance').value = globalAuditPlan.alcance || ''; $('ah-tecnica').value = globalAuditPlan.tecnica || ''; $('ah-criterios').value = globalAuditPlan.criterios || ''; $('ah-ref').value = globalAuditPlan.referencia || ''; $('ah-fecha').value = globalAuditPlan.fecha_elab || ''; $('ah-tec').value = globalAuditPlan.recursos_tec || ''; $('ah-rrhh').value = globalAuditPlan.recursos_hh || ''; $('ah-extra-emails').value = (globalAuditPlan.extra_correos || []).join(', ');
+        let liderSel = $('ah-lider'); for(let i=0; i<liderSel.options.length; i++){ if(liderSel.options[i].value === globalAuditPlan.lider) liderSel.selectedIndex = i; }
+        let auditoresGuardados = globalAuditPlan.auditor_nombres || []; $$('#ah-auditor-list input[type="checkbox"]').forEach(cb => { cb.checked = auditoresGuardados.includes(cb.value); });
+    } else {
+        $('ah-obj').value = ''; $('ah-alcance').value = ''; $('ah-tecnica').value = ''; $('ah-criterios').value = ''; $('ah-ref').value = ''; $('ah-fecha').value = ''; $('ah-tec').value = ''; $('ah-rrhh').value = ''; $('ah-extra-emails').value = ''; $('ah-lider').selectedIndex = 0; 
     }
+    setDisplay('modal-plan', 'flex');
 };
+window.cerrarModalPlan = () => setDisplay('modal-plan', 'none');
 
 window.saveAuditPlan = async () => {
-    const year = $('aud-year-select').value; const docId = `Plan_${year}`; let motivo = "Creación inicial"; if(globalAuditPlan) { motivo = prompt("Motivo de la modificación del Plan Anual:"); if(!motivo) return alert("El motivo es obligatorio para editar."); }
+    const year = $('aud-year-select').value; const docId = `Plan_${year}`;
+    let motivo = "Creación inicial"; if(globalAuditPlan) { motivo = prompt("Motivo de la modificación del Plan Anual:"); if(!motivo) return alert("El motivo es obligatorio para editar."); }
     const liderSel = $('ah-lider'); const liderName = liderSel.options[liderSel.selectedIndex]?.value || ""; 
     const audNombres = []; const audEmails = []; $$('#ah-auditor-list input:checked').forEach(cb => { audNombres.push(cb.value); audEmails.push(cb.getAttribute('data-email')); });
-    const extraEmails = $('ah-extra-emails').value.split(',').map(e => e.trim().toLowerCase()).filter(e=>e.includes('@')); let todosLosCorreos = new Set([...audEmails, ...extraEmails]); if(liderSel.options[liderSel.selectedIndex]?.getAttribute('data-email')) todosLosCorreos.add(liderSel.options[liderSel.selectedIndex].getAttribute('data-email'));
+    const extraEmails = $('ah-extra-emails').value.split(',').map(e => e.trim().toLowerCase()).filter(e=>e.includes('@'));
+    let todosLosCorreos = new Set([...audEmails, ...extraEmails]); if(liderSel.options[liderSel.selectedIndex]?.getAttribute('data-email')) todosLosCorreos.add(liderSel.options[liderSel.selectedIndex].getAttribute('data-email'));
     const data = { year: year, objetivo: $('ah-obj').value, alcance: $('ah-alcance').value, tecnica: $('ah-tecnica').value, criterios: $('ah-criterios').value, referencia: $('ah-ref').value, fecha_elab: $('ah-fecha').value, lider: liderName, auditor: audNombres.join(', '), auditor_nombres: audNombres, recursos_tec: $('ah-tec').value, recursos_hh: $('ah-rrhh').value, extra_correos: extraEmails, correos: Array.from(todosLosCorreos), modificado_por: currentUser.nombre, ultima_modif: new Date().toISOString() };
     window.showLoading();
     if(globalAuditPlan) { await updateDoc(doc(db, "artifacts", appId, "public", "data", "AuditPlans", docId), { ...data, historial: arrayUnion({ fecha: new Date().toISOString(), usuario: currentUser.nombre, motivo: motivo }) }); } else { await setDoc(doc(db, "artifacts", appId, "public", "data", "AuditPlans", docId), { ...data, historial: [{ fecha: new Date().toISOString(), usuario: currentUser.nombre, motivo: motivo }] }); }
-    window.hideLoading(); alert("Plan Anual actualizado."); setDisplay('audit-header-edit', 'none'); setDisplay('audit-header-view', 'block');
+    window.hideLoading(); alert("Plan Anual actualizado."); window.cerrarModalPlan();
+};
+
+window.cambiarAnioAuditoria = (val) => {
+    if(val === 'nuevo') { let nYear = prompt("Ingrese el nuevo año a registrar (ej: 2028):"); if(nYear && !isNaN(nYear)) { let opt = document.createElement('option'); opt.value = nYear; opt.text = nYear; opt.selected = true; $('aud-year-select').add(opt, $('aud-year-select').options[1]); val = nYear; } else { $('aud-year-select').value = new Date().getFullYear().toString(); return; } }
+    window.loadAuditPlan(val); window.renderTablaAuditorias(val);
 };
 
 window.loadAuditPlan = (year) => {
@@ -524,6 +663,9 @@ window.loadAuditPlan = (year) => {
     });
 };
 
+// MODAL NUEVA AUDITORÍA
+window.abrirNuevaAuditoria = () => { window.cancelarEdicionAuditoria(); setDisplay('modal-nueva-aud', 'flex'); };
+
 window.cargarAuditoriaParaEditar = async (id) => {
     const audit = globalAllAuditorias.find(x => x.id === id); if(!audit) return; editandoAuditoriaId = id;
     $('titulo-form-auditoria').innerText = "Editar Auditoría Programada"; 
@@ -534,14 +676,14 @@ window.cargarAuditoriaParaEditar = async (id) => {
     let reqsArr = audit.requisitos ? audit.requisitos.split(', ') : []; $$('#aud-req-list input[type="checkbox"]').forEach(cb => { cb.checked = reqsArr.includes(cb.value); });
     let forArr = audit.auditores_formacion ? audit.auditores_formacion.split(', ') : []; $$('#aud-formacion-list input[type="checkbox"]').forEach(cb => { cb.checked = forArr.includes(cb.value); });
     
-    $('btn-guardar-aud').innerText = "ACTUALIZAR AUDITORÍA"; setDisplay('btn-cancelar-aud', 'block'); window.scrollTo({ top: $('audit-admin-panel').offsetTop, behavior: 'smooth' }); setDisplay('audit-admin-panel', 'block');
+    $('btn-guardar-aud').innerText = "ACTUALIZAR AUDITORÍA"; setDisplay('btn-cancelar-aud', 'inline-block'); setDisplay('modal-nueva-aud', 'flex');
 };
 
 window.cancelarEdicionAuditoria = () => {
     editandoAuditoriaId = null; $('titulo-form-auditoria').innerText = "Programar Nueva Auditoría"; 
     $('aud-fecha').value = ''; $('aud-h-ini').value = ''; $('aud-h-fin').value = ''; $('aud-lugar').value = ''; $('aud-obs').value = ''; $('aud-org').value = ''; $('aud-dir').value = ''; $('aud-sitios').value = ''; $('aud-personal').value = ''; $('aud-turnos').value = ''; 
     $$('#aud-auditado-list input[type="checkbox"]').forEach(cb => cb.checked = false); $$('#aud-auditor-list input[type="checkbox"]').forEach(cb => cb.checked = false); $$('#aud-req-list input[type="checkbox"]').forEach(cb => cb.checked = false); $$('#aud-formacion-list input[type="checkbox"]').forEach(cb => cb.checked = false);
-    $('btn-guardar-aud').innerText = "GENERAR AUDITORÍA Y NOTIFICAR"; setDisplay('btn-cancelar-aud', 'none');
+    $('btn-guardar-aud').innerText = "GENERAR AUDITORÍA Y NOTIFICAR"; setDisplay('btn-cancelar-aud', 'none'); setDisplay('modal-nueva-aud', 'none');
 };
 
 window.guardarAuditoria = async () => {
@@ -563,6 +705,7 @@ window.guardarAuditoria = async () => {
         await runTransaction(db, async (t) => { const snap = await t.get(refCont); let count = 1; if (snap.exists()) count = snap.data().count + 1; t.set(refCont, { count }); auditNum = `QSHE-${new Date().getFullYear()}-${count}`; });
         data.audit_num = auditNum; data.estado = "Programada"; data.creado_por = currentUser.nombre; data.timestamp = new Date().toISOString(); data.bitacora = []; data.lista_verificacion = []; data.reporte_auditoria = { conclusiones: '' }; 
         await addDoc(collection(db, "artifacts", appId, "public", "data", "Auditorias"), data);
+
         let correosPlan = globalAuditPlan && globalAuditPlan.correos ? globalAuditPlan.correos : []; let correosNotificacion = new Set([...correosPlan, ...auditadoEmails, ...auditorEmails]); correosNotificacion.add(EMAIL_ADMIN_SGC);
         const iniGCal = window.getGCalFormat(fecha, hIni); const finGCal = window.getGCalFormat(fecha, hFin); const tituloGCal = encodeURIComponent(`Auditoría SGC: ${req}`); const detallesGCal = encodeURIComponent(`Requisitos: ${req}\nAuditados: ${data.auditado}\nAuditores: ${data.auditor}\nObservaciones: ${obs}`); const lugarGCal = encodeURIComponent(lugar);
         const gcalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${tituloGCal}&dates=${iniGCal}/${finGCal}&details=${detallesGCal}&location=${lugarGCal}`;
@@ -683,7 +826,6 @@ window.renderF020 = () => {
     const tbody = $('tbody-f020'); if(!tbody) return; let html = "";
     let isAuditor = selectedAuditData && selectedAuditData.auditor && selectedAuditData.auditor.includes(currentUser.nombre);
     let canEdit = selectedAuditData && selectedAuditData.estado !== 'Completada' && (currentUser.permisos.admin || currentUser.permisos.p_audit_admin || isAuditor);
-    
     currentAuditF020.forEach((item, index) => {
         let dis = canEdit ? '' : 'disabled';
         let reqOptions = `<option value="">-- Seleccionar --</option>` + requisitosOEA.map(r => `<option value="${r}" ${item.requisito === r ? 'selected':''}>${r}</option>`).join('');
@@ -704,18 +846,13 @@ window.guardarF020 = async () => {
 };
 
 window.generarBloqueNCDinamico = (item, index, tipo, canEditForms) => {
-    let dRep = selectedAuditData.reporte_auditoria && selectedAuditData.reporte_auditoria.detalles_nc && selectedAuditData.reporte_auditoria.detalles_nc[item.id] ? selectedAuditData.reporte_auditoria.detalles_nc[item.id] : {};
-    let dis = canEditForms ? '' : 'disabled';
+    let dRep = selectedAuditData.reporte_auditoria && selectedAuditData.reporte_auditoria.detalles_nc && selectedAuditData.reporte_auditoria.detalles_nc[item.id] ? selectedAuditData.reporte_auditoria.detalles_nc[item.id] : {}; let dis = canEditForms ? '' : 'disabled';
     return `<div style="border:1px solid #ccc; font-size:12px; margin-bottom:15px;" class="f003-hallazgo-block" data-id="${item.id}" data-tipo="${tipo}"><div style="display:grid; grid-template-columns: 150px 1fr;"><div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#f1f5f9;">No. de ${tipo.includes('NC') ? 'NC' : 'OM'}</div><div style="padding:8px; border-bottom:1px solid #ccc; font-weight:bold;">${index}</div><div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#f1f5f9;">Departamento / Función</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" class="h-dep" value="${dRep.departamento || item.auditado || ''}" ${dis} style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div><div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#f1f5f9;">Documento Ref.</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" class="h-doc" value="${dRep.doc_ref || ''}" ${dis} style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div><div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#f1f5f9;">Requisito Afectado</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" class="h-req" value="${dRep.requisito || item.requisito || ''}" ${dis} style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div><div style="padding:8px; border-right:1px solid #ccc; font-weight:bold; background:#f1f5f9;">Detalle</div><div style="padding:0;"><textarea class="h-det" ${dis} style="border:none; margin:0; width:100%; border-radius:0; height:100%; min-height:40px; padding:8px;">${dRep.detalle || item.comentarios || item.pregunta || ''}</textarea></div></div></div>`;
 };
 
 window.actualizarMetricasF003 = (canEditForms) => {
     let ncMay = 0, ncMen = 0, om = 0; let hMenor = "", hMayor = "", hOM = "";
-    currentAuditF020.forEach(i => { 
-        if(i.nc === 'NC Mayor') { ncMay++; hMayor += window.generarBloqueNCDinamico(i, ncMay, 'NC Mayor', canEditForms); } 
-        if(i.nc === 'NC Menor') { ncMen++; hMenor += window.generarBloqueNCDinamico(i, ncMen, 'NC Menor', canEditForms); } 
-        if(i.nc === 'OM') { om++; hOM += window.generarBloqueNCDinamico(i, om, 'OM', canEditForms); } 
-    });
+    currentAuditF020.forEach(i => { if(i.nc === 'NC Mayor') { ncMay++; hMayor += window.generarBloqueNCDinamico(i, ncMay, 'NC Mayor', canEditForms); } if(i.nc === 'NC Menor') { ncMen++; hMenor += window.generarBloqueNCDinamico(i, ncMen, 'NC Menor', canEditForms); } if(i.nc === 'OM') { om++; hOM += window.generarBloqueNCDinamico(i, om, 'OM', canEditForms); } });
     if($('f003-nc-mayor')) $('f003-nc-mayor').innerText = ncMay; if($('f003-nc-menor')) $('f003-nc-menor').innerText = ncMen; if($('f003-om')) $('f003-om').innerText = om;
     if($('container-nc-menor')) $('container-nc-menor').innerHTML = hMenor || "<p style='font-size:11px; color:#94a3b8;'>No se detectaron NC Menores.</p>";
     if($('container-nc-mayor')) $('container-nc-mayor').innerHTML = hMayor || "<p style='font-size:11px; color:#94a3b8;'>No se detectaron NC Mayores.</p>";
@@ -753,66 +890,47 @@ window.addSeguimientoRow = (resultado="", resp="", fecha="") => { const tb = $('
 
 window.abrirCrearSAC = (f020_id) => {
     let h = currentAuditF020.find(i => i.id === f020_id); if(!h) return; currentEditingSacId = null; currentEditingF020Ref = h;
-    if($('sac-num')) $('sac-num').innerText = "POR ASIGNAR"; 
-    if($('sac-estado-badge')) { $('sac-estado-badge').innerText = "NUEVA"; $('sac-estado-badge').className = "badge badge-info"; }
-    if($('sac-fecha')) $('sac-fecha').value = new Date().toISOString().split('T')[0]; 
-    if($('sac-proceso')) $('sac-proceso').value = h.requisito || selectedAuditData.requisitos || "";
+    if($('sac-num')) $('sac-num').innerText = "POR ASIGNAR"; if($('sac-estado-badge')) { $('sac-estado-badge').innerText = "NUEVA"; $('sac-estado-badge').className = "badge badge-info"; }
+    if($('sac-fecha')) $('sac-fecha').value = new Date().toISOString().split('T')[0]; if($('sac-proceso')) $('sac-proceso').value = h.requisito || selectedAuditData.requisitos || "";
     if($('sac-tipo')) $('sac-tipo').value = h.nc || ""; 
-    
     let optTipos = '<option value="">-- No aplica / Ninguno --</option>' + tiposDocumento.map(t => `<option value="${t}">${t}</option>`).join('');
     if($('sac-tipo-doc-afectado')) { $('sac-tipo-doc-afectado').innerHTML = optTipos; $('sac-tipo-doc-afectado').value = ""; }
-    
     if($('sac-fuente')) $('sac-fuente').value = "Auditoría Interna"; if($('sac-fuente-otro')) $('sac-fuente-otro').value = "";
     if($('sac-detalle')) $('sac-detalle').value = h.comentarios || h.pregunta; if($('sac-beneficio')) $('sac-beneficio').value = ""; if($('sac-causa')) $('sac-causa').value = ""; if($('sac-accion')) $('sac-accion').value = "";
     if($('tbody-plan-accion')) $('tbody-plan-accion').innerHTML = ""; if($('sac-fecha-aprob-plan')) $('sac-fecha-aprob-plan').value = ""; if($('tbody-seguimiento')) $('tbody-seguimiento').innerHTML = "";
     if($('sac-resp-cierre')) $('sac-resp-cierre').value = ""; if($('sac-fecha-cierre')) $('sac-fecha-cierre').value = ""; if($('sac-check-cerrar')) $('sac-check-cerrar').checked = false;
-    
     let auditados = selectedAuditData && selectedAuditData.auditado ? selectedAuditData.auditado.split(', ') : []; let optDueno = '<option value="">-- Seleccione Involucrado / Responsable --</option>';
     allUsers.forEach(u => { let star = auditados.includes(u.nombre) ? '⭐ (Auditado) ' : ''; optDueno += `<option value="${u.usuario}">${star}${u.nombre} (${u.gerencias ? u.gerencias[0]:''})</option>`; });
-    if($('sac-dueno')) $('sac-dueno').innerHTML = optDueno; 
-    setDisplay('modal-sac', 'flex');
+    if($('sac-dueno')) $('sac-dueno').innerHTML = optDueno; setDisplay('modal-sac', 'flex');
 };
 
 window.abrirCrearSACManual = () => {
     currentEditingSacId = null; currentEditingF020Ref = null;
-    if($('sac-num')) $('sac-num').innerText = "POR ASIGNAR"; 
-    if($('sac-estado-badge')) { $('sac-estado-badge').innerText = "NUEVA"; $('sac-estado-badge').className = "badge badge-info"; }
-    if($('sac-fecha')) $('sac-fecha').value = new Date().toISOString().split('T')[0]; 
-    if($('sac-proceso')) $('sac-proceso').value = selectedAuditData ? selectedAuditData.requisitos || "" : "";
+    if($('sac-num')) $('sac-num').innerText = "POR ASIGNAR"; if($('sac-estado-badge')) { $('sac-estado-badge').innerText = "NUEVA"; $('sac-estado-badge').className = "badge badge-info"; }
+    if($('sac-fecha')) $('sac-fecha').value = new Date().toISOString().split('T')[0]; if($('sac-proceso')) $('sac-proceso').value = selectedAuditData ? selectedAuditData.requisitos || "" : "";
     if($('sac-tipo')) $('sac-tipo').value = "OM"; 
-    
     let optTipos = '<option value="">-- No aplica / Ninguno --</option>' + tiposDocumento.map(t => `<option value="${t}">${t}</option>`).join('');
     if($('sac-tipo-doc-afectado')) { $('sac-tipo-doc-afectado').innerHTML = optTipos; $('sac-tipo-doc-afectado').value = ""; }
-    
     if($('sac-fuente')) $('sac-fuente').value = "Auditoría Interna"; if($('sac-fuente-otro')) $('sac-fuente-otro').value = "";
     if($('sac-detalle')) $('sac-detalle').value = ""; if($('sac-beneficio')) $('sac-beneficio').value = ""; if($('sac-causa')) $('sac-causa').value = ""; if($('sac-accion')) $('sac-accion').value = "";
     if($('tbody-plan-accion')) $('tbody-plan-accion').innerHTML = ""; if($('sac-fecha-aprob-plan')) $('sac-fecha-aprob-plan').value = ""; if($('tbody-seguimiento')) $('tbody-seguimiento').innerHTML = "";
     if($('sac-resp-cierre')) $('sac-resp-cierre').value = ""; if($('sac-fecha-cierre')) $('sac-fecha-cierre').value = ""; if($('sac-check-cerrar')) $('sac-check-cerrar').checked = false;
-    
     let auditados = selectedAuditData && selectedAuditData.auditado ? selectedAuditData.auditado.split(', ') : []; let optDueno = '<option value="">-- Seleccione Involucrado / Responsable --</option>';
     allUsers.forEach(u => { let star = auditados.includes(u.nombre) ? '⭐ (Auditado) ' : ''; optDueno += `<option value="${u.usuario}">${star}${u.nombre} (${u.gerencias ? u.gerencias[0]:''})</option>`; });
-    if($('sac-dueno')) $('sac-dueno').innerHTML = optDueno; 
-    setDisplay('modal-sac', 'flex');
+    if($('sac-dueno')) $('sac-dueno').innerHTML = optDueno; setDisplay('modal-sac', 'flex');
 };
 
 window.verSAC = (sac_id) => {
     let sac = globalAllSacs.find(s => s.sac_id === sac_id); if(!sac) return; currentEditingSacId = sac_id;
-    if($('sac-num')) $('sac-num').innerText = sac.sac_num; 
-    let est = sac.estado; let bs = est.includes('Abierta') ? 'badge-danger' : (est === 'En Seguimiento' ? 'badge-warning' : 'badge-success');
+    if($('sac-num')) $('sac-num').innerText = sac.sac_num; let est = sac.estado; let bs = est.includes('Abierta') ? 'badge-danger' : (est === 'En Seguimiento' ? 'badge-warning' : 'badge-success');
     if($('sac-estado-badge')) { $('sac-estado-badge').innerText = est.toUpperCase(); $('sac-estado-badge').className = `badge ${bs}`; }
-    
-    if($('sac-fecha')) $('sac-fecha').value = sac.fecha_registro || sac.fecha_apertura.split('T')[0]; 
-    if($('sac-proceso')) $('sac-proceso').value = sac.proceso || ""; if($('sac-tipo')) $('sac-tipo').value = sac.tipo_hallazgo || "";
-    
+    if($('sac-fecha')) $('sac-fecha').value = sac.fecha_registro || sac.fecha_apertura.split('T')[0]; if($('sac-proceso')) $('sac-proceso').value = sac.proceso || ""; if($('sac-tipo')) $('sac-tipo').value = sac.tipo_hallazgo || "";
     let optTipos = '<option value="">-- No aplica / Ninguno --</option>' + tiposDocumento.map(t => `<option value="${t}">${t}</option>`).join('');
     if($('sac-tipo-doc-afectado')) { $('sac-tipo-doc-afectado').innerHTML = optTipos; $('sac-tipo-doc-afectado').value = sac.tipo_doc_afectado || ""; }
-
     if($('sac-fuente')) $('sac-fuente').value = sac.fuente_nc || "Auditoría Interna"; if($('sac-fuente-otro')) $('sac-fuente-otro').value = sac.fuente_otro || ""; if($('sac-detalle')) $('sac-detalle').value = sac.detalle_nc || ""; if($('sac-beneficio')) $('sac-beneficio').value = sac.beneficio_esperado || ""; if($('sac-causa')) $('sac-causa').value = sac.causa_raiz || ""; if($('sac-accion')) $('sac-accion').value = sac.accion_implementar || "";
-    
     let auditados = selectedAuditData && selectedAuditData.auditado ? selectedAuditData.auditado.split(', ') : []; let optDueno = '<option value="">-- Seleccione Involucrado / Responsable --</option>';
     allUsers.forEach(u => { let star = auditados.includes(u.nombre) ? '⭐ (Auditado) ' : ''; optDueno += `<option value="${u.usuario}" ${sac.dueno_uid === u.usuario ? 'selected':''}>${star}${u.nombre} (${u.gerencias ? u.gerencias[0]:''})</option>`; });
     if($('sac-dueno')) $('sac-dueno').innerHTML = optDueno; 
-    
     if($('tbody-plan-accion')) { $('tbody-plan-accion').innerHTML = ""; if(sac.plan_accion) { sac.plan_accion.forEach(p => window.addPlanRow(p.detalle, p.resp, p.inicio, p.fin)); } }
     if($('sac-fecha-aprob-plan')) $('sac-fecha-aprob-plan').value = sac.fecha_aprobacion_plan || "";
     if($('tbody-seguimiento')) { $('tbody-seguimiento').innerHTML = ""; if(sac.seguimiento) { sac.seguimiento.forEach(s => window.addSeguimientoRow(s.resultado, s.resp, s.fecha)); } }
@@ -824,10 +942,8 @@ window.guardarSAC = async () => {
     window.showLoading(); 
     let planAccionArr = []; $$('#tbody-plan-accion tr').forEach(tr => { let inputs = tr.querySelectorAll('input'); if(inputs[0].value.trim()) { planAccionArr.push({ detalle: inputs[0].value, resp: inputs[1].value, inicio: inputs[2].value, fin: inputs[3].value }); } });
     let segArr = []; $$('#tbody-seguimiento tr').forEach(tr => { let inputs = tr.querySelectorAll('input'); if(inputs[0].value.trim()) { segArr.push({ resultado: inputs[0].value, resp: inputs[1].value, fecha: inputs[2].value }); } });
-
     let estado = "Abierta (En Plan)"; if($('sac-fecha-aprob-plan').value) estado = "En Seguimiento"; if($('sac-check-cerrar').checked) estado = "Cerrada";
     let tipoDocAfectado = $('sac-tipo-doc-afectado') ? $('sac-tipo-doc-afectado').value : "";
-
     let data = { fecha_registro: $('sac-fecha').value, proceso: $('sac-proceso').value, tipo_doc_afectado: tipoDocAfectado, fuente_nc: $('sac-fuente').value, fuente_otro: $('sac-fuente-otro').value, beneficio_esperado: $('sac-beneficio').value, causa_raiz: $('sac-causa').value, accion_implementar: $('sac-accion').value, dueno_uid: $('sac-dueno').value, plan_accion: planAccionArr, fecha_aprobacion_plan: $('sac-fecha-aprob-plan').value, seguimiento: segArr, fecha_cierre: $('sac-fecha-cierre').value, cerrado_por: $('sac-check-cerrar').checked ? currentUser.nombre : "", estado: estado };
 
     if(!currentEditingSacId) {
@@ -848,33 +964,4 @@ window.renderF023Global = () => {
         let est = s.estado; let bs = est.includes('Abierta') ? 'badge-danger' : (est === 'En Seguimiento' ? 'badge-warning' : 'badge-success');
         let uDueno = allUsers.find(u => u.usuario === s.dueno_uid); let nomDueno = uDueno ? uDueno.nombre : s.dueno_uid;
         let bColor = s.tipo_hallazgo === 'NC Mayor' ? 'color:var(--danger)' : 'color:var(--warning)';
-        html += `<tr><td><b>${s.sac_num}</b></td><td>${s.proceso}</td><td><b style="${bColor}">${s.tipo_hallazgo}</b></td><td>${nomDueno}</td><td><div style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${s.detalle_nc}">${s.detalle_nc}</div></td><td>${window.formatearFechaAbreviada(s.fecha_registro || s.fecha_apertura)}</td><td><span class="badge ${bs}">${est}</span></td><td>${s.fecha_cierre ? window.formatearFechaAbreviada(s.fecha_cierre) : '-'}</td><td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verSACGlobal('${s.sac_id}', '${s.audit_id}')">Revisar</button></td></tr>`;
-    });
-    tb.innerHTML = html;
-};
-
-window.setFilterGestNC = (val) => window.renderF023Global();
-window.verSACGlobal = async (sac_id, audit_id) => { const docSnap = await getDoc(doc(db, "artifacts", appId, "public", "data", "Auditorias", audit_id)); if(docSnap.exists()) { selectedAuditData = docSnap.data(); selectedAuditId = audit_id; } window.verSAC(sac_id); };
-
-window.exportarExcelNoConf = () => {
-    if(globalAllSacs.length === 0) return alert("No hay registros SAC para exportar.");
-    let dataExport = globalAllSacs.map(s => { let uDueno = allUsers.find(u => u.usuario === s.dueno_uid); return { "N° SAC": s.sac_num, "Requisito / Auditoría": s.proceso, "Tipo Doc. Afectado": s.tipo_doc_afectado || 'N/A', "Tipo de Hallazgo": s.tipo_hallazgo, "Responsable": uDueno ? uDueno.nombre : s.dueno_uid, "Detalle No Conformidad": s.detalle_nc, "Fecha Apertura": s.fecha_apertura ? new Date(s.fecha_apertura).toLocaleString() : '', "Causa Raíz": s.causa_raiz || '', "Acción Correctiva Implementada": s.accion_implementar || '', "Estado": s.estado, "Fecha Cierre": s.fecha_cierre ? new Date(s.fecha_cierre).toLocaleString() : '', "Cerrado Por": s.cerrado_por || '' }; });
-    let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dataExport); XLSX.utils.book_append_sheet(wb, ws, "F-023_Control_NC"); XLSX.writeFile(wb, "Reporte_F-023_Control_NC.xlsx");
-};
-
-// ==========================================
-// ARRANQUE DE LA APLICACIÓN
-// ==========================================
-const inicializarApp = async () => {
-    window.hideLoading(); const savedUser = localStorage.getItem('sgc_session_user');
-    if (savedUser) {
-        window.showLoading();
-        try {
-            const q = query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", savedUser)); const snap = await getDocs(q);
-            if (!snap.empty) { currentUser = snap.docs[0].data(); window.completarLoginUI(); } else { window.logout(); }
-        } catch(e) { window.logout(); }
-        window.hideLoading();
-    } else { window.hideLoading(); setDisplay('login-screen', 'flex'); }
-};
-
-if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", inicializarApp); } else { inicializarApp(); }
+        html += `<tr><td><b>${s.sac_num}</b></td><td>${s.proceso}</td><td><b style="${bColor}">${s.tipo_hallazgo}</b></td><td>${nomDueno}</td><td><div style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${s.detalle_nc}">${s.detalle_nc}</div></td><td>${window.formatearFechaAbreviada(s.fecha_registro || s.fecha_apertura)}</td><td><span class="badge ${bs}">${est}</span></td><td>${s.fecha_cierre ? window.formatearFechaAbreviada(s.fecha_cierre) : '-'}</td><td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="
