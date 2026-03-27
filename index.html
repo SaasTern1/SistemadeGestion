@@ -229,10 +229,9 @@
             <div id="audit-admin-panel" style="display:none; background:white; padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                 <h3 style="margin-bottom:15px; color:var(--primary); border-bottom:1px solid var(--border); padding-bottom:10px;" id="titulo-form-auditoria">Programar Nueva Auditoría</h3>
                 
-                <div class="grid-3">
-                    <div><label>Fecha Estimada</label><input type="date" id="aud-fecha"></div>
-                    <div><label>Hora Inicio</label><input type="time" id="aud-h-ini"></div>
-                    <div><label>Hora Final</label><input type="time" id="aud-h-fin"></div>
+                <div class="grid-4">
+                    <div><label>Fecha Estimada</label><input type="date" id="aud-fecha"></div><div><label>Hora Inicio</label><input type="time" id="aud-h-ini"></div>
+                    <div><label>Hora Final</label><input type="time" id="aud-h-fin"></div><div><label>Lugar / Modalidad</label><input type="text" id="aud-lugar"></div>
                 </div>
 
                 <div style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid var(--border); margin-bottom:15px;">
@@ -246,12 +245,8 @@
                 </div>
 
                 <div class="grid-3" style="margin-bottom: 15px;">
-                    <div><label>Lugar / Modalidad</label><input type="text" id="aud-lugar"></div>
-                    <div><label>Organización</label><input type="text" id="aud-org" placeholder="Ej: FCI Logistic"></div>
-                    <div><label>Dirección</label><input type="text" id="aud-dir" placeholder="Dirección principal"></div>
-                    <div><label>Sitio(s) Auditado(s)</label><input type="text" id="aud-sitios"></div>
-                    <div><label>No. de Personal</label><input type="number" id="aud-personal" placeholder="Ej: 50"></div>
-                    <div><label>No. de Turnos</label><input type="number" id="aud-turnos" placeholder="Ej: 2"></div>
+                    <div><label>Organización</label><input type="text" id="aud-org" placeholder="Ej: FCI Logistic"></div><div><label>Dirección</label><input type="text" id="aud-dir" placeholder="Dirección principal"></div><div><label>Sitio(s) Auditado(s)</label><input type="text" id="aud-sitios"></div>
+                    <div><label>No. de Personal</label><input type="number" id="aud-personal" placeholder="Ej: 50"></div><div><label>No. de Turnos</label><input type="number" id="aud-turnos" placeholder="Ej: 2"></div>
                     <div style="grid-column: span 3;"><label style="color:var(--primary);">Auditores en Formación / Participantes (Opcional)</label><div id="aud-formacion-list" class="checkbox-list"></div></div>
                 </div>
 
@@ -286,64 +281,22 @@
             </div>
         </section>
 
-        <section id="sec-listado" class="section">
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px; flex-wrap:wrap; gap:10px;"><div><h1>Listado Maestro</h1></div><div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="btn btn-primary" id="btn-nuevo-maestro" onclick="window.abrirModalListadoMaestro()" style="display:none;">Nuevo Registro</button></div></div>
-            <div class="card" style="padding:0; padding-top:15px; margin-top:20px;"><div style="padding: 0 15px;"><input type="text" id="search-maestro" class="search-bar" placeholder="🔍 Buscar en el listado maestro..." onkeyup="window.filtrarTabla('search-maestro', 'tbody-listado-maestro')"></div><div class="table-responsive"><table id="tabla-listado-maestro" style="white-space:nowrap;"><thead id="thead-listado-maestro"></thead><tbody id="tbody-listado-maestro"></tbody></table></div></div>
-        </section>
-        
         <section id="sec-usuarios" class="section">
-            <div class="card">
-                <h2 id="user-form-title" style="margin-bottom:20px; color:var(--primary); display:flex; align-items:center; gap:8px;"><span class="material-icons-round">person_add</span> Registrar / Editar Usuario</h2>
-                <div class="grid-3">
-                    <div><label>Nombre Completo</label><input type="text" id="u-nom"></div><div><label>Usuario ID (Login)</label><input type="text" id="u-usr"></div><div><label>Contraseña</label><input type="text" id="u-pas" value="123"></div>
-                    <div><label>Rol (Etiqueta Visual)</label><input type="text" id="u-rol"></div><div style="grid-column: span 2;"><label>Email Corporativo</label><input type="email" id="u-email"></div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;">
+                <div>
+                    <h1 style="display:flex; align-items:center; gap:8px;"><span class="material-icons-round" style="color:var(--primary); font-size:28px;">people</span> Usuarios y Permisos</h1>
+                    <p style="color:#64748b; font-size:12px;">Gestión de accesos y roles del sistema.</p>
                 </div>
-                
-                <div style="margin-top:15px; margin-bottom:20px;">
-                    <label style="color:var(--primary);">Gerencias Vinculadas</label>
-                    <div id="u-ger-list" class="checkbox-list" style="max-height: 120px;"></div>
-                </div>
-
-                <label style="margin-bottom:10px; color:var(--sidebar); font-size:14px;"><span class="material-icons-round" style="font-size:18px; vertical-align:middle;">security</span> Permisos de Acceso del Usuario</label>
-                <div class="grid-3">
-                    <div class="permisos-group">
-                        <h4>Módulo Documental</h4>
-                        <div class="access-item"><span>Solicitar (Crear)</span><label class="switch"><input type="checkbox" id="p-solicitar"><span class="slider"></span></label></div>
-                        <div class="access-item"><span>Ver Mis Solicitudes</span><label class="switch"><input type="checkbox" id="p-ver-propias" checked><span class="slider"></span></label></div>
-                        <div class="access-item"><span>Ver Solicitudes Gerencia</span><label class="switch"><input type="checkbox" id="p-ver-ger"><span class="slider"></span></label></div>
-                        <div class="access-item"><span>Ver TODAS Solicitudes</span><label class="switch"><input type="checkbox" id="p-ver-todas"><span class="slider"></span></label></div>
-                        <div class="access-item"><span>Ver Listado Maestro</span><label class="switch"><input type="checkbox" id="p-ver-listado"><span class="slider"></span></label></div>
-                    </div>
-                    <div class="permisos-group">
-                        <h4>Aprobaciones Doc.</h4>
-                        <div class="access-item"><span>Aprobar Paso 1</span><label class="switch"><input type="checkbox" id="p-paso1"><span class="slider"></span></label></div>
-                        <div class="access-item"><span>Aprobar Paso 2</span><label class="switch"><input type="checkbox" id="p-paso2"><span class="slider"></span></label></div>
-                        <div class="access-item"><span>Aprobar Paso 4</span><label class="switch"><input type="checkbox" id="p-paso4"><span class="slider"></span></label></div>
-                        <div class="access-item"><span>Gestor SGC (1, 2 y 4)</span><label class="switch"><input type="checkbox" id="p-gest-sgc"><span class="slider"></span></label></div>
-                        <div class="access-item"><span>Gerente (Aprobar Paso 3)</span><label class="switch"><input type="checkbox" id="p-ger-apr"><span class="slider"></span></label></div>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:15px;">
-                        <div class="permisos-group" style="margin-bottom:0;">
-                            <h4>Auditoría OEA</h4>
-                            <div class="access-item"><span>Ver Calendario</span><label class="switch"><input type="checkbox" id="p-audit-ver"><span class="slider"></span></label></div>
-                            <div class="access-item"><span>Admin Auditoría</span><label class="switch"><input type="checkbox" id="p-audit-admin"><span class="slider"></span></label></div>
-                            <div class="access-item"><span>Auditor Interno</span><label class="switch"><input type="checkbox" id="p-audit-auditor"><span class="slider"></span></label></div>
-                            <div class="access-item"><span>Dueño Proceso (SAC)</span><label class="switch"><input type="checkbox" id="p-audit-dueno"><span class="slider"></span></label></div>
-                        </div>
-                        <div class="permisos-group" style="margin-bottom:0;">
-                            <h4>Configuración Root</h4>
-                            <div class="access-item"><span>Admin Usuarios</span><label class="switch"><input type="checkbox" id="p-users"><span class="slider"></span></label></div>
-                            <div class="access-item"><span>Admin Estructura</span><label class="switch"><input type="checkbox" id="p-struct"><span class="slider"></span></label></div>
-                            <div class="access-item"><span>Admin Total Supremo</span><label class="switch"><input type="checkbox" id="p-admin"><span class="slider"></span></label></div>
-                        </div>
-                    </div>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:20px;">
-                    <button class="btn btn-primary" id="btnSaveUser" onclick="window.guardarUsuario()" style="flex:1; padding:15px;">GUARDAR USUARIO</button>
-                    <button class="btn btn-dark" id="btnCancelEdit" style="flex:1; padding:15px; display:none;" onclick="window.resetUserForm()">CANCELAR</button>
+                <button class="btn btn-primary" onclick="window.abrirModalUsuario()"><span class="material-icons-round" style="font-size:16px;">person_add</span> Nuevo Usuario</button>
+            </div>
+            <div class="card" style="padding:0; overflow:hidden;">
+                <div class="table-responsive">
+                    <table id="table-users">
+                        <thead><tr><th>Usuario</th><th>Email</th><th>Rol/Gerencias</th><th class="no-export">Acciones</th></tr></thead>
+                        <tbody id="tbody-users"></tbody>
+                    </table>
                 </div>
             </div>
-            <div class="card table-responsive" style="padding:0;"><table id="table-users"><thead><tr><th>Usuario</th><th>Email</th><th>Rol/Gerencias</th><th class="no-export">Acciones</th></tr></thead><tbody id="tbody-users"></tbody></table></div>
         </section>
 
         <section id="sec-estructura" class="section">
@@ -359,7 +312,77 @@
                 <div class="card" style="border-top: 4px solid var(--warning);"><h3>Estatus Listado Maestro</h3><div style="display:flex; gap:0; margin-bottom:15px;"><input type="text" id="est-nom" style="margin:0; border-radius: 8px 0 0 8px;"><button class="btn btn-success" onclick="window.agregarEstatus()" style="border-radius: 0 8px 8px 0;"><span class="material-icons-round">add</span></button></div><div id="list-estatus" class="settings-list"></div></div>
             </div>
         </section>
+
+        <section id="sec-listado" class="section">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px; flex-wrap:wrap; gap:10px;"><div><h1>Listado Maestro</h1></div><div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="btn btn-primary" id="btn-nuevo-maestro" onclick="window.abrirModalListadoMaestro()" style="display:none;">Nuevo Registro</button></div></div>
+            <div class="card" style="padding:0; padding-top:15px; margin-top:20px;"><div style="padding: 0 15px;"><input type="text" id="search-maestro" class="search-bar" placeholder="🔍 Buscar en el listado maestro..." onkeyup="window.filtrarTabla('search-maestro', 'tbody-listado-maestro')"></div><div class="table-responsive"><table id="tabla-listado-maestro" style="white-space:nowrap;"><thead id="thead-listado-maestro"></thead><tbody id="tbody-listado-maestro"></tbody></table></div></div>
+        </section>
     </main>
+
+    <div class="modal-overlay" id="modal-usuario">
+        <div class="modal-content" style="max-width: 900px; display:block; padding: 30px; height:auto; max-height:95vh; overflow-y:auto; border-top:5px solid var(--primary);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid var(--border);">
+                <h2 id="user-form-title" style="color:var(--primary); margin:0; display:flex; align-items:center; gap:8px;"><span class="material-icons-round">manage_accounts</span> Registrar / Editar Usuario</h2>
+                <button class="btn-icon-danger" onclick="window.cerrarModalUsuario()"><span class="material-icons-round">close</span></button>
+            </div>
+            
+            <div class="grid-3">
+                <div><label>Nombre Completo</label><input type="text" id="u-nom"></div>
+                <div><label>Usuario ID (Login)</label><input type="text" id="u-usr"></div>
+                <div><label>Contraseña</label><input type="text" id="u-pas" value="123"></div>
+            </div>
+            <div class="grid-2">
+                <div><label>Rol (Etiqueta Visual)</label><input type="text" id="u-rol"></div>
+                <div><label>Email Corporativo</label><input type="email" id="u-email"></div>
+            </div>
+            
+            <div style="margin-bottom:20px;">
+                <label style="color:var(--primary);">Gerencias Vinculadas</label>
+                <div id="u-ger-list" class="checkbox-list" style="max-height: 100px; display:grid; grid-template-columns:1fr 1fr; gap:5px;"></div>
+            </div>
+
+            <label style="margin-bottom:10px; color:var(--sidebar); font-size:14px;"><span class="material-icons-round" style="font-size:18px; vertical-align:middle;">security</span> Permisos de Acceso del Usuario</label>
+            <div class="grid-2">
+                <div>
+                    <div class="permisos-group">
+                        <h4>Módulo Documental</h4>
+                        <div class="access-item"><span>Solicitar (Crear)</span><label class="switch"><input type="checkbox" id="p-solicitar"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Ver Mis Solicitudes</span><label class="switch"><input type="checkbox" id="p-ver-propias" checked><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Ver Solicitudes Gerencia</span><label class="switch"><input type="checkbox" id="p-ver-ger"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Ver TODAS Solicitudes</span><label class="switch"><input type="checkbox" id="p-ver-todas"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Ver Listado Maestro</span><label class="switch"><input type="checkbox" id="p-ver-listado"><span class="slider"></span></label></div>
+                    </div>
+                    <div class="permisos-group" style="margin-bottom:0;">
+                        <h4>Aprobaciones Doc.</h4>
+                        <div class="access-item"><span>Aprobar Paso 1</span><label class="switch"><input type="checkbox" id="p-paso1"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Aprobar Paso 2</span><label class="switch"><input type="checkbox" id="p-paso2"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Aprobar Paso 4</span><label class="switch"><input type="checkbox" id="p-paso4"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Gestor SGC (1, 2 y 4)</span><label class="switch"><input type="checkbox" id="p-gest-sgc"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Gerente (Aprobar Paso 3)</span><label class="switch"><input type="checkbox" id="p-ger-apr"><span class="slider"></span></label></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="permisos-group">
+                        <h4>Auditoría OEA</h4>
+                        <div class="access-item"><span>Ver Calendario</span><label class="switch"><input type="checkbox" id="p-audit-ver"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Admin Auditoría</span><label class="switch"><input type="checkbox" id="p-audit-admin"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Auditor Interno</span><label class="switch"><input type="checkbox" id="p-audit-auditor"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Dueño Proceso (SAC)</span><label class="switch"><input type="checkbox" id="p-audit-dueno"><span class="slider"></span></label></div>
+                    </div>
+                    <div class="permisos-group" style="margin-bottom:0;">
+                        <h4>Configuración Root</h4>
+                        <div class="access-item"><span>Admin Usuarios</span><label class="switch"><input type="checkbox" id="p-users"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Admin Estructura</span><label class="switch"><input type="checkbox" id="p-struct"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Admin Total Supremo</span><label class="switch"><input type="checkbox" id="p-admin"><span class="slider"></span></label></div>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
+                <button class="btn btn-primary" id="btnSaveUser" onclick="window.guardarUsuario()" style="flex:1; padding:15px;">GUARDAR USUARIO</button>
+                <button class="btn btn-dark" onclick="window.cerrarModalUsuario()" style="padding:15px; width:150px;">Cancelar</button>
+            </div>
+        </div>
+    </div>
 
     <div class="modal-overlay" id="modal"><div class="modal-content"><div class="modal-main" style="padding:30px;"><div style="display:flex; justify-content:space-between; margin-bottom:20px;"><div><span id="m-id" style="font-weight:800; color:var(--primary);"></span><h2 id="m-tit"></h2></div><div style="display:flex; gap:10px;"><button class="btn btn-warning" id="btn-reabrir" onclick="window.reabrirSolicitud()" style="display:none;">Reabrir</button><button class="btn btn-danger" id="btn-anular" onclick="window.anularSolicitud()" style="display:none;">Anular</button><button class="btn btn-dark" onclick="window.closeModal()">Cerrar</button></div></div><div class="step-container"><div class="step" id="s1"><div class="step-dot">1</div><label>Pendiente Doc</label></div><div class="step" id="s2"><div class="step-dot">2</div><label>Pendiente Verif</label></div><div class="step" id="s3"><div class="step-dot">3</div><label>Aprob. Gerencia</label></div><div class="step" id="s4"><div class="step-dot">4</div><label>Aprob. SGC</label></div></div><div id="m-admin-sla" style="display:none; margin-bottom:20px; background:#fffbeb; padding:15px; border-radius:12px; border: 1px dashed var(--warning);"><div style="display:flex; gap:10px; align-items:center;"><input type="date" id="m-sla-date" style="margin:0;"><button class="btn btn-warning" id="btn-save-sla" onclick="window.guardarSLA()">Guardar SLA</button></div></div>
     
@@ -546,20 +569,11 @@
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Fecha</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="date" id="sac-fecha" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;"># de Solicitud / Estado</div><div style="padding:8px; border-bottom:1px solid #ccc; display:flex; justify-content:space-between;"><span id="sac-num" style="font-weight:bold;"></span><span id="sac-estado-badge" class="badge"></span></div>
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Requisito Evaluado</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-proceso" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
-                    
-                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Acción Correctiva / Mejora</div>
-                    <div style="padding:0; border-bottom:1px solid #ccc;">
-                        <select id="sac-tipo" style="border:none; margin:0; width:100%; border-radius:0; height:100%; font-weight:bold; background:transparent;">
-                            <option value="NC Mayor">NC Mayor</option>
-                            <option value="NC Menor">NC Menor</option>
-                            <option value="OM">Oportunidad de Mejora (OM)</option>
-                        </select>
-                    </div>
-                    
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Acción Correctiva / Mejora</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-tipo" disabled style="border:none; margin:0; width:100%; border-radius:0; height:100%; background:transparent; font-weight:bold;"></div>
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Tipo de Doc. a Afectar/Crear</div><div style="padding:0; border-bottom:1px solid #ccc;"><select id="sac-tipo-doc-afectado" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></select></div>
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Fuente de No Conformidad</div><div style="padding:0; border-bottom:1px solid #ccc;"><select id="sac-fuente" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"><option value="Auditoría Interna">Auditoría Interna</option><option value="Auditoría Externa">Auditoría Externa</option><option value="Incidente">Incidente / Accidente</option><option value="Queja Cliente">Queja de Cliente</option><option value="Otro">Otro</option></select></div>
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">En el caso de otro, detalle:</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-fuente-otro" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
-                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Detalle NC / Problema</div><div style="padding:0; border-bottom:1px solid #ccc;"><textarea id="sac-detalle" rows="3" style="border:none; margin:0; width:100%; border-radius:0; background:transparent; resize:vertical; padding:8px;"></textarea></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Detalle NC / Problema</div><div style="padding:0; border-bottom:1px solid #ccc;"><textarea id="sac-detalle" rows="3" disabled style="border:none; margin:0; width:100%; border-radius:0; background:transparent; resize:vertical; padding:8px;"></textarea></div>
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Beneficio Esperado</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-beneficio" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Análisis de Causa-Raíz</div><div style="padding:0; border-bottom:1px solid #ccc;"><textarea id="sac-causa" rows="3" style="border:none; margin:0; width:100%; border-radius:0; resize:vertical; padding:8px;"></textarea></div>
                     <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Acción a Implementar</div><div style="padding:0; border-bottom:1px solid #ccc;"><textarea id="sac-accion" rows="3" style="border:none; margin:0; width:100%; border-radius:0; resize:vertical; padding:8px;"></textarea></div>
@@ -590,6 +604,71 @@
     </div>
     
     <datalist id="oea-req-list-dl"></datalist>
+
+    <div class="modal-overlay" id="modal-usuario">
+        <div class="modal-content" style="max-width: 900px; display:block; padding: 30px; height:auto; max-height:95vh; overflow-y:auto; border-top:5px solid var(--primary);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid var(--border);">
+                <h2 id="user-form-title" style="color:var(--primary); margin:0; display:flex; align-items:center; gap:8px;"><span class="material-icons-round">manage_accounts</span> Registrar / Editar Usuario</h2>
+                <button class="btn-icon-danger" onclick="window.cerrarModalUsuario()"><span class="material-icons-round">close</span></button>
+            </div>
+            
+            <div class="grid-3">
+                <div><label>Nombre Completo</label><input type="text" id="u-nom"></div>
+                <div><label>Usuario ID (Login)</label><input type="text" id="u-usr"></div>
+                <div><label>Contraseña</label><input type="text" id="u-pas" value="123"></div>
+            </div>
+            <div class="grid-2">
+                <div><label>Rol (Etiqueta Visual)</label><input type="text" id="u-rol"></div>
+                <div><label>Email Corporativo</label><input type="email" id="u-email"></div>
+            </div>
+            
+            <div style="margin-bottom:20px;">
+                <label style="color:var(--primary);">Gerencias Vinculadas</label>
+                <div id="u-ger-list" class="checkbox-list" style="max-height: 100px; display:grid; grid-template-columns:1fr 1fr; gap:5px;"></div>
+            </div>
+
+            <label style="margin-bottom:10px; color:var(--sidebar); font-size:14px;"><span class="material-icons-round" style="font-size:18px; vertical-align:middle;">security</span> Permisos de Acceso del Usuario</label>
+            <div class="grid-2">
+                <div>
+                    <div class="permisos-group">
+                        <h4>Módulo Documental</h4>
+                        <div class="access-item"><span>Solicitar (Crear)</span><label class="switch"><input type="checkbox" id="p-solicitar"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Ver Mis Solicitudes</span><label class="switch"><input type="checkbox" id="p-ver-propias" checked><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Ver Solicitudes Gerencia</span><label class="switch"><input type="checkbox" id="p-ver-ger"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Ver TODAS Solicitudes</span><label class="switch"><input type="checkbox" id="p-ver-todas"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Ver Listado Maestro</span><label class="switch"><input type="checkbox" id="p-ver-listado"><span class="slider"></span></label></div>
+                    </div>
+                    <div class="permisos-group" style="margin-bottom:0;">
+                        <h4>Aprobaciones Doc.</h4>
+                        <div class="access-item"><span>Aprobar Paso 1</span><label class="switch"><input type="checkbox" id="p-paso1"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Aprobar Paso 2</span><label class="switch"><input type="checkbox" id="p-paso2"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Aprobar Paso 4</span><label class="switch"><input type="checkbox" id="p-paso4"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Gestor SGC (1, 2 y 4)</span><label class="switch"><input type="checkbox" id="p-gest-sgc"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Gerente (Aprobar Paso 3)</span><label class="switch"><input type="checkbox" id="p-ger-apr"><span class="slider"></span></label></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="permisos-group">
+                        <h4>Auditoría OEA</h4>
+                        <div class="access-item"><span>Ver Calendario</span><label class="switch"><input type="checkbox" id="p-audit-ver"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Admin Auditoría</span><label class="switch"><input type="checkbox" id="p-audit-admin"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Auditor Interno</span><label class="switch"><input type="checkbox" id="p-audit-auditor"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Dueño Proceso (SAC)</span><label class="switch"><input type="checkbox" id="p-audit-dueno"><span class="slider"></span></label></div>
+                    </div>
+                    <div class="permisos-group" style="margin-bottom:0;">
+                        <h4>Configuración Root</h4>
+                        <div class="access-item"><span>Admin Usuarios</span><label class="switch"><input type="checkbox" id="p-users"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Admin Estructura</span><label class="switch"><input type="checkbox" id="p-struct"><span class="slider"></span></label></div>
+                        <div class="access-item"><span>Admin Total Supremo</span><label class="switch"><input type="checkbox" id="p-admin"><span class="slider"></span></label></div>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
+                <button class="btn btn-primary" id="btnSaveUser" onclick="window.guardarUsuario()" style="flex:1; padding:15px;">GUARDAR USUARIO</button>
+                <button class="btn btn-dark" onclick="window.cerrarModalUsuario()" style="padding:15px; width:150px;">Cancelar</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module" src="app.js"></script>
 </body>
