@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestión de Seguridad</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: wss: data: blob:;">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -20,8 +21,8 @@
             <h1 style="color:var(--primary); margin-bottom: 10px; font-weight: 800; font-size:24px;">SISTEMA DE GESTIÓN DE SEGURIDAD</h1>
             <p style="color:#64748b; font-size:13px; margin-bottom:30px;">Certificación OEA - FCI Logistic</p>
             <div style="text-align: left;">
-                <label>Usuario ID</label><input type="text" id="login-user" placeholder="Ej: admin">
-                <label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••">
+                <label for="login-user">Usuario ID</label><input type="text" id="login-user" placeholder="Ej: admin">
+                <label for="login-pass">Contraseña</label><input type="password" id="login-pass" placeholder="••••••">
             </div>
             <button class="btn btn-primary" id="btnLogin" onclick="window.iniciarSesion()" style="width: 100%; padding: 15px; margin-top: 10px; font-size: 15px;">INICIAR SESIÓN</button>
         </div>
@@ -93,30 +94,30 @@
             <div class="card" style="max-width: 900px; margin: auto;">
                 <h2 style="margin-bottom:25px; color:var(--primary); font-size:22px;">Registrar Solicitud FCI-SOL</h2>
                 <div class="grid-3">
-                    <div><label>Acción Requerida</label><select id="sol-accion" onchange="window.toggleModPanel(this.value)"><option value="Creación">Creación</option><option value="Modificación">Modificación</option><option value="Inactivación">Inactivación</option></select></div>
-                    <div><label>Tipo Documento</label><select id="sol-tipo-doc"></select></div>
-                    <div><label>Prioridad de Solicitud</label><select id="sol-prioridad"><option value="Normal">Normal</option><option value="Básica">Básica</option><option value="Alta">Alta (Urgente)</option></select></div>
+                    <div><label for="sol-accion">Acción Requerida</label><select id="sol-accion" onchange="window.toggleModPanel(this.value)"><option value="Creación">Creación</option><option value="Modificación">Modificación</option><option value="Inactivación">Inactivación</option></select></div>
+                    <div><label for="sol-tipo-doc">Tipo Documento</label><select id="sol-tipo-doc"></select></div>
+                    <div><label for="sol-prioridad">Prioridad de Solicitud</label><select id="sol-prioridad"><option value="Normal">Normal</option><option value="Básica">Básica</option><option value="Alta">Alta (Urgente)</option></select></div>
                 </div>
                 <div id="panel-mod" class="grid-3" style="display:none; background:#f8fafc; padding:20px; border-radius:12px; margin-bottom:20px; border:1px dashed var(--info);">
-                    <div><label>Código Actual</label><input type="text" id="sol-cod-prev" style="margin-bottom:0;"></div><div><label>Versión</label><input type="text" id="sol-ver-prev" style="margin-bottom:0;"></div><div><label>Fecha Ult. Ver.</label><input type="date" id="sol-fecha-prev" style="margin-bottom:0;"></div>
+                    <div><label for="sol-cod-prev">Código Actual</label><input type="text" id="sol-cod-prev" style="margin-bottom:0;"></div><div><label for="sol-ver-prev">Versión</label><input type="text" id="sol-ver-prev" style="margin-bottom:0;"></div><div><label for="sol-fecha-prev">Fecha Ult. Ver.</label><input type="date" id="sol-fecha-prev" style="margin-bottom:0;"></div>
                 </div>
-                <label>Título del Documento</label><input type="text" id="sol-tit">
+                <label for="sol-tit">Título del Documento</label><input type="text" id="sol-tit">
                 <div class="grid-2">
-                    <div><label>Gerencia</label><select id="sol-ger" onchange="window.actualizarGerenteSelect(this.value)"></select></div>
-                    <div><label>Departamento</label><select id="sol-dep"><option value="">-- Seleccione Gerencia Primero --</option></select></div>
+                    <div><label for="sol-ger">Gerencia</label><select id="sol-ger" onchange="window.actualizarGerenteSelect(this.value)"></select></div>
+                    <div><label for="sol-dep">Departamento</label><select id="sol-dep"><option value="">-- Seleccione Gerencia Primero --</option></select></div>
                 </div>
                 <div class="grid-2" style="background:#f0fdf4; padding:15px 20px; border-radius:12px; margin-bottom:20px; border:1px solid #bbf7d0;">
-                    <div><label style="color:#166534; margin-bottom:2px;">Gerente(s) Responsable(s)</label><input type="text" id="sol-gerente-display" disabled style="background:transparent; border:none; font-weight:bold; color:#15803d; padding:0; margin:0; font-size:15px;"></div>
-                    <div><label style="color:#166534; margin-bottom:2px;">Email Notificación</label><input type="text" id="sol-email-gerente" disabled style="background:transparent; border:none; font-weight:bold; color:#15803d; padding:0; margin:0; font-size:15px;"></div>
+                    <div><label for="sol-gerente-display" style="color:#166534; margin-bottom:2px;">Gerente(s) Responsable(s)</label><input type="text" id="sol-gerente-display" disabled style="background:transparent; border:none; font-weight:bold; color:#15803d; padding:0; margin:0; font-size:15px;"></div>
+                    <div><label for="sol-email-gerente" style="color:#166534; margin-bottom:2px;">Email Notificación</label><input type="text" id="sol-email-gerente" disabled style="background:transparent; border:none; font-weight:bold; color:#15803d; padding:0; margin:0; font-size:15px;"></div>
                 </div>
                 <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px;">
-                    <label>Añadir Involucrados (Revisores extras)</label>
+                    <label for="sol-involucrado-sel">Añadir Involucrados (Revisores extras)</label>
                     <div style="display:flex; gap:10px; margin-bottom:10px;"><select id="sol-involucrado-sel" style="margin:0; flex:1; background:white;"><option value="">-- Seleccionar --</option></select><button type="button" class="btn btn-info" onclick="window.addInvolucradoList()">Añadir</button></div>
                     <div id="lista-involucrados-tags" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
                 </div>
-                <label>Justificación / Motivo</label><textarea id="sol-motivo" rows="4"></textarea>
+                <label for="sol-motivo">Justificación / Motivo</label><textarea id="sol-motivo" rows="4"></textarea>
                 <div style="background: #eff6ff; padding: 20px; border-radius: 12px; border: 1px dashed var(--accent); margin-bottom: 25px;">
-                    <label style="color:var(--primary)">Adjuntar Archivo Inicial</label><input type="file" id="sol-file" style="margin-bottom:0; background:white;">
+                    <label for="sol-file" style="color:var(--primary)">Adjuntar Archivo Inicial</label><input type="file" id="sol-file" style="margin-bottom:0; background:white;">
                 </div>
                 <button class="btn btn-primary" id="btnSendSol" onclick="window.crearSolicitud()" style="width:100%; padding: 16px; font-size:15px;">ENVIAR A REVISIÓN</button>
             </div>
@@ -165,7 +166,7 @@
                     <h3 style="color:var(--primary); margin-bottom:15px; font-size:16px;">Documento Oficial del Manual</h3>
                     <div id="oea-manual-link" style="margin-bottom:20px; padding:20px; background:#f8fafc; border-radius:12px; border:1px solid var(--border); text-align:center;"></div>
                     <div id="oea-manual-upload-box" style="display:none; background:#eff6ff; padding:20px; border-radius:12px; border:1px dashed var(--primary);">
-                        <label style="color:var(--primary);">Subir Nueva Versión (PDF/Word)</label>
+                        <label for="oea-file" style="color:var(--primary);">Subir Nueva Versión (PDF/Word)</label>
                         <div style="display:flex; gap:10px; align-items:center;">
                             <input type="file" id="oea-file" accept=".pdf,.doc,.docx" style="margin:0; flex:1; background:white;">
                             <button class="btn btn-primary" onclick="window.subirManualOEA()">Subir Archivo</button>
@@ -190,7 +191,7 @@
                     <p style="color:var(--text-muted); font-size:13px;">Programación anual y ejecución (F-005).</p>
                 </div>
                 <div style="display:flex; gap:10px; align-items:center; background:white; padding:8px 15px; border-radius:12px; border:1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                    <label style="margin:0; font-size:12px;">Año:</label>
+                    <label for="aud-year-select" style="margin:0; font-size:12px;">Año:</label>
                     <select id="aud-year-select" style="margin:0; width:100px; padding:8px; border:none; font-weight:bold; color:var(--primary); background:transparent; cursor:pointer; font-size:14px;" onchange="window.cambiarAnioAuditoria(this.value)"></select>
                     <div style="width:1px; height:20px; background:var(--border); margin:0 5px;"></div>
                     <button class="btn btn-info" id="btn-config-plan" style="display:none; padding:8px 12px; font-size:12px;" onclick="window.abrirModalPlan()"><span class="material-icons-round" style="font-size:16px;">settings</span> Configurar Plan</button>
@@ -299,15 +300,15 @@
                 <button class="btn-icon-danger" onclick="window.cerrarModalPlan()"><span class="material-icons-round">close</span></button>
             </div>
             <div style="padding:30px;">
-                <div class="grid-2"><div><label>Objetivo General</label><textarea id="ah-obj" rows="3"></textarea></div><div><label>Alcance</label><textarea id="ah-alcance" rows="3"></textarea></div></div>
-                <div class="grid-3"><div><label>Técnica</label><input type="text" id="ah-tecnica"></div><div><label>Criterios de Auditoría</label><input type="text" id="ah-criterios"></div><div><label>Referencia y Fecha Elab.</label><div style="display:flex; gap:5px;"><input type="text" id="ah-ref" style="width:60%;"><input type="date" id="ah-fecha" style="width:40%;"></div></div></div>
+                <div class="grid-2"><div><label for="ah-obj">Objetivo General</label><textarea id="ah-obj" rows="3"></textarea></div><div><label for="ah-alcance">Alcance</label><textarea id="ah-alcance" rows="3"></textarea></div></div>
+                <div class="grid-3"><div><label for="ah-tecnica">Técnica</label><input type="text" id="ah-tecnica"></div><div><label for="ah-criterios">Criterios de Auditoría</label><input type="text" id="ah-criterios"></div><div><label>Referencia y Fecha Elab.</label><div style="display:flex; gap:5px;"><input type="text" id="ah-ref" style="width:60%;"><input type="date" id="ah-fecha" style="width:40%;"></div></div></div>
                 <div class="grid-2" style="background:#f8fafc; padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px;">
-                    <div><label style="color:var(--primary);">Auditor Líder</label><select id="ah-lider" style="margin-bottom:15px; font-weight:bold; color:var(--primary);"></select></div>
+                    <div><label for="ah-lider" style="color:var(--primary);">Auditor Líder</label><select id="ah-lider" style="margin-bottom:15px; font-weight:bold; color:var(--primary);"></select></div>
                     <div><label style="color:var(--info);">Equipo Auditor</label><div id="ah-auditor-list" class="checkbox-list" style="height:120px;"></div></div>
                 </div>
-                <div class="grid-2"><div><label>Recursos Tecnológicos</label><input type="text" id="ah-tec"></div><div><label>Recursos Humanos</label><input type="text" id="ah-rrhh"></div></div>
+                <div class="grid-2"><div><label for="ah-tec">Recursos Tecnológicos</label><input type="text" id="ah-tec"></div><div><label for="ah-rrhh">Recursos Humanos</label><input type="text" id="ah-rrhh"></div></div>
                 <div style="background:#eff6ff; padding:20px; border-radius:12px; border:1px dashed var(--info); margin-bottom:20px;">
-                    <label style="color:var(--info);">Correos Adicionales / Notificaciones Externas</label>
+                    <label for="ah-extra-emails" style="color:var(--info);">Correos Adicionales / Notificaciones Externas</label>
                     <input type="text" id="ah-extra-emails" placeholder="ej: asesor@mail.com, gerente@mail.com" style="margin-bottom:0;">
                 </div>
                 <div style="display:flex; gap:15px; margin-top:10px;">
@@ -326,8 +327,8 @@
             </div>
             <div style="padding:30px;">
                 <div class="grid-4">
-                    <div><label>Fecha Estimada</label><input type="date" id="aud-fecha"></div><div><label>Hora Inicio</label><input type="time" id="aud-h-ini"></div>
-                    <div><label>Hora Final</label><input type="time" id="aud-h-fin"></div><div><label>Lugar / Modalidad</label><input type="text" id="aud-lugar"></div>
+                    <div><label for="aud-fecha">Fecha Estimada</label><input type="date" id="aud-fecha"></div><div><label for="aud-h-ini">Hora Inicio</label><input type="time" id="aud-h-ini"></div>
+                    <div><label for="aud-h-fin">Hora Final</label><input type="time" id="aud-h-fin"></div><div><label for="aud-lugar">Lugar / Modalidad</label><input type="text" id="aud-lugar"></div>
                 </div>
                 <div style="background:#f8fafc; padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px;">
                     <label style="color:var(--primary);">Puntos / Requisitos OEA a Evaluar</label>
@@ -338,11 +339,11 @@
                     <div><label style="color:var(--info);">Auditor(es) a cargo</label><div id="aud-auditor-list" class="checkbox-list" style="margin-bottom:0;"></div></div>
                 </div>
                 <div class="grid-3" style="margin-bottom: 20px;">
-                    <div><label>Organización</label><input type="text" id="aud-org" placeholder="Ej: FCI Logistic"></div><div><label>Dirección</label><input type="text" id="aud-dir" placeholder="Dirección principal"></div><div><label>Sitio(s) Auditado(s)</label><input type="text" id="aud-sitios"></div>
-                    <div><label>No. de Personal</label><input type="number" id="aud-personal" placeholder="Calculo Automático"></div><div><label>No. de Turnos</label><input type="number" id="aud-turnos" placeholder="Ej: 2"></div>
+                    <div><label for="aud-org">Organización</label><input type="text" id="aud-org" placeholder="Ej: FCI Logistic"></div><div><label for="aud-dir">Dirección</label><input type="text" id="aud-dir" placeholder="Dirección principal"></div><div><label for="aud-sitios">Sitio(s) Auditado(s)</label><input type="text" id="aud-sitios"></div>
+                    <div><label for="aud-personal">No. de Personal</label><input type="number" id="aud-personal" placeholder="Ej: 50" readonly title="Calculado automáticamente"></div><div><label for="aud-turnos">No. de Turnos</label><input type="number" id="aud-turnos" placeholder="Ej: 2"></div>
                     <div style="grid-column: span 3; margin-top:10px;"><label style="color:var(--primary);">Auditores en Formación / Participantes (Opcional)</label><div id="aud-formacion-list" class="checkbox-list"></div></div>
                 </div>
-                <label>Observaciones / Enfoque</label><textarea id="aud-obs" rows="3"></textarea>
+                <label for="aud-obs">Observaciones / Enfoque</label><textarea id="aud-obs" rows="3"></textarea>
                 <div style="display:flex; gap:15px; margin-top:10px;">
                     <button class="btn btn-primary" id="btn-guardar-aud" onclick="window.guardarAuditoria()" style="flex:2; padding:16px; font-size:15px;">GENERAR AUDITORÍA Y NOTIFICAR</button>
                     <button class="btn btn-dark" id="btn-cancelar-aud" onclick="window.cancelarEdicionAuditoria()" style="flex:1; display:none;">CANCELAR</button>
@@ -360,13 +361,13 @@
             
             <div style="padding:30px;">
                 <div class="grid-3">
-                    <div><label>Nombre Completo</label><input type="text" id="u-nom"></div>
-                    <div><label>Usuario ID (Login)</label><input type="text" id="u-usr"></div>
-                    <div><label>Contraseña</label><input type="text" id="u-pas" value="123"></div>
+                    <div><label for="u-nom">Nombre Completo</label><input type="text" id="u-nom"></div>
+                    <div><label for="u-usr">Usuario ID (Login)</label><input type="text" id="u-usr"></div>
+                    <div><label for="u-pas">Contraseña</label><input type="text" id="u-pas" value="123"></div>
                 </div>
                 <div class="grid-2">
-                    <div><label>Rol (Etiqueta Visual)</label><input type="text" id="u-rol"></div>
-                    <div><label>Email Corporativo</label><input type="email" id="u-email"></div>
+                    <div><label for="u-rol">Rol (Etiqueta Visual)</label><input type="text" id="u-rol"></div>
+                    <div><label for="u-email">Email Corporativo</label><input type="email" id="u-email"></div>
                 </div>
                 
                 <div style="margin-bottom:25px; background:#f8fafc; padding:20px; border-radius:12px; border:1px solid var(--border);">
@@ -507,8 +508,8 @@
                         </table>
                     </div>
                     <div style="text-align:right; margin-top:15px; display:flex; justify-content:flex-end; gap:10px;">
-                        <button class="btn btn-info" id="btn-submit-f020" onclick="window.enviarPreguntasSGC()" style="display:none; padding:15px;">Subir Preguntas a SGC</button>
-                        <button class="btn btn-success" id="btn-save-f020" onclick="window.guardarF020()" style="display:none; padding:15px;">Guardar Lista de Verificación</button>
+                        <button class="btn btn-info" id="btn-submit-f020" onclick="window.guardarF020('notificar')" style="display:none; padding:15px;">Subir Preguntas a SGC</button>
+                        <button class="btn btn-success" id="btn-save-f020" onclick="window.guardarF020()" style="display:none; padding:15px;">Guardar Cambios</button>
                     </div>
                 </div>
 
@@ -589,6 +590,53 @@
             </div>
         </div>
     </div>
+
+    <div class="modal-overlay" id="modal-sac">
+        <div class="modal-content" style="max-width: 900px; display:block; padding: 0; height:auto; max-height:95vh; overflow-y:auto; border-top:5px solid #d97706; background:#fff;">
+            <div style="padding:20px; border-bottom:1px solid var(--border); background:#f8fafc; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100;">
+                <h2 style="color:#92400e; margin:0; font-size:18px; font-weight:800;">SOLICITUD DE ACCIONES CORRECTIVAS Y MEJORAS</h2>
+                <button class="btn-icon-danger" onclick="document.getElementById('modal-sac').style.display='none'"><span class="material-icons-round">close</span></button>
+            </div>
+            <div style="padding:30px;">
+                <div style="display:grid; grid-template-columns: 180px 1fr; border:1px solid #ccc; font-size:12px; margin-bottom:20px;">
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Fecha</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="date" id="sac-fecha" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;"># de Solicitud / Estado</div><div style="padding:8px; border-bottom:1px solid #ccc; display:flex; justify-content:space-between;"><span id="sac-num" style="font-weight:bold;"></span><span id="sac-estado-badge" class="badge"></span></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Requisito Evaluado</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-proceso" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Acción Correctiva / Mejora</div><div style="padding:0; border-bottom:1px solid #ccc;"><select id="sac-tipo" style="border:none; margin:0; width:100%; border-radius:0; height:100%; font-weight:bold; background:transparent;"><option value="NC Mayor">NC Mayor</option><option value="NC Menor">NC Menor</option><option value="OM">Oportunidad de Mejora (OM)</option></select></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Tipo de Doc. a Afectar/Crear</div><div style="padding:0; border-bottom:1px solid #ccc;"><select id="sac-tipo-doc-afectado" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></select></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Fuente de No Conformidad</div><div style="padding:0; border-bottom:1px solid #ccc;"><select id="sac-fuente" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"><option value="Auditoría Interna">Auditoría Interna</option><option value="Auditoría Externa">Auditoría Externa</option><option value="Incidente">Incidente / Accidente</option><option value="Queja Cliente">Queja de Cliente</option><option value="Otro">Otro</option></select></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">En el caso de otro, detalle:</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-fuente-otro" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Detalle NC / Problema</div><div style="padding:0; border-bottom:1px solid #ccc;"><textarea id="sac-detalle" rows="3" style="border:none; margin:0; width:100%; border-radius:0; background:transparent; resize:vertical; padding:8px;"></textarea></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Beneficio Esperado</div><div style="padding:0; border-bottom:1px solid #ccc;"><input type="text" id="sac-beneficio" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Análisis de Causa-Raíz</div><div style="padding:0; border-bottom:1px solid #ccc;"><textarea id="sac-causa" rows="3" style="border:none; margin:0; width:100%; border-radius:0; resize:vertical; padding:8px;"></textarea></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; border-bottom:1px solid #ccc; font-weight:bold; background:#fef3c7;">Acción a Implementar</div><div style="padding:0; border-bottom:1px solid #ccc;"><textarea id="sac-accion" rows="3" style="border:none; margin:0; width:100%; border-radius:0; resize:vertical; padding:8px;"></textarea></div>
+                    <div style="padding:8px; border-right:1px solid #ccc; font-weight:bold; background:#fef3c7;">Responsable de la AC</div><div style="padding:0; display:flex; align-items:center;"><select id="sac-dueno" style="border:none; margin:0; width:100%; border-radius:0; height:100%;"></select></div>
+                </div>
+                <h4 style="color:var(--primary); margin-bottom:10px; font-size:14px;">PLAN DE ACCIÓN</h4>
+                <div class="table-responsive" style="margin-bottom:10px;"><table style="width:100%; border:1px solid #ccc; font-size:11px; text-align:left;"><thead style="background:#f1f5f9;"><tr><th style="border:1px solid #ccc; width:30px;">#</th><th style="border:1px solid #ccc;">Detalle</th><th style="border:1px solid #ccc;">Responsable</th><th style="border:1px solid #ccc;">Fecha Inicio</th><th style="border:1px solid #ccc;">Fecha Cierre</th><th style="border:1px solid #ccc; width:40px;"></th></tr></thead><tbody id="tbody-plan-accion"></tbody></table></div>
+                <button class="btn btn-info" onclick="window.addPlanRow()" style="font-size:10px; padding:4px 8px; margin-bottom:20px;">+ Añadir Fila</button>
+
+                <div style="display:flex; gap:20px; align-items:center; border:1px solid #ccc; padding:10px; background:#f8fafc; margin-bottom:20px; font-size:12px;"><b style="color:var(--primary);">Aprobación del Plan de Acción:</b><input type="date" id="sac-fecha-aprob-plan" style="margin:0; width:200px; padding:6px;"></div>
+
+                <h4 style="color:var(--primary); margin-bottom:10px; font-size:14px;">ACTIVIDADES DE SEGUIMIENTO</h4>
+                <div class="table-responsive" style="margin-bottom:10px;"><table style="width:100%; border:1px solid #ccc; font-size:11px; text-align:left;"><thead style="background:#f1f5f9;"><tr><th style="border:1px solid #ccc; width:30px;">#</th><th style="border:1px solid #ccc;">Resultado Seguimiento</th><th style="border:1px solid #ccc;">Responsable</th><th style="border:1px solid #ccc;">Fecha</th><th style="border:1px solid #ccc; width:40px;"></th></tr></thead><tbody id="tbody-seguimiento"></tbody></table></div>
+                <button class="btn btn-info" onclick="window.addSeguimientoRow()" style="font-size:10px; padding:4px 8px; margin-bottom:20px;">+ Añadir Fila</button>
+
+                <div id="sac-panel-cierre" style="border:2px dashed var(--success); padding:20px; border-radius:8px; margin-bottom:20px; background:#f0fdf4;"><h4 style="color:var(--success); margin-bottom:10px; font-size:14px;">Aprobación de Cierre</h4><div class="grid-2"><div><label>Responsable</label><input type="text" id="sac-resp-cierre" disabled style="background:#e2e8f0;"></div><div><label>Fecha de Cierre</label><input type="date" id="sac-fecha-cierre" style="background:#fff;"></div></div><div style="display:flex; align-items:center; gap:10px; margin-top:10px;"><input type="checkbox" id="sac-check-cerrar" style="width:20px; height:20px; cursor:pointer; margin:0;"> <label for="sac-check-cerrar" style="margin:0; font-size:13px; color:var(--success); cursor:pointer;"><b>CERRAR SAC</b></label></div></div>
+                <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn btn-primary" id="btn-save-sac" onclick="window.guardarSAC()" style="flex:1; padding:15px;">Guardar SAC</button><button class="btn btn-dark" onclick="document.getElementById('modal-sac').style.display='none'" style="padding:15px; width:150px;">Cancelar</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-form-listado">
+        <div class="modal-content" style="max-width: 800px; display:block; padding: 30px; height:auto; max-height:90vh; overflow-y:auto;">
+           <h2 style="color:var(--primary); margin-bottom: 20px; display:flex; align-items:center; gap:8px;"><span class="material-icons-round">edit_document</span> <span id="lm-modal-title">Agregar Registro al Listado Maestro</span></h2>
+           <div class="grid-2" id="dinamic-form-maestro"></div>
+           <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn btn-primary" onclick="window.guardarRegistroMaestro()" style="flex:1;">Guardar Documento</button><button class="btn btn-dark" onclick="document.getElementById('modal-form-listado').style.display='none'" style="flex:1;">Cancelar</button></div>
+        </div>
+    </div>
+    
+    <datalist id="oea-req-list-dl"></datalist>
 
     <script type="module" src="app.js"></script>
 </body>
