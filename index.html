@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGC</title>
+    <title>Sistema de Gestión de Seguridad</title>
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: wss: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
@@ -595,7 +595,7 @@
                 <div class="table-responsive" style="margin-bottom:10px;"><table style="width:100%; border:1px solid #ccc; font-size:11px; text-align:left;"><thead style="background:#f1f5f9;"><tr><th style="border:1px solid #ccc; width:30px;">#</th><th style="border:1px solid #ccc;">Resultado Seguimiento</th><th style="border:1px solid #ccc;">Responsable</th><th style="border:1px solid #ccc;">Fecha</th><th style="border:1px solid #ccc; width:40px;"></th></tr></thead><tbody id="tbody-seguimiento"></tbody></table></div>
                 <button class="btn btn-info" onclick="window.addSeguimientoRow()" style="font-size:10px; padding:4px 8px; margin-bottom:20px;">+ Añadir Fila</button>
 
-                <div id="sac-panel-cierre" style="border:2px dashed var(--success); padding:20px; border-radius:8px; margin-bottom:20px; background:#f0fdf4;"><h4 style="color:var(--success); margin-bottom:10px; font-size:14px;">Aprobación de Cierre</h4><div class="grid-2"><div><label>Responsable</label><input type="text" id="sac-resp-cierre" disabled style="background:#e2e8f0;"></div><div><label>Fecha de Cierre</label><input type="date" id="sac-fecha-cierre" style="background:#fff;"></div></div><div style="display:flex; align-items:center; gap:10px; margin-top:10px;"><input type="checkbox" id="sac-check-cerrar" style="width:20px; height:20px; cursor:pointer; margin:0;"> <label for="sac-check-cerrar" style="margin:0; font-size:13px; color:var(--success); cursor:pointer;"><b>CERRAR SAC</b></label></div></div>
+                <div id="sac-panel-cierre" style="border:2px dashed var(--success); padding:20px; border-radius:8px; margin-bottom:20px; background:#f0fdf4;"><h4 style="color:var(--success); margin-bottom:10px; font-size:14px;">Aprobación de Cierre</h4><div class="grid-2"><div><label for="sac-resp-cierre">Responsable</label><input type="text" id="sac-resp-cierre" disabled style="background:#e2e8f0;"></div><div><label for="sac-fecha-cierre">Fecha de Cierre</label><input type="date" id="sac-fecha-cierre" style="background:#fff;"></div></div><div style="display:flex; align-items:center; gap:10px; margin-top:10px;"><input type="checkbox" id="sac-check-cerrar" style="width:20px; height:20px; cursor:pointer; margin:0;"> <label for="sac-check-cerrar" style="margin:0; font-size:13px; color:var(--success); cursor:pointer;"><b>CERRAR SAC</b></label></div></div>
                 <div style="display:flex; gap:10px; margin-top:20px;"><button class="btn btn-primary" id="btn-save-sac" onclick="window.guardarSAC()" style="flex:1; padding:15px;">Guardar SAC</button><button class="btn btn-dark" onclick="document.getElementById('modal-sac').style.display='none'" style="padding:15px; width:150px;">Cancelar</button></div>
             </div>
         </div>
@@ -609,6 +609,53 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="modal-usuario">
+        <div class="modal-content" style="max-width: 800px; display:block; padding: 0; height:auto; max-height:92vh; overflow-y:auto; border-top:6px solid var(--primary);">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding: 20px 30px; border-bottom:1px solid var(--border); background:white; position:sticky; top:0; z-index:100;">
+                <h2 id="user-form-title" style="color:var(--primary); margin:0; font-size:20px; font-weight:800;"><span class="material-icons-round">person_add</span> Registrar / Editar Usuario</h2>
+                <button class="btn-icon-danger" onclick="window.cerrarModalUsuario()"><span class="material-icons-round">close</span></button>
+            </div>
+            <div style="padding:30px;">
+                <div class="grid-2">
+                    <div><label for="u-nom">Nombre Completo</label><input type="text" id="u-nom"></div>
+                    <div><label for="u-email">Correo Electrónico</label><input type="email" id="u-email"></div>
+                    <div><label for="u-usr">ID Usuario (Login)</label><input type="text" id="u-usr"></div>
+                    <div><label for="u-pas">Contraseña</label><input type="text" id="u-pas"></div>
+                    <div><label for="u-rol">Rol / Puesto</label><input type="text" id="u-rol"></div>
+                </div>
+                <div style="margin-top:15px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid var(--border);">
+                    <label>Gerencias Asignadas</label>
+                    <div id="u-ger-list" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:5px;"></div>
+                </div>
+                <div style="margin-top:20px;">
+                    <h4 style="color:var(--primary); margin-bottom:10px;">Permisos del Sistema</h4>
+                    <div class="grid-3" style="background:#f1f5f9; padding:15px; border-radius:8px;">
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-solicitar"> Crear Solicitudes</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-ver-propias"> Ver Propias</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-ver-ger"> Ver de Gerencia</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-ver-todas"> Ver Todas (Lectura)</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-paso1"> Aprobar Fase 1</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-paso2"> Aprobar Fase 2</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-paso4"> Aprobar Fase 4 (SGC)</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-gest-sgc"> Gestor SGC Completo</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-ger-apr"> Aprobador (Fase 3)</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-users"> Gestionar Usuarios</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-struct"> Configuración Estructural</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-ver-listado"> Ver Listado Maestro</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-audit-ver"> Ver Auditorías</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-audit-admin"> Administrador Auditoría</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-audit-auditor"> Rol Auditor</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0;"><input type="checkbox" id="p-audit-dueno"> Dueño de Proceso</label></div>
+                        <div><label style="display:flex; gap:5px; margin:0; color:var(--danger); font-weight:bold;"><input type="checkbox" id="p-admin"> ADMIN GLOBAL</label></div>
+                    </div>
+                </div>
+                <div style="margin-top:20px; display:flex; gap:10px;">
+                    <button class="btn btn-primary" id="btnSaveUser" onclick="window.guardarUsuario()" style="flex:1;">GUARDAR USUARIO</button>
+                    <button class="btn btn-dark" onclick="window.cerrarModalUsuario()">CANCELAR</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script type="module" src="app.js"></script>
 </body>
 </html>
