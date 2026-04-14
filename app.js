@@ -504,24 +504,13 @@ const dest = await window.getDatosEnvio(s); window.sendNotification(dest, `Avanc
 };
 
 window.enviarComentarioLibre = async () => {
-    const box = $('m-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = $('m-file-comentario');
-    if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta un archivo."); window.showLoading(); let fileUrl = null; let fileName = null;
-    if (f.files[0]) { fileUrl = await window.uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error de red."); } fileName = f.files[0].name; }
-    let chatPayload = {u: currentUser.nombre, m: `💬 <b>Comentario:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; 
-    if (fileUrl) { chatPayload.archivo = fileUrl; chatPayload.archivo_nombre = fileName; } 
-    await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { chat: arrayUnion(chatPayload) });
-    
-    // --- INICIO MEJORA DE CORREO ---
-    const dest = await window.getDatosEnvio(selectedDocData); 
-    // Construimos el mensaje inyectando la variable txtHTML que contiene el comentario real
-    let mensajeCorreo = `<b>${currentUser.nombre}</b> ha dejado un comentario en el expediente:<br><br><div style="padding: 12px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 6px;">${txtHTML}</div>`;
-    // Si el usuario adjuntó un archivo, lo indicamos en el correo
-    if (fileName) { mensajeCorreo += `<br><br><i>📎 Además, adjuntó un archivo: <b>${fileName}</b></i>`; }
-    
-    window.sendNotification(dest, `Nuevo Comentario: ${selectedDocData.customId}`, mensajeCorreo);
-    // --- FIN MEJORA DE CORREO ---
-    
-    box.innerHTML = ""; f.value = ""; window.hideLoading(); window.closeModal();
+const box = $('m-comentario-libre'); const txtHTML = box.innerHTML; const txtPlain = box.innerText.trim(); const f = $('m-file-comentario');
+if(!txtPlain && !f.files[0] && txtHTML.replace(/<[^>]*>?/gm, '').trim() === '') return alert("Escribe un mensaje o adjunta un archivo."); window.showLoading(); let fileUrl = null; let fileName = null;
+if (f.files[0]) { fileUrl = await window.uploadToCloudinary(f.files[0]); if (!fileUrl) { window.hideLoading(); return alert("Error de red."); } fileName = f.files[0].name; }
+let chatPayload = {u: currentUser.nombre, m: `💬 <b>Comentario:</b><br>${txtHTML}`, t: new Date().toLocaleString()}; 
+if (fileUrl) { chatPayload.archivo = fileUrl; chatPayload.archivo_nombre = fileName; } 
+await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { chat: arrayUnion(chatPayload) });
+const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Nuevo Comentario: ${selectedDocData.customId}`, `${currentUser.nombre} dejó un comentario.`); box.innerHTML = ""; f.value = ""; window.hideLoading(); window.closeModal();
 };
 
 window.guardarCierreFinal = async () => {
@@ -536,16 +525,9 @@ const dest = await window.getDatosEnvio(selectedDocData); window.sendNotificatio
 };
 
 window.anularSolicitud = async () => {
-    if(!confirm("⚠️ ¿Estás seguro de anular esta solicitud?")) return; let motivo = prompt("Motivo de anulación:"); if(!motivo) return; window.showLoading();
-    await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Anulado", chat: arrayUnion({u: currentUser.nombre, m: `🚫 <b>SOLICITUD ANULADA</b><br>Motivo: ${motivo}`, t: new Date().toLocaleString()}) });
-    
-    // --- INICIO MEJORA DE CORREO DE ANULACIÓN ---
-    const dest = await window.getDatosEnvio(selectedDocData); 
-    let mensajeCorreo = `La solicitud fue <b>ANULADA</b> por ${currentUser.nombre}.<br><br><div style="padding: 12px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 6px;"><b>Motivo:</b> ${motivo}</div>`;
-    window.sendNotification(dest, `Cancelación: ${selectedDocData.customId}`, mensajeCorreo); 
-    // --- FIN MEJORA DE CORREO DE ANULACIÓN ---
-    
-    window.hideLoading(); window.closeModal();
+if(!confirm("⚠️ ¿Estás seguro de anular esta solicitud?")) return; let motivo = prompt("Motivo de anulación:"); if(!motivo) return; window.showLoading();
+await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", selectedId), { estado: "Anulado", chat: arrayUnion({u: currentUser.nombre, m: `🚫 <b>SOLICITUD ANULADA</b><br>Motivo: ${motivo}`, t: new Date().toLocaleString()}) });
+const dest = await window.getDatosEnvio(selectedDocData); window.sendNotification(dest, `Cancelación: ${selectedDocData.customId}`, `ANULADA por ${currentUser.nombre}.`); window.hideLoading(); window.closeModal();
 };
 
 window.addInvolucradoList = () => {
@@ -850,7 +832,7 @@ if(!$('tbody-f020')) return;
 let canEd = selectedAuditData && String(selectedAuditData.estado||"") !== 'Completada' && (currentUser.permisos.admin || currentUser.permisos.p_audit_admin || (selectedAuditData.auditor && selectedAuditData.auditor.includes(currentUser.nombre))); 
 let h = "";
 let rqs = selectedAuditData && selectedAuditData.requisitos ? selectedAuditData.requisitos.split(', ') : [];
-let aOps = `<option value="">-- Sel --</option>` + (selectedAuditData && selectedAuditData.auditado ? selectedAuditData.auditado.split(', ').map(a => `<option value="${a}">${a}</option>`).join('');
+let aOps = `<option value="">-- Sel --</option>` + (selectedAuditData && selectedAuditData.auditado ? selectedAuditData.auditado.split(', ').map(a => `<option value="${a}">${a}</option>`).join('') : '');
 
 currentAuditF020.forEach((i, idx) => {
     let dis = canEd ? '' : 'disabled';
@@ -1069,3 +1051,4 @@ if (su) {
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", inicializarApp); 
 else inicializarApp();
+// --- FIN DEL ARCHIVO APP.JS ---
