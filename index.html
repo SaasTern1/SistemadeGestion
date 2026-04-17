@@ -7,10 +7,23 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: wss: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <div style="display: flex; justify-content: space-between; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; flex-wrap: wrap; gap:10px;">
+                <button onclick="window.toggleDarkMode()" style="background:none; border:none; color:#38bdf8; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; padding:0; transition:0.2s;">
+                    <span class="material-icons-round" id="dark-mode-icon" style="font-size:16px;">dark_mode</span> <span id="dark-mode-text">Descanso</span>
+                </button>
+                <button onclick="window.logout()" style="background:none; border:none; color:#ef4444; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; padding:0; transition:0.2s;">
+                    <span class="material-icons-round" style="font-size:16px;">logout</span> Salir
+                </button>
+                
+                <button id="btn-instalar-pwa" onclick="window.instalarPWA()" style="display:none; width:100%; background:var(--accent); border:none; color:white; font-size:12px; font-weight:700; cursor:pointer; align-items:center; justify-content:center; gap:5px; padding:8px; border-radius:6px; margin-top:5px;">
+                    <span class="material-icons-round" style="font-size:16px;">install_mobile</span> Instalar App en Dispositivo
+                </button>
+            </div>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
+    
 <body>
 
     <div id="loading-overlay"><div class="spinner" style="margin-bottom: 15px;"></div><h4 style="color:var(--primary)">Procesando...</h4></div>
