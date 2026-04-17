@@ -1288,7 +1288,36 @@ window.toggleDarkMode = () => {
     }
 };
 // ==========================================
+// --- LÓGICA DE PWA E INSTALACIÓN ---
+let eventoInstalacion = null;
 
+// Mostrar el botón de instalar solo cuando el navegador esté listo
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    eventoInstalacion = e;
+    const btnInstalar = document.getElementById('btn-instalar-pwa');
+    if (btnInstalar) btnInstalar.style.display = 'flex';
+});
+
+window.instalarPWA = async () => {
+    if (!eventoInstalacion) return;
+    eventoInstalacion.prompt(); // Mostrar el popup del sistema operativo
+    const { outcome } = await eventoInstalacion.userChoice;
+    if (outcome === 'accepted') {
+        document.getElementById('btn-instalar-pwa').style.display = 'none';
+    }
+    eventoInstalacion = null;
+};
+
+// Registrar el Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registrado correctamente.', reg.scope))
+        .catch(err => console.log('Error al registrar Service Worker.', err));
+    });
+}
+// --- FIN LÓGICA PWA ---
 
 const inicializarApp = async () => {
 window.hideLoading(); const su = localStorage.getItem('sgc_session_user');
