@@ -1268,6 +1268,28 @@ let dE = globalAllSacs.map(s => {
 let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dE); XLSX.utils.book_append_sheet(wb, ws, "F-023"); XLSX.writeFile(wb, "F-023_Control_NC.xlsx");
 };
 
+// ==========================================
+// FUNCIÓN DE DESCANSO VISUAL (MODO OSCURO)
+// ==========================================
+window.toggleDarkMode = () => {
+    const body = document.body;
+    body.classList.toggle('dark-theme');
+    
+    // Guardar preferencia para futuras sesiones
+    const isDark = body.classList.contains('dark-theme');
+    localStorage.setItem('sgc_dark_mode', isDark);
+    
+    // Actualizar el icono y texto del botón
+    const icon = document.getElementById('dark-mode-icon');
+    const text = document.getElementById('dark-mode-text');
+    if (icon && text) {
+        icon.innerText = isDark ? 'light_mode' : 'dark_mode';
+        text.innerText = isDark ? 'Claro' : 'Descanso';
+    }
+};
+// ==========================================
+
+
 const inicializarApp = async () => {
 window.hideLoading(); const su = localStorage.getItem('sgc_session_user');
 if (su) {
