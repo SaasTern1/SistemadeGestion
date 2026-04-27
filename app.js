@@ -5,7 +5,7 @@ import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, s
 const firebaseConfig = { apiKey: "AIzaSyDdzCiachuhbE9jATz-TesPI2vUVIJrHjM", authDomain: "sistemadegestion-7400d.firebaseapp.com", projectId: "sistemadegestion-7400d", storageBucket: "sistemadegestion-7400d.firebasestorage.app", messagingSenderId: "709030283072", appId: "1:709030283072:web:5997837b36a448e9515ca5" };
 const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app); const appId = 'sgc-final-v6';
 
-const EMAIL_SERVICE_ID = "service_vumxptj", EMAIL_TEMPLATE_ID = "template_z27y5yk", EMAIL_PUBLIC_KEY = "kWsovOfdi7dBqLMw2", EMAIL_ADMIN_SGC = "sistemadegestion@fcipty.com"; 
+const EMAIL_SERVICE_ID = "service_a7yozqh", EMAIL_TEMPLATE_ID = "template_n5myebl", EMAIL_PUBLIC_KEY = "2jVnfkJKKG0bpKN-U", EMAIL_ADMIN_SGC = "sistemadegestion@fcipty.com"; 
 (function() { emailjs.init(EMAIL_PUBLIC_KEY); })();
 
 const CLOUD_NAME = "df79cjklp", UPLOAD_PRESET = "fci_documentos", PASOS_NOMBRES = ["Pendiente Documentado", "Pendiente Verificado", "Pendiente Aprobación Gerencia", "Pendiente Aprobación SGC"];
