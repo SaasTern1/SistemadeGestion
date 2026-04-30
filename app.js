@@ -156,9 +156,13 @@ window.renderTablasSolicitudes = () => {
   let hH = "", hA = "", hG = "", sort = [...globalSolicitudes].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
   let totalCerradas = 0, cerradasATiempo = 0;
 
+  const p = currentUser.permisos || {}; 
+  const esAdm = p.admin || p.p_gest_sgc;
+
   sort.forEach(s => {
     let es = s.estado || "Pendiente", c = es==='Anulado'||es==='Rechazado', apr = es.includes('Aprobado Final');
     let bc = apr ? 'badge-success' : (c ? 'badge-danger' : 'badge-warning'), ps = s.prioridad || "Normal", bp = ps==='Alta'?'badge-danger':(ps==='Básica'?'badge-info':'badge-dark'), et = PASOS_NOMBRES[s.idx] || '';
+    
     let isM = (s.uid === currentUser.usuario) || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase()));
     
     let slaVisual = s.fecha_esperada_cierre ? window.formatearFechaAbreviada(s.fecha_esperada_cierre) : '<span style="color:#cbd5e1">-</span>';
@@ -168,13 +172,30 @@ window.renderTablasSolicitudes = () => {
         totalCerradas++; if(s.fecha_final <= s.fecha_esperada_cierre) cerradasATiempo++;
     }
 
-    if(isM) hH += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}</td><td>${s.titulo}<br><span class="badge ${bp}">${ps}</span></td><td><span class="badge ${bp}">${ps}</span></td><td><span class="badge ${bc}">${es}</span></td><td>${slaVisual}</td><td style="text-align:center;">${docIcon}</td><td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Ver / Gestionar</button></td></tr>`;
-    hA += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}<br><small>${s.gerencia}</small></td><td>${s.titulo}</td><td><span class="badge ${bp}">${ps}</span></td><td><span class="badge ${bc}">${es}</span><br><small>${et}</small></td><td>${slaVisual}</td><td style="text-align:center;">${docIcon}</td><td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Ver Detalle</button></td></tr>`;
+    if(isM) {
+        hH += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}</td><td>${s.titulo}<br><span class="badge ${bp}">${ps}</span></td><td><span class="badge ${bp}">${ps}</span></td><td><span class="badge ${bc}">${es}</span></td><td>${slaVisual}</td><td style="text-align:center;">${docIcon}</td><td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Ver / Gestionar</button></td></tr>`;
+    }
 
-    let act = !apr && !c, p = currentUser.permisos, esAdm = p.admin || p.p_gest_sgc;
+    let puedeVerTodas = false;
+    if (esAdm || p.p_ver_todas) {
+        puedeVerTodas = true;
+    } else if (p.p_ver_ger && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia)) {
+        puedeVerTodas = true;
+    } else if (isM) {
+         puedeVerTodas = true;
+    }
+
+    if(puedeVerTodas) {
+        hA += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}<br><small>${s.gerencia}</small></td><td>${s.titulo}</td><td><span class="badge ${bp}">${ps}</span></td><td><span class="badge ${bc}">${es}</span><br><small>${et}</small></td><td>${slaVisual}</td><td style="text-align:center;">${docIcon}</td><td class="no-export"><button class="btn btn-primary" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Ver Detalle</button></td></tr>`;
+    }
+
+    let act = !apr && !c;
     let pgS = act && ((s.idx===0 && (esAdm||p.p_paso1)) || (s.idx===1 && (esAdm||p.p_paso2)) || (s.idx===3 && (esAdm||p.p_paso4)));
     let pgG = act && s.idx===2 && p.p_ger_apr && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia);
-    if(pgS || pgG) hG += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}<br><small>${s.gerencia}</small></td><td>${s.titulo}<br><span class="badge ${bp}">${ps}</span></td><td><span class="badge badge-info">${et}</span></td><td>${slaVisual}</td><td style="text-align:center;">${docIcon}</td><td class="no-export"><button class="btn btn-warning" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Revisar / Firmar</button></td></tr>`;
+    
+    if(pgS || pgG) {
+        hG += `<tr><td><b>${s.customId}</b><br><small style="color:#94a3b8">${window.formatearFechaAbreviada(s.fecha)}</small></td><td>${s.solicitante}<br><small>${s.gerencia}</small></td><td>${s.titulo}<br><span class="badge ${bp}">${ps}</span></td><td><span class="badge badge-info">${et}</span></td><td>${slaVisual}</td><td style="text-align:center;">${docIcon}</td><td class="no-export"><button class="btn btn-warning" style="padding:4px 8px; font-size:10px;" onclick="window.verDetalle('${s.docId}')">Revisar / Firmar</button></td></tr>`;
+    }
   });
 
   setHtml('tbody-historial', hH); setHtml('tbody-all', hA); setHtml('tbody-gestionar', hG);
@@ -706,10 +727,42 @@ let estado = elEstado ? elEstado.value : "";
 let esAdminSGC = currentUser.permisos.admin || currentUser.permisos.p_gest_sgc;
 
 let datosFiltrados = globalSolicitudes.filter(s => {
-    if (origen !== 'all' && !esAdminSGC) { let isMine = (s.uid === currentUser.usuario) || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase())); if (origen === 'hist' && !isMine) return false; if (origen === 'gest') { const p = currentUser.permisos; let ver = p.p_ver_all || (p.p_ver_ger && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia)) || isMine; if(!ver) return false; } }
-    if (desde && s.fecha < desde) return false; if (hasta && s.fecha > hasta + "T23:59:59") return false;
-    if (estado) { let eStr = (s.estado || "").toUpperCase(); if (estado === 'Pendiente' && (eStr.includes('APROBADO FINAL') || eStr === 'ANULADO' || eStr === 'RECHAZADO')) return false; if (estado === 'Aprobado Final' && !eStr.includes('APROBADO FINAL')) return false; if (estado === 'Cancelado' && eStr !== 'ANULADO' && eStr !== 'RECHAZADO') return false; }
-    return true;
+    let isMine = (s.uid === currentUser.usuario) || (s.involucrados && currentUser.email && s.involucrados.includes(currentUser.email.toLowerCase())); 
+    
+    if (!esAdminSGC) { 
+        if (origen === 'hist' && !isMine) {
+            return false; 
+        }
+        if (origen === 'all') {
+            const p = currentUser.permisos;
+            let puedeExportar = false;
+            if (p.p_ver_todas) {
+                puedeExportar = true;
+            } else if (p.p_ver_ger && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia)) {
+                puedeExportar = true;
+            } else if (isMine) {
+                puedeExportar = true;
+            }
+            if(!puedeExportar) return false;
+        }
+        if (origen === 'gest') { 
+            const p = currentUser.permisos; 
+            let ver = p.p_ver_todas || (p.p_ver_ger && currentUser.gerencias && currentUser.gerencias.includes(s.gerencia)) || isMine; 
+            if(!ver) return false; 
+        } 
+    }
+
+    if (desde && s.fecha < desde) return false; 
+    if (hasta && s.fecha > hasta + "T23:59:59") return false;
+    
+    if (estado) { 
+        let eStr = (s.estado || "").toUpperCase(); 
+        if (estado === 'Pendiente' && (eStr.includes('APROBADO FINAL') || eStr === 'ANULADO' || eStr === 'RECHAZADO')) return false; 
+        if (estado === 'Aprobado Final' && !eStr.includes('APROBADO FINAL')) return false; 
+        if (estado === 'Cancelado' && eStr !== 'ANULADO' && eStr !== 'RECHAZADO') return false; 
+    }
+    
+    return true; 
 });
 
 if(datosFiltrados.length === 0) return alert("No hay datos que coincidan con estos filtros para exportar.");
@@ -1096,15 +1149,27 @@ return `<div style="border:1px solid #ccc;font-size:12px;margin-bottom:15px;" cl
 
 window.actualizarMetricasF003 = (canEd) => {
 let nM = 0, nm = 0, om = 0, hM = "", hm = "", ho = ""; 
-currentAuditF020.forEach(i => { if(i.nc === 'NC Mayor'){nM++; hM += window.generarBloqueNCDinamico(i,nM,'NC Mayor',canEd);} if(i.nc === 'NC Menor'){nm++; hm += window.generarBloqueNCDinamico(i,nm,'NC Menor',canEd);} if(i.nc === 'OM'){om++; ho += window.generarBloqueNCDinamico(i,om,'OM',canEd);} });
-if($('f003-nc-mayor')) $('f003-nc-mayor').innerText = nM; if($('f003-nc-menor')) $('f003-nc-menor').innerText = nm; if($('f003-om')) $('f003-om').innerText = om;
-if($('container-nc-menor')) $('container-nc-menor').innerHTML = hm || "<p style='font-size:11px;color:#94a3b8;'>Ninguna.</p>"; if($('container-nc-mayor')) $('container-nc-mayor').innerHTML = hM || "<p style='font-size:11px;color:#94a3b8;'>Ninguna.</p>"; if($('container-om')) $('container-om').innerHTML = ho || "<p style='font-size:11px;color:#94a3b8;'>Ninguna.</p>";
+currentAuditF020.forEach(i => { 
+    if(i.nc === 'NC Mayor'){nM++; hM += window.generarBloqueNCDinamico(i,nM,'NC Mayor',canEd);} 
+    if(i.nc === 'NC Menor'){nm++; hm += window.generarBloqueNCDinamico(i,nm,'NC Menor',canEd);} 
+    if(i.nc === 'OM'){om++; ho += window.generarBloqueNCDinamico(i,om,'OM',canEd);} 
+});
+
+if($('f003-nc-mayor')) $('f003-nc-mayor').innerText = nM; 
+if($('f003-nc-menor')) $('f003-nc-menor').innerText = nm; 
+if($('f003-om')) $('f003-om').innerText = om;
+
+if($('container-nc-menor')) $('container-nc-menor').innerHTML = hm || "<p style='font-size:11px;color:#94a3b8;'>Ninguna.</p>"; 
+if($('container-nc-mayor')) $('container-nc-mayor').innerHTML = hM || "<p style='font-size:11px;color:#94a3b8;'>Ninguna.</p>"; 
+if($('container-om')) $('container-om').innerHTML = ho || "<p style='font-size:11px;color:#94a3b8;'>Ninguna.</p>";
 };
 
 window.guardarF003 = async () => { 
-window.showLoading(); let dN = {}; $$('.f003-hallazgo-block').forEach(b => dN[b.dataset.id] = {departamento:b.querySelector('.h-dep').value, doc_ref:b.querySelector('.h-doc').value, requisito:b.querySelector('.h-req').value, detalle:b.querySelector('.h-det').value}); 
+window.showLoading(); let dN = {}; 
+$$('.f003-hallazgo-block').forEach(b => dN[b.dataset.id] = {departamento:b.querySelector('.h-dep').value, doc_ref:b.querySelector('.h-doc').value, requisito:b.querySelector('.h-req').value, detalle:b.querySelector('.h-det').value}); 
 let rD = { conclusiones:$('f003-conclusiones').value, n_proceso:$('f003-n-proceso').value, n_personal:$('f003-n-personal').value, n_cargo:$('f003-n-cargo').value, n_req:$('f003-n-req').value, n_doc:$('f003-n-doc').value, n_evidencia:$('f003-n-evidencia').value, detalles_nc:dN }; 
-await updateDoc(doc(db,"artifacts",appId,"public","data","Auditorias",selectedAuditId),{reporte_auditoria:rD}); window.hideLoading(); alert("Reporte F-003 guardado."); 
+await updateDoc(doc(db,"artifacts",appId,"public","data","Auditorias",selectedAuditId),{reporte_auditoria:rD}); 
+window.hideLoading(); alert("Reporte F-003 guardado."); 
 };
 
 window.renderAuditSACs = () => {
@@ -1268,38 +1333,25 @@ let dE = globalAllSacs.map(s => {
 let wb = XLSX.utils.book_new(); let ws = XLSX.utils.json_to_sheet(dE); XLSX.utils.book_append_sheet(wb, ws, "F-023"); XLSX.writeFile(wb, "F-023_Control_NC.xlsx");
 };
 
-// ==========================================
-// FUNCIÓN DE DESCANSO VISUAL (MODO OSCURO)
-// ==========================================
-window.toggleDarkMode = () => {
-    const body = document.body;
-    body.classList.toggle('dark-theme');
-    
-    // Guardar preferencia para futuras sesiones
-    const isDark = body.classList.contains('dark-theme');
-    localStorage.setItem('sgc_dark_mode', isDark);
-    
-    // Actualizar el icono y texto del botón
-    const icon = document.getElementById('dark-mode-icon');
-    const text = document.getElementById('dark-mode-text');
-    if (icon && text) {
-        icon.innerText = isDark ? 'light_mode' : 'dark_mode';
-        text.innerText = isDark ? 'Claro' : 'Descanso';
-    }
-};
-// ==========================================
-
-
 const inicializarApp = async () => {
-window.hideLoading(); const su = localStorage.getItem('sgc_session_user');
-if (su) {
-    window.showLoading();
-    try { 
-        const qs = await getDocs(query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", su)));
-        if (!qs.empty) { currentUser = qs.docs[0].data(); window.completarLoginUI(); } else window.logout();
-    } catch(e) { window.logout(); } 
-    window.hideLoading();
-} else { setDisplay('login-screen', 'flex'); }
+    window.hideLoading(); 
+    
+    if (localStorage.getItem('sgc_dark_mode') === 'true') {
+        document.body.classList.add('dark-theme');
+        const icon = document.getElementById('dark-mode-icon');
+        const text = document.getElementById('dark-mode-text');
+        if (icon && text) { icon.innerText = 'light_mode'; text.innerText = 'Claro'; }
+    }
+
+    const su = localStorage.getItem('sgc_session_user');
+    if (su) {
+        window.showLoading();
+        try { 
+            const qs = await getDocs(query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", su)));
+            if (!qs.empty) { currentUser = qs.docs[0].data(); window.completarLoginUI(); } else window.logout();
+        } catch(e) { window.logout(); } 
+        window.hideLoading();
+    } else { setDisplay('login-screen', 'flex'); }
 };
 
 document.addEventListener("DOMContentLoaded", inicializarApp);
