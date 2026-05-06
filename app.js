@@ -240,6 +240,19 @@ window.completarLoginUI = () => {
 
 window.logout = () => { localStorage.removeItem('sgc_session_user'); currentUser = null; setDisplay('sidebar', 'none'); setDisplay('main', 'none'); setDisplay('login-screen', 'flex'); setVal('login-user', ''); setVal('login-pass', ''); };
 
+window.toggleDarkMode = () => {
+    const isDark = document.body.classList.toggle('dark-theme');
+    localStorage.setItem('sgc_dark_mode', isDark);
+    
+    const icon = document.getElementById('dark-mode-icon');
+    const text = document.getElementById('dark-mode-text');
+    
+    if (icon && text) {
+        icon.innerText = isDark ? 'light_mode' : 'dark_mode';
+        text.innerText = isDark ? 'Claro' : 'Descanso';
+    }
+};
+
 window.iniciarSesion = async () => {
   const u = $('login-user').value.toLowerCase().trim(); const p = $('login-pass').value.trim();
   if (!u || !p) return alert("Por favor, ingresa tu usuario y contraseña."); window.showLoading();
