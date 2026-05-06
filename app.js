@@ -257,10 +257,6 @@ window.iniciarSesion = async () => {
   const u = $('login-user').value.toLowerCase().trim(); const p = $('login-pass').value.trim();
   if (!u || !p) return alert("Por favor, ingresa tu usuario y contraseña."); window.showLoading();
   try {
-    if(u === 'admin' && p === '1130') {
-      const adminRef = doc(db, "artifacts", appId, "public", "data", "Usuarios", "admin"); const snapAdmin = await getDoc(adminRef);
-      if(!snapAdmin.exists()) { await setDoc(adminRef, { nombre: "Admin Maestro", usuario: "admin", pass: "1130", gerencias: ["SGC"], gerencia: "SGC", email: EMAIL_ADMIN_SGC, permisos: { can_solicit:true, p_gest_sgc:true, p_ger_apr:true, p_ver_propias:true, p_ver_ger:true, p_ver_all:true, p_ver_todas:true, p_users:true, p_struct:true, p_ver_listado:true, p_audit_admin:true, p_audit_ver:true, admin:true, p_paso1:true, p_paso2:true, p_paso4:true } }); }
-    }
     const qs = await getDocs(query(collection(db, "artifacts", appId, "public", "data", "Usuarios"), where("usuario", "==", u), where("pass", "==", p)));
     if(!qs.empty) { localStorage.setItem('sgc_session_user', u); currentUser = qs.docs[0].data(); window.completarLoginUI(); } else alert("Credenciales incorrectas.");
   } catch (error) { alert("Error de red."); } finally { window.hideLoading(); }
