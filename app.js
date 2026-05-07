@@ -524,7 +524,8 @@ try {
     
     if (stepIdx === 3 && puedeGestionarSGC && activo) {
         setDisplay('m-panel-final-sgc', 'block'); setVal('m-final-cod', s.cod_ref || "");
-        setDisplay('m-actions', 'none'); 
+        setDisplay('m-actions', 'block'); 
+        setDisplay('btn-firma-next', 'none');
     }
 
     if (apr) {
