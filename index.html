@@ -159,30 +159,31 @@
         </section>
 
         <section id="sec-all" class="section">
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;"><div><h1>Todas las Solicitudes</h1></div></div>
-            <div class="card" style="padding:0; overflow:hidden;">
-                <div style="padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:10px;">
-                    <input type="text" id="search-all" class="search-bar" style="margin:0;" placeholder="🔍 Buscar..." onkeyup="window.filtrarTabla('search-all', 'tbody-all')">
-                    <button class="btn btn-success" onclick="window.descargarExcelFiltrado('all')"><span class="material-icons-round">download</span> Exportar Completo</button>
-                </div>
-                <div class="table-responsive"><table id="tabla-todas-solicitudes"><thead><tr><th>ID</th><th>Solicitante</th><th>Documento</th><th>Prioridad</th><th>Estado</th><th>Límite (SLA)</th><th class="no-export" style="text-align:center;">Doc Final</th><th class="no-export">Acción</th></tr></thead><tbody id="tbody-all"></tbody></table></div>
-            </div>
-        </section>
+            <div style="padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    <input type="text" id="search-all" class="search-bar" style="margin:0; flex:1; min-width:200px;" placeholder="🔍 Buscar..." onkeyup="window.filtrarTabla('search-all', 'tbody-all', 'filtros-all')">
+    <div id="filtros-all" style="display:flex; gap:10px; flex-wrap:wrap; font-size:12px; align-items:center;">
+        <b style="color:var(--text-muted);">Estado:</b>
+        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Pendiente" onchange="window.filtrarTabla('search-all', 'tbody-all', 'filtros-all')" checked> Pendientes</label>
+        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Aprobado Final" onchange="window.filtrarTabla('search-all', 'tbody-all', 'filtros-all')" checked> Aprobadas</label>
+        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Anulado" onchange="window.filtrarTabla('search-all', 'tbody-all', 'filtros-all')" checked> Anuladas</label>
+        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Rechazado" onchange="window.filtrarTabla('search-all', 'tbody-all', 'filtros-all')" checked> Rechazadas</label>
+    </div>
+    <button class="btn btn-success" onclick="window.descargarExcelFiltrado('all')"><span class="material-icons-round">download</span> Exportar Completo</button>
+</div>
 
         <section id="sec-gest" class="section">
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;"><div><h1 style="font-size: 26px; font-weight: 800; color:var(--primary);">Bandeja de Gestión</h1><p style="color:var(--text-muted); font-size:13px;">Firmas y revisiones pendientes de su atención.</p></div></div>
-            <div class="card" style="padding:0; border-radius: 16px; overflow:hidden; border-top: 4px solid var(--warning);">
-                <div style="background: #f8fafc; padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
-                    <div style="flex:1; min-width:250px;"><input type="text" id="search-gest" class="search-bar" style="max-width:100%; margin-bottom:0;" placeholder="🔍 Buscar en tabla..." onkeyup="window.filtrarTabla('search-gest', 'tbody-gestionar')"></div>
-                </div>
-                <div class="table-responsive">
-                    <table id="tabla-gestion-solicitudes">
-                        <thead><tr><th style="width: 120px;">ID Sistema</th><th>Origen</th><th>Documento</th><th>Etapa Actual</th><th>Límite (SLA)</th><th class="no-export" style="text-align:center;">Doc Final</th><th class="no-export">Gestión</th></tr></thead>
-                        <tbody id="tbody-gestionar"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
+            <div style="background: #f8fafc; padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
+    <div style="flex:1; min-width:250px;">
+        <input type="text" id="search-gest" class="search-bar" style="max-width:100%; margin-bottom:0;" placeholder="🔍 Buscar en tabla..." onkeyup="window.filtrarTabla('search-gest', 'tbody-gestionar', 'filtros-gest')">
+    </div>
+    <div id="filtros-gest" style="display:flex; gap:10px; flex-wrap:wrap; font-size:12px; align-items:center; border-left:2px solid var(--border); padding-left:15px;">
+        <b style="color:var(--text-muted);">Filtrar por Etapa:</b>
+        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Pendiente Documentado" onchange="window.filtrarTabla('search-gest', 'tbody-gestionar', 'filtros-gest')" checked> Doc</label>
+        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Pendiente Verificado" onchange="window.filtrarTabla('search-gest', 'tbody-gestionar', 'filtros-gest')" checked> Verif</label>
+        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Pendiente Aprobación Gerencia" onchange="window.filtrarTabla('search-gest', 'tbody-gestionar', 'filtros-gest')" checked> Gerencia</label>
+        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Pendiente Aprobación SGC" onchange="window.filtrarTabla('search-gest', 'tbody-gestionar', 'filtros-gest')" checked> SGC</label>
+    </div>
+</div>
 
         <section id="sec-norma" class="section">
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;">
