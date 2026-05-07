@@ -724,13 +724,20 @@ await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", sel
 window.hideLoading(); window.verDetalle(selectedId);
 };
 
-window.filtrarTabla = (inputId, tbodyId) => {
-  const filter = $(inputId).value.toLowerCase();
-  const rows = $(tbodyId).getElementsByTagName('tr');
-  for (let row of rows) {
-    row.style.display = row.innerText.toLowerCase().includes(filter) ? '' : 'none';
-  }
-};
+window.filtrarTabla = (inputId, tbodyId, checkboxContainerId = null) => {
+    const input = $(inputId); 
+    const filter = input ? input.value.toLowerCase() : ""; 
+    const tbody = $(tbodyId); 
+    if (!tbody) return; 
+
+    let estadosPermitidos = null;
+    if(checkboxContainerId) {
+        const container = $(checkboxContainerId);
+        if(container) {
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+            estadosPermitidos = Array.from(checkboxes).filter(c => c.checked).map(c => c.value.toLowerCase());
+        }
+    }
 
     const trs = tbody.getElementsByTagName('tr');
     for (let i = 0; i < trs.length; i++) { 
@@ -748,6 +755,7 @@ window.filtrarTabla = (inputId, tbodyId) => {
 
         trs[i].style.display = (txtMatch && stateMatch) ? "" : "none"; 
     }
+};
 
 window.descargarExcelFiltrado = (origen = 'hist') => {
 let elDesde = $(`${origen}-f-desde`), elHasta = $(`${origen}-f-hasta`), elEstado = $(`${origen}-f-estado`);
