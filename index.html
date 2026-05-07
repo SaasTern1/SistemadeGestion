@@ -159,30 +159,15 @@
         </section>
 
         <section id="sec-all" class="section">
-            <div style="padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-    <input type="text" id="search-all" class="search-bar" style="margin:0; flex:1; min-width:200px;" placeholder="🔍 Buscar..." onkeyup="window.filtrarTabla('search-all', 'tbody-all', 'filtros-all')">
-    <div id="filtros-all" style="display:flex; gap:10px; flex-wrap:wrap; font-size:12px; align-items:center;">
-        <b style="color:var(--text-muted);">Estado:</b>
-        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Pendiente" onchange="window.filtrarTabla('search-all', 'tbody-all', 'filtros-all')" checked> Pendientes</label>
-        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Aprobado Final" onchange="window.filtrarTabla('search-all', 'tbody-all', 'filtros-all')" checked> Aprobadas</label>
-        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Anulado" onchange="window.filtrarTabla('search-all', 'tbody-all', 'filtros-all')" checked> Anuladas</label>
-        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Rechazado" onchange="window.filtrarTabla('search-all', 'tbody-all', 'filtros-all')" checked> Rechazadas</label>
-    </div>
+            <div style="padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:10px;">
+    <input type="text" id="search-all" class="search-bar" style="margin:0;" placeholder="🔍 Buscar..." onkeyup="window.filtrarTabla('search-all', 'tbody-all')">
     <button class="btn btn-success" onclick="window.descargarExcelFiltrado('all')"><span class="material-icons-round">download</span> Exportar Completo</button>
 </div>
 
         <section id="sec-gest" class="section">
-            <div style="background: #f8fafc; padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
-    <div style="flex:1; min-width:250px;">
-        <input type="text" id="search-gest" class="search-bar" style="max-width:100%; margin-bottom:0;" placeholder="🔍 Buscar en tabla..." onkeyup="window.filtrarTabla('search-gest', 'tbody-gestionar', 'filtros-gest')">
-    </div>
-    <div id="filtros-gest" style="display:flex; gap:10px; flex-wrap:wrap; font-size:12px; align-items:center; border-left:2px solid var(--border); padding-left:15px;">
-        <b style="color:var(--text-muted);">Filtrar por Etapa:</b>
-        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Pendiente Documentado" onchange="window.filtrarTabla('search-gest', 'tbody-gestionar', 'filtros-gest')" checked> Doc</label>
-        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Pendiente Verificado" onchange="window.filtrarTabla('search-gest', 'tbody-gestionar', 'filtros-gest')" checked> Verif</label>
-        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Pendiente Aprobación Gerencia" onchange="window.filtrarTabla('search-gest', 'tbody-gestionar', 'filtros-gest')" checked> Gerencia</label>
-        <label style="cursor:pointer; display:flex; align-items:center; gap:4px;"><input type="checkbox" value="Pendiente Aprobación SGC" onchange="window.filtrarTabla('search-gest', 'tbody-gestionar', 'filtros-gest')" checked> SGC</label>
-    </div>
+            <div style="padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:10px;">
+    <input type="text" id="search-all" class="search-bar" style="margin:0;" placeholder="🔍 Buscar..." onkeyup="window.filtrarTabla('search-all', 'tbody-all')">
+    <button class="btn btn-success" onclick="window.descargarExcelFiltrado('all')"><span class="material-icons-round">download</span> Exportar Completo</button>
 </div>
 
         <section id="sec-norma" class="section">
