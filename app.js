@@ -724,10 +724,38 @@ await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", sel
 window.hideLoading(); window.verDetalle(selectedId);
 };
 
-window.filtrarTabla = (inputId, tbodyId) => {
-const input = $(inputId); if (!input) return; const filter = input.value.toLowerCase(); const tbody = $(tbodyId); if (!tbody) return; const trs = tbody.getElementsByTagName('tr');
-for (let i = 0; i < trs.length; i++) { let rowText = trs[i].textContent || trs[i].innerText; if (rowText.toLowerCase().indexOf(filter) > -1) { trs[i].style.display = ""; } else { trs[i].style.display = "none"; } }
-};
+window.filtrarTabla = (inputId, tbodyId, checkboxContainerId = null) => {
+    const input = $(inputId); 
+    const filter = input ? input.value.toLowerCase() : ""; 
+    const tbody = $(tbodyId); 
+    if (!tbody) return; 
+
+    let estadosPermitidos = null;
+    if(checkboxContainerId) {
+        const container = $(checkboxContainerId);
+        if(container) {
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+            estadosPermitidos = Array.from(checkboxes).filter(c => c.checked).map(c => c.value.toLowerCase());
+        }
+    }
+
+    const trs = tbody.getElementsByTagName('tr');
+    for (let i = 0; i < trs.length; i++) { 
+        let rowText = trs[i].textContent || trs[i].innerText; 
+        let txtMatch = rowText.toLowerCase().indexOf(filter) > -1; 
+        
+        let stateMatch = true;
+        if (estadosPermitidos !== null) {
+            if (estadosPermitidos.length === 0) {
+                stateMatch = false; // Ocultar si todo está desmarcado
+            } else {
+                stateMatch = estadosPermitidos.some(est => rowText.toLowerCase().includes(est));
+            }
+        }
+
+        trs[i].style.display = (txtMatch && stateMatch) ? "" : "none"; 
+    }
+};;
 
 window.descargarExcelFiltrado = (origen = 'hist') => {
 let elDesde = $(`${origen}-f-desde`), elHasta = $(`${origen}-f-hasta`), elEstado = $(`${origen}-f-estado`);
