@@ -725,24 +725,12 @@ window.hideLoading(); window.verDetalle(selectedId);
 };
 
 window.filtrarTabla = (inputId, tbodyId) => {
-    const input = $(inputId);
-    if (!input)
-        return;
-    const filter = input.value.toLowerCase();
-    const tbody = $(tbodyId);
-    if (!tbody)
-        return;
-    const trs = tbody.getElementsByTagName('tr');
-    for (let i = 0; i < trs.length; i++) {
-        let rowText = trs[i].textContent || trs[i].innerText;
-        if (rowText.toLowerCase().indexOf(filter) > -1) {
-            trs[i].style.display = "";
-        } else {
-            trs[i].style.display = "none";
-        }
-    }
-}
-;
+  const filter = $(inputId).value.toLowerCase();
+  const rows = $(tbodyId).getElementsByTagName('tr');
+  for (let row of rows) {
+    row.style.display = row.innerText.toLowerCase().includes(filter) ? '' : 'none';
+  }
+};
 
     const trs = tbody.getElementsByTagName('tr');
     for (let i = 0; i < trs.length; i++) { 
