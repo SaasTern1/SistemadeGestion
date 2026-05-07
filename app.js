@@ -748,7 +748,7 @@ window.filtrarTabla = (inputId, tbodyId) => {
 
         trs[i].style.display = (txtMatch && stateMatch) ? "" : "none"; 
     }
-};;
+};
 
 window.descargarExcelFiltrado = (origen = 'hist') => {
 let elDesde = $(`${origen}-f-desde`), elHasta = $(`${origen}-f-hasta`), elEstado = $(`${origen}-f-estado`);
