@@ -742,24 +742,6 @@ window.filtrarTabla = (inputId, tbodyId) => {
     }
 };
 
-    const trs = tbody.getElementsByTagName('tr');
-    for (let i = 0; i < trs.length; i++) { 
-        let rowText = trs[i].textContent || trs[i].innerText; 
-        let txtMatch = rowText.toLowerCase().indexOf(filter) > -1; 
-        
-        let stateMatch = true;
-        if (estadosPermitidos !== null) {
-            if (estadosPermitidos.length === 0) {
-                stateMatch = false; // Ocultar si todo está desmarcado
-            } else {
-                stateMatch = estadosPermitidos.some(est => rowText.toLowerCase().includes(est));
-            }
-        }
-
-        trs[i].style.display = (txtMatch && stateMatch) ? "" : "none"; 
-    }
-
-
 window.descargarExcelFiltrado = (origen = 'hist') => {
 let elDesde = $(`${origen}-f-desde`), elHasta = $(`${origen}-f-hasta`), elEstado = $(`${origen}-f-estado`);
 let desde = elDesde ? elDesde.value : ""; 
