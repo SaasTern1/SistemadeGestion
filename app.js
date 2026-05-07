@@ -724,20 +724,25 @@ await updateDoc(doc(db, "artifacts", appId, "public", "data", "Solicitudes", sel
 window.hideLoading(); window.verDetalle(selectedId);
 };
 
-window.filtrarTabla = (inputId, tbodyId, checkboxContainerId = null) => {
-    const input = $(inputId); 
-    const filter = input ? input.value.toLowerCase() : ""; 
-    const tbody = $(tbodyId); 
-    if (!tbody) return; 
-
-    let estadosPermitidos = null;
-    if(checkboxContainerId) {
-        const container = $(checkboxContainerId);
-        if(container) {
-            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
-            estadosPermitidos = Array.from(checkboxes).filter(c => c.checked).map(c => c.value.toLowerCase());
+window.filtrarTabla = (inputId, tbodyId) => {
+    const input = $(inputId);
+    if (!input)
+        return;
+    const filter = input.value.toLowerCase();
+    const tbody = $(tbodyId);
+    if (!tbody)
+        return;
+    const trs = tbody.getElementsByTagName('tr');
+    for (let i = 0; i < trs.length; i++) {
+        let rowText = trs[i].textContent || trs[i].innerText;
+        if (rowText.toLowerCase().indexOf(filter) > -1) {
+            trs[i].style.display = "";
+        } else {
+            trs[i].style.display = "none";
         }
     }
+}
+;
 
     const trs = tbody.getElementsByTagName('tr');
     for (let i = 0; i < trs.length; i++) { 
