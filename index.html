@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión de Seguridad</title>
+    <title>Document System Corp - Gestión</title>
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: wss: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
@@ -18,10 +18,10 @@
 
     <div id="login-screen">
         <div class="login-box">
-            <h1 style="color:var(--primary); margin-bottom: 10px; font-weight: 800; font-size:24px;">SISTEMA DE GESTIÓN DE SEGURIDAD</h1>
-            <p style="color:#64748b; font-size:13px; margin-bottom:30px;">Certificación OEA - FCI Logistic</p>
+            <h1 style="color:var(--primary); margin-bottom: 10px; font-weight: 800; font-size:24px;">DOCUMENT SYSTEM CORP</h1>
+            <p style="color:#64748b; font-size:13px; margin-bottom:30px;">Sistema de Gestión Corporativo</p>
             <div style="text-align: left;">
-                <label for="login-user">Usuario ID</label><input type="text" id="login-user" placeholder="Ej: admin">
+                <label for="login-user">Usuario ID</label><input type="text" id="login-user" placeholder="Ej: jperez">
                 <label for="login-pass">Contraseña</label><input type="password" id="login-pass" placeholder="••••••">
             </div>
             <button class="btn btn-primary" id="btnLogin" onclick="window.iniciarSesion()" style="width: 100%; padding: 15px; margin-top: 10px; font-size: 15px;">INICIAR SESIÓN</button>
@@ -31,7 +31,7 @@
     <aside class="sidebar" id="sidebar">
         <div style="padding: 10px 0 20px; display:flex; align-items:center; gap:10px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px;">
             <span class="material-icons-round" style="color: var(--accent); font-size: 32px;">verified_user</span>
-            <h2 style="font-weight: 800; font-size: 14px; line-height: 1.2; color: #fff;">SISTEMA DE GESTIÓN<br><span style="color:var(--accent); font-size:11px;">DE SEGURIDAD</span></h2>
+            <h2 style="font-weight: 800; font-size: 14px; line-height: 1.2; color: #fff;">DOCUMENT SYSTEM<br><span style="color:var(--accent); font-size:11px;">CORP</span></h2>
         </div>
         
         <nav style="flex:1">
@@ -74,7 +74,7 @@
 
     <main class="main" id="main">
         <div class="mobile-header">
-            <h2 style="font-size: 16px; color: var(--primary); margin:0; display:flex; align-items:center; gap:5px; font-weight:800;"><span class="material-icons-round">verified_user</span> SISTEMA DE GESTIÓN</h2>
+            <h2 style="font-size: 16px; color: var(--primary); margin:0; display:flex; align-items:center; gap:5px; font-weight:800;"><span class="material-icons-round">verified_user</span> DOCUMENT SYSTEM</h2>
             <button class="menu-btn" onclick="window.toggleMenu()"><span class="material-icons-round">menu</span></button>
         </div>
 
@@ -114,7 +114,7 @@
 
         <section id="sec-crear" class="section">
             <div class="card" style="max-width: 900px; margin: auto;">
-                <h2 style="margin-bottom:25px; color:var(--primary); font-size:22px;">Registrar Solicitud FCI-SOL</h2>
+                <h2 style="margin-bottom:25px; color:var(--primary); font-size:22px;">Registrar Solicitud DOC-SOL</h2>
                 <form id="form-crear-solicitud" onsubmit="event.preventDefault(); window.crearSolicitud();">
                     <div class="resp-grid">
                         <div><label for="sol-accion">Acción Requerida</label><select id="sol-accion" onchange="window.toggleModPanel(this.value)"><option value="Creación">Creación</option><option value="Modificación">Modificación</option><option value="Inactivación">Inactivación</option></select></div>
@@ -159,16 +159,35 @@
         </section>
 
         <section id="sec-all" class="section">
-            <div style="padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:10px;">
-    <input type="text" id="search-all" class="search-bar" style="margin:0;" placeholder="🔍 Buscar..." onkeyup="window.filtrarTabla('search-all', 'tbody-all')">
-    <button class="btn btn-success" onclick="window.descargarExcelFiltrado('all')"><span class="material-icons-round">download</span> Exportar Completo</button>
-</div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;"><div><h1>Todas las Solicitudes</h1></div></div>
+            <div class="card" style="padding:0; overflow:hidden;">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:10px;">
+                    <input type="text" id="search-all" class="search-bar" style="margin:0;" placeholder="🔍 Buscar..." onkeyup="window.filtrarTabla('search-all', 'tbody-all')">
+                    <button class="btn btn-success" onclick="window.descargarExcelFiltrado('all')"><span class="material-icons-round">download</span> Exportar Completo</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="tabla-todas-solicitudes">
+                        <thead><tr><th>ID</th><th>Solicitante</th><th>Documento</th><th>Prioridad</th><th>Estado</th><th>Límite (SLA)</th><th class="no-export" style="text-align:center;">Doc Final</th><th class="no-export">Acción</th></tr></thead>
+                        <tbody id="tbody-all"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
         <section id="sec-gest" class="section">
-            <div style="padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:10px;">
-    <input type="text" id="search-all" class="search-bar" style="margin:0;" placeholder="🔍 Buscar..." onkeyup="window.filtrarTabla('search-all', 'tbody-all')">
-    <button class="btn btn-success" onclick="window.descargarExcelFiltrado('all')"><span class="material-icons-round">download</span> Exportar Completo</button>
-</div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;"><div><h1 style="font-size: 26px; font-weight: 800; color:var(--primary);">Bandeja de Gestión</h1><p style="color:var(--text-muted); font-size:13px;">Firmas y revisiones pendientes de su atención.</p></div></div>
+            <div class="card" style="padding:0; border-radius: 16px; overflow:hidden; border-top: 4px solid var(--warning);">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border); display:flex; gap:15px; align-items:center;">
+                    <input type="text" id="search-gest" class="search-bar" style="margin:0; flex:1;" placeholder="🔍 Buscar en tabla..." onkeyup="window.filtrarTabla('search-gest', 'tbody-gestionar')">
+                </div>
+                <div class="table-responsive">
+                    <table id="tabla-gestion-solicitudes">
+                        <thead><tr><th style="width: 120px;">ID Sistema</th><th>Origen</th><th>Documento</th><th>Etapa Actual</th><th>Límite (SLA)</th><th class="no-export" style="text-align:center;">Doc Final</th><th class="no-export">Gestión</th></tr></thead>
+                        <tbody id="tbody-gestionar"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
         <section id="sec-norma" class="section">
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;">
@@ -551,7 +570,7 @@
 
                 <div id="tab-f020" class="tab-content">
                     <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
-                        <h3 style="color:var(--primary);">FCI-GG-F-020: Lista de Verificación</h3>
+                        <h3 style="color:var(--primary);">Lista de Verificación / F-020</h3>
                         <button class="btn btn-info" id="btn-add-f020" onclick="window.agregarFilaF020()" style="display:none;">+ Añadir Ítem</button>
                     </div>
                     <div class="table-responsive" style="border:1px solid var(--border); border-radius:8px;">
@@ -595,7 +614,7 @@
                     <div style="text-align:center; border-bottom:2px solid var(--primary); padding-bottom:15px; margin-bottom:20px;">
                         <h2 style="color:var(--primary); font-weight:800; text-transform:uppercase;">Reporte de Auditoría Interna</h2>
                         <div style="display:flex; justify-content:space-between; font-size:11px; margin-top:10px; color:#475569; font-weight:700;">
-                            <span>CÓDIGO: FCI-GG-F-003</span><span>FECHA EMISIÓN: 06 DIC 2022</span><span>FECHA VERSIÓN: 12 MAY 2025</span><span>VERSIÓN: 3</span>
+                            <span>CÓDIGO: F-003</span><span>FECHA EMISIÓN: 06 DIC 2022</span><span>FECHA VERSIÓN: 12 MAY 2025</span><span>VERSIÓN: 3</span>
                         </div>
                     </div>
 
@@ -700,7 +719,7 @@
             <div class="resp-grid" style="margin-bottom:15px;">
                 <div><label for="u-nom">Nombre Completo</label><input type="text" id="u-nom" placeholder="Ej: Juan Pérez"></div>
                 <div><label for="u-usr">Usuario ID</label><input type="text" id="u-usr" placeholder="Ej: jperez"></div>
-                <div><label for="u-email">Correo Electrónico</label><input type="email" id="u-email" placeholder="Ej: jperez@fcilogistic.com"></div>
+                <div><label for="u-email">Correo Electrónico</label><input type="email" id="u-email" placeholder="Ej: jperez@empresa.com"></div>
                 <div><label for="u-pas">Contraseña</label><input type="password" id="u-pas" value="123"></div>
                 <div><label for="u-rol">Cargo / Rol</label><input type="text" id="u-rol" placeholder="Ej: Analista de Calidad"></div>
             </div>
@@ -713,7 +732,7 @@
             <div class="card" style="margin-bottom:20px; padding:15px; border:1px solid var(--border); box-shadow:none;">
                 <div class="custom-label" style="color:var(--primary); margin-bottom:10px; display:block;">Permisos y Roles de Acceso</div>
                 <div class="resp-grid" style="gap:10px; grid-template-columns:1fr 1fr;">
-                    <label style="display:flex; align-items:center; gap:5px; font-size:12px; margin:0;"><input type="checkbox" id="p-solicitar" style="margin:0;"> Crear Solicitudes (FCI-SOL)</label>
+                    <label style="display:flex; align-items:center; gap:5px; font-size:12px; margin:0;"><input type="checkbox" id="p-solicitar" style="margin:0;"> Crear Solicitudes (DOC-SOL)</label>
                     <label style="display:flex; align-items:center; gap:5px; font-size:12px; margin:0;"><input type="checkbox" id="p-ver-propias" style="margin:0;"> Ver sus Solicitudes</label>
                     <label style="display:flex; align-items:center; gap:5px; font-size:12px; margin:0;"><input type="checkbox" id="p-ver-ger" style="margin:0;"> Ver solicitudes de su Gerencia</label>
                     <label style="display:flex; align-items:center; gap:5px; font-size:12px; margin:0;"><input type="checkbox" id="p-ver-todas" style="margin:0;"> Ver TODAS las Solicitudes</label>
