@@ -38,6 +38,16 @@ window.cambiarVista = (id, btn) => {
 };
 window.toggleMenu = () => { if($('sidebar')) $('sidebar').classList.toggle('open'); if($('sidebar-overlay')) $('sidebar-overlay').classList.toggle('active'); };
 
+window.toggleDarkMode = () => {
+    const body = document.body;
+    body.classList.toggle('dark-theme');
+    const isDark = body.classList.contains('dark-theme');
+    localStorage.setItem('sgc_dark_mode', isDark);
+    const icon = document.getElementById('dark-mode-icon');
+    const text = document.getElementById('dark-mode-text');
+    if (icon && text) { icon.innerText = isDark ? 'light_mode' : 'dark_mode'; text.innerText = isDark ? 'Claro' : 'Descanso'; }
+};
+
 window.abrirDocumento = async (url, nombreOriginal) => {
   if (!url || url === "#") return;
   let safeName = nombreOriginal ? nombreOriginal.replace(/[^a-zA-Z0-9.\-_ ]/g, '_') : 'Documento';
@@ -239,19 +249,6 @@ window.completarLoginUI = () => {
 };
 
 window.logout = () => { localStorage.removeItem('sgc_session_user'); currentUser = null; setDisplay('sidebar', 'none'); setDisplay('main', 'none'); setDisplay('login-screen', 'flex'); setVal('login-user', ''); setVal('login-pass', ''); };
-
-window.toggleDarkMode = () => {
-    const isDark = document.body.classList.toggle('dark-theme');
-    localStorage.setItem('sgc_dark_mode', isDark);
-    
-    const icon = document.getElementById('dark-mode-icon');
-    const text = document.getElementById('dark-mode-text');
-    
-    if (icon && text) {
-        icon.innerText = isDark ? 'light_mode' : 'dark_mode';
-        text.innerText = isDark ? 'Claro' : 'Descanso';
-    }
-};
 
 window.iniciarSesion = async () => {
   const u = $('login-user').value.toLowerCase().trim(); const p = $('login-pass').value.trim();
@@ -524,8 +521,7 @@ try {
     
     if (stepIdx === 3 && puedeGestionarSGC && activo) {
         setDisplay('m-panel-final-sgc', 'block'); setVal('m-final-cod', s.cod_ref || "");
-        setDisplay('m-actions', 'block'); 
-        setDisplay('btn-firma-next', 'none');
+        setDisplay('m-actions', 'none'); 
     }
 
     if (apr) {
@@ -725,21 +721,8 @@ window.hideLoading(); window.verDetalle(selectedId);
 };
 
 window.filtrarTabla = (inputId, tbodyId) => {
-    const input = $(inputId); 
-    if (!input) return; 
-    const filter = input.value.toLowerCase(); 
-    const tbody = $(tbodyId); 
-    if (!tbody) return; 
-    const trs = tbody.getElementsByTagName('tr');
-    
-    for (let i = 0; i < trs.length; i++) { 
-        let rowText = trs[i].textContent || trs[i].innerText; 
-        if (rowText.toLowerCase().indexOf(filter) > -1) { 
-            trs[i].style.display = ""; 
-        } else { 
-            trs[i].style.display = "none"; 
-        } 
-    }
+const input = $(inputId); if (!input) return; const filter = input.value.toLowerCase(); const tbody = $(tbodyId); if (!tbody) return; const trs = tbody.getElementsByTagName('tr');
+for (let i = 0; i < trs.length; i++) { let rowText = trs[i].textContent || trs[i].innerText; if (rowText.toLowerCase().indexOf(filter) > -1) { trs[i].style.display = ""; } else { trs[i].style.display = "none"; } }
 };
 
 window.descargarExcelFiltrado = (origen = 'hist') => {
@@ -1205,14 +1188,68 @@ hs.forEach((h, idx) => {
         bd = `<span class="badge ${bs}">${es.toUpperCase()}</span><br><small>${sac.sac_num}</small>`; btn = `<button class="btn btn-primary" style="padding:4px;font-size:10px;" onclick="window.verSAC('${sac.sac_id}')">VER</button>`; 
     } else { 
         bd = `<span class="badge badge-dark">NO CREADA</span>`; 
-        if(currentUser.permisos.p_audit_auditor || currentUser.permisos.admin || (selectedAuditData && selectedAuditData.auditor && selectedAuditData.auditor.includes(currentUser.nombre))) btn = `<button class="btn btn-info" style="padding:4px;font-size:10px;" onclick="window.abrirCrearSAC('${h.id}')">CREAR SAC</button>`; 
+        if(currentUser.permisos.p_audit_auditor || currentUser.permisos.admin || currentUser.permisos.p_audit_admin || (selectedAuditData && selectedAuditData.auditor && selectedAuditData.auditor.includes(currentUser.nombre))) btn = `<button class="btn btn-info" style="padding:4px;font-size:10px;" onclick="window.abrirCrearSAC('${h.id}')">CREAR SAC</button>`; 
     }
     ht += `<tr><td><b>Ref. ${idx+1}</b><br><small>${(h.pregunta || "").substring(0,30)}...</small></td><td>${h.comentarios || ""}</td><td><span class="badge ${cb}">${h.nc}</span></td><td>${bd}</td><td>${btn}</td></tr>`;
 }); tb.innerHTML = ht;
 };
 
-window.addPlanRow = (d="", r="", i="", f="") => { const tb = $('tbody-plan-accion'); let tr = document.createElement('tr'); tr.innerHTML = `<td style="border:1px solid #ccc;">${tb.children.length+1}</td><td style="padding:0;"><input type="text" value="${d}" style="width:100%;border:none;margin:0;"></td><td style="padding:0;"><input type="text" value="${r}" style="width:100%;border:none;margin:0;"></td><td style="padding:0;"><input type="date" value="${i}" style="width:100%;border:none;margin:0;"></td><td style="padding:0;"><input type="date" value="${f}" style="width:100%;border:none;margin:0;"></td><td style="text-align:center;"><button class="btn-icon-danger" onclick="this.parentElement.parentElement.remove()"><span class="material-icons-round">delete</span></button></td>`; tb.appendChild(tr); };
-window.addSeguimientoRow = (res="", r="", f="") => { const tb = $('tbody-seguimiento'); let tr = document.createElement('tr'); tr.innerHTML = `<td style="border:1px solid #ccc;">${tb.children.length+1}</td><td style="padding:0;"><input type="text" value="${res}" style="width:100%;border:none;margin:0;"></td><td style="padding:0;"><input type="text" value="${r}" style="width:100%;border:none;margin:0;"></td><td style="padding:0;"><input type="date" value="${f}" style="width:100%;border:none;margin:0;"></td><td style="text-align:center;"><button class="btn-icon-danger" onclick="this.parentElement.parentElement.remove()"><span class="material-icons-round">delete</span></button></td>`; tb.appendChild(tr); };
+window.getUsersSelectHTML = (selectedValue) => {
+    let auds = selectedAuditData?.auditado ? selectedAuditData.auditado.split(', ') : []; 
+    let op = '<option value="">-- Seleccionar --</option>';
+    allUsers.forEach(u => {
+        let isAudited = auds.includes(u.nombre) ? '⭐ ' : '';
+        op += `<option value="${u.usuario}" ${selectedValue === u.usuario ? 'selected' : ''}>${isAudited}${u.nombre}</option>`;
+    });
+    return op;
+};
+
+window.addPlanRow = (d="", r="", i="", f="") => { 
+    const tb = $('tbody-plan-accion'); let tr = document.createElement('tr'); 
+    let selHTML = window.getUsersSelectHTML(r);
+    tr.innerHTML = `
+    <td style="border:1px solid #ccc; text-align:center;">${tb.children.length+1}</td>
+    <td style="padding:0;"><textarea class="plan-d" rows="2" style="width:100%;border:none;margin:0;resize:vertical;padding:8px;">${d}</textarea></td>
+    <td style="padding:0;"><select class="plan-r" style="width:100%;border:none;margin:0;padding:8px;background:transparent;">${selHTML}</select></td>
+    <td style="padding:0;"><input type="date" class="plan-i" value="${i}" style="width:100%;border:none;margin:0;padding:8px;"></td>
+    <td style="padding:0;"><input type="date" class="plan-f" value="${f}" style="width:100%;border:none;margin:0;padding:8px;"></td>
+    <td style="text-align:center;"><button class="btn-icon-danger" onclick="this.parentElement.parentElement.remove()"><span class="material-icons-round">delete</span></button></td>`; 
+    tb.appendChild(tr); 
+};
+
+window.addSeguimientoRow = (res="", r="", f="") => { 
+    const tb = $('tbody-seguimiento'); let tr = document.createElement('tr'); 
+    let selHTML = window.getUsersSelectHTML(r);
+    tr.innerHTML = `
+    <td style="border:1px solid #ccc; text-align:center;">${tb.children.length+1}</td>
+    <td style="padding:0;"><textarea class="seg-res" rows="2" style="width:100%;border:none;margin:0;resize:vertical;padding:8px;">${res}</textarea></td>
+    <td style="padding:0;"><select class="seg-r" style="width:100%;border:none;margin:0;padding:8px;background:transparent;">${selHTML}</select></td>
+    <td style="padding:0;"><input type="date" class="seg-f" value="${f}" style="width:100%;border:none;margin:0;padding:8px;"></td>
+    <td style="text-align:center;"><button class="btn-icon-danger" onclick="this.parentElement.parentElement.remove()"><span class="material-icons-round">delete</span></button></td>`; 
+    tb.appendChild(tr); 
+};
+
+window.aplicarBloqueosSAC = (isAuditor, isResp) => {
+    ['sac-fecha', 'sac-proceso', 'sac-tipo', 'sac-tipo-doc-afectado', 'sac-fuente', 'sac-fuente-otro', 'sac-detalle', 'sac-dueno', 'sac-fecha-aprob-plan', 'sac-fecha-cierre', 'sac-check-cerrar'].forEach(fId => {
+        if($(fId)) $(fId).disabled = !isAuditor;
+    });
+
+    ['sac-beneficio', 'sac-causa', 'sac-accion'].forEach(fId => {
+        if($(fId)) $(fId).disabled = !(isResp || isAuditor);
+    });
+
+    $$('#tbody-plan-accion textarea, #tbody-plan-accion select, #tbody-plan-accion input, #tbody-plan-accion button').forEach(el => {
+        el.disabled = !(isResp || isAuditor);
+    });
+    $$('#tbody-seguimiento textarea, #tbody-seguimiento select, #tbody-seguimiento input, #tbody-seguimiento button').forEach(el => {
+        el.disabled = !isAuditor;
+    });
+
+    if($('btn-add-plan')) $('btn-add-plan').style.display = (isResp || isAuditor) ? 'inline-block' : 'none';
+    if($('btn-add-seguimiento')) $('btn-add-seguimiento').style.display = isAuditor ? 'inline-block' : 'none';
+    
+    if($('btn-save-sac')) $('btn-save-sac').style.display = (isResp || isAuditor) ? 'inline-block' : 'none';
+};
 
 window.abrirCrearSAC = (id) => {
 let h = currentAuditF020.find(i => i.id === id); if(!h) return; currentEditingSacId = null; currentEditingF020Ref = h;
@@ -1224,8 +1261,6 @@ if($('sac-tipo')) $('sac-tipo').value = h.nc || "";
 
 if($('sac-tipo-doc-afectado')) { $('sac-tipo-doc-afectado').innerHTML = '<option value="">-- No aplica --</option>' + tiposDocumento.map(t => `<option value="${t}">${t}</option>`).join(''); $('sac-tipo-doc-afectado').value = ""; }
 if($('sac-fuente')) $('sac-fuente').value = "Auditoría Interna"; if($('sac-fuente-otro')) $('sac-fuente-otro').value = ""; if($('sac-detalle')) $('sac-detalle').value = h.comentarios || h.pregunta || ""; if($('sac-beneficio')) $('sac-beneficio').value = ""; if($('sac-causa')) $('sac-causa').value = ""; 
-
-// AQUÍ ESTÁ EL CAMBIO: Asignamos h.observacion al campo de Acción a Implementar
 if($('sac-accion')) $('sac-accion').value = h.observacion || "";
 
 if($('tbody-plan-accion')) $('tbody-plan-accion').innerHTML = ""; if($('sac-fecha-aprob-plan')) $('sac-fecha-aprob-plan').value = ""; if($('tbody-seguimiento')) $('tbody-seguimiento').innerHTML = ""; if($('sac-resp-cierre')) $('sac-resp-cierre').value = ""; if($('sac-fecha-cierre')) $('sac-fecha-cierre').value = ""; if($('sac-check-cerrar')) $('sac-check-cerrar').checked = false;
@@ -1235,6 +1270,7 @@ let op = '<option value="">-- Responsable --</option>';
 allUsers.forEach(u => { op += `<option value="${u.usuario}">${auds.includes(u.nombre) ? '⭐ ' : ''}${u.nombre}</option>`; }); 
 if($('sac-dueno')) $('sac-dueno').innerHTML = op; 
 
+window.aplicarBloqueosSAC(true, true);
 setDisplay('modal-sac', 'flex');
 };
 
@@ -1255,6 +1291,7 @@ let op = '<option value="">-- Responsable --</option>';
 allUsers.forEach(u => { op += `<option value="${u.usuario}">${auds.includes(u.nombre) ? '⭐ ' : ''}${u.nombre}</option>`; }); 
 if($('sac-dueno')) $('sac-dueno').innerHTML = op; 
 
+window.aplicarBloqueosSAC(true, true);
 setDisplay('modal-sac', 'flex');
 };
 
@@ -1285,13 +1322,25 @@ if($('sac-resp-cierre')) $('sac-resp-cierre').value = sac.cerrado_por || "";
 if($('sac-fecha-cierre')) $('sac-fecha-cierre').value = sac.fecha_cierre ? sac.fecha_cierre.split('T')[0] : ""; 
 if($('sac-check-cerrar')) $('sac-check-cerrar').checked = es === 'Cerrada'; 
 
+let isAuditor = currentUser.permisos.admin || currentUser.permisos.p_audit_admin || sac.auditor_nombre === currentUser.nombre || (selectedAuditData && selectedAuditData.auditor && selectedAuditData.auditor.includes(currentUser.nombre));
+let isResp = sac.dueno_uid === currentUser.usuario;
+window.aplicarBloqueosSAC(isAuditor, isResp);
+
 setDisplay('modal-sac', 'flex');
 };
 
 window.guardarSAC = async () => {
 window.showLoading(); let pA = [], sA = []; 
-$$('#tbody-plan-accion tr').forEach(tr => { let i = tr.querySelectorAll('input'); if(i[0].value.trim()) pA.push({detalle: i[0].value, resp: i[1].value, inicio: i[2].value, fin: i[3].value}); });
-$$('#tbody-seguimiento tr').forEach(tr => { let i = tr.querySelectorAll('input'); if(i[0].value.trim()) sA.push({resultado: i[0].value, resp: i[1].value, fecha: i[2].value}); });
+
+$$('#tbody-plan-accion tr').forEach(tr => { 
+    let d = tr.querySelector('.plan-d').value; let r = tr.querySelector('.plan-r').value;
+    let i = tr.querySelector('.plan-i').value; let f = tr.querySelector('.plan-f').value;
+    if(d.trim()) pA.push({detalle: d, resp: r, inicio: i, fin: f}); 
+});
+$$('#tbody-seguimiento tr').forEach(tr => { 
+    let res = tr.querySelector('.seg-res').value; let r = tr.querySelector('.seg-r').value; let f = tr.querySelector('.seg-f').value;
+    if(res.trim()) sA.push({resultado: res, resp: r, fecha: f}); 
+});
 
 let es = "Abierta (En Plan)"; if($('sac-fecha-aprob-plan') && $('sac-fecha-aprob-plan').value) es = "En Seguimiento"; if($('sac-check-cerrar') && $('sac-check-cerrar').checked) es = "Cerrada";
 let tipoDocAfectado = $('sac-tipo-doc-afectado') ? $('sac-tipo-doc-afectado').value : "";
